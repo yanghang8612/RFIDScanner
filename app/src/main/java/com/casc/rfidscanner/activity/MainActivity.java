@@ -1,8 +1,16 @@
 package com.casc.rfidscanner.activity;
 
+import android.app.Activity;
+import android.app.AlertDialog;
+import android.content.Context;
+import android.content.DialogInterface;
+import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
+import android.text.Layout;
+import android.util.Log;
 import android.view.View;
 import android.support.design.widget.NavigationView;
 import android.support.v4.view.GravityCompat;
@@ -11,6 +19,10 @@ import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.widget.EditText;
+import android.widget.ImageView;
+import android.widget.LinearLayout;
+import android.widget.TextView;
 
 import com.casc.rfidscanner.R;
 
@@ -38,9 +50,22 @@ public class MainActivity extends BaseActivity
                 this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
         drawer.addDrawerListener(toggle);
         toggle.syncState();
+        initView();
+    }
 
+    public void initView()
+    {
         NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
+        View headerLayout = navigationView.inflateHeaderView(R.layout.nav_header_main);
+        TextView myName = (TextView) headerLayout.findViewById(R.id.name);
         navigationView.setNavigationItemSelectedListener(this);
+
+        SharedPreferences sharedPreferences = getSharedPreferences("user", Context.MODE_PRIVATE); //私有数据
+        String  name = sharedPreferences.getString("name","");
+        String pwd = sharedPreferences.getString("pwd","");
+        myName.setText(name);
+        Log.i("*******************name",name);
+
     }
 
     @Override
@@ -81,17 +106,28 @@ public class MainActivity extends BaseActivity
         // Handle navigation view item clicks here.
         int id = item.getItemId();
 
-        if (id == R.id.nav_camera) {
-            // Handle the camera action
-        } else if (id == R.id.nav_gallery) {
+        if (id == R.id.nav_manage) {
+            final EditText inputServer = new EditText(this);
+            AlertDialog.Builder builder = new AlertDialog.Builder(this);
+            builder.setTitle("请输入安全码").setIcon(android.R.drawable.ic_dialog_info).setView(inputServer)
+                    .setNegativeButton("取消", null);
+            builder.setPositiveButton("确定", new DialogInterface.OnClickListener() {
 
-        } else if (id == R.id.nav_slideshow) {
+                public void onClick(DialogInterface dialog, int which) {
+                    inputServer.getText().toString();
+                    startActivity(new Intent(MainActivity.this,DebugActivity.class));
+                }
+            });
+            builder.show();
 
-        } else if (id == R.id.nav_manage) {
 
-        } else if (id == R.id.nav_share) {
-
-        } else if (id == R.id.nav_send) {
+        } else if (id == R.id.nav_exit) {
+            SharedPreferences sp = getSharedPreferences("user", Context.MODE_PRIVATE);
+            SharedPreferences.Editor editor = sp.edit();
+            editor.clear();
+            editor.commit();
+            startActivity(new Intent(this,LoginActivity.class));
+            finish();
 
         }
 
