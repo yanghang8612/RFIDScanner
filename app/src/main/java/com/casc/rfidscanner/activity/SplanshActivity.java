@@ -15,10 +15,13 @@ import android.view.Window;
 
 import com.casc.rfidscanner.R;
 
+import org.xutils.view.annotation.ContentView;
+
 /**
  * An example full-screen activity that shows and hides the system UI (i.e.
  * status bar and navigation/system bar) with user interaction.
  */
+@ContentView(R.layout.activity_splansh)
 public class SplanshActivity extends BaseActivity {
     private final int SPLASH_DISPLAY_LENGHT = 3000;
     private Handler mHandler;
@@ -26,12 +29,10 @@ public class SplanshActivity extends BaseActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        getWindow().requestFeature(Window.FEATURE_NO_TITLE);
-        setContentView(R.layout.activity_splansh);
+        //getWindow().requestFeature(Window.FEATURE_NO_TITLE);
 
         //获取sp登录信息
         Boolean isLogin=false;
-
         SharedPreferences sharedPreferences = getSharedPreferences("user", Context.MODE_PRIVATE); //私有数据
         String  name = sharedPreferences.getString("name","");
         String pwd = sharedPreferences.getString("pwd","");

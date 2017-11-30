@@ -37,11 +37,14 @@ import java.util.List;
 
 import com.casc.rfidscanner.R;
 
+import org.xutils.view.annotation.ContentView;
+
 import static android.Manifest.permission.READ_CONTACTS;
 
 /**
  * A login screen that offers login via email/password.
  */
+@ContentView(R.layout.activity_login)
 public class LoginActivity extends BaseActivity implements LoaderCallbacks<Cursor> {
 
     /**
@@ -70,7 +73,7 @@ public class LoginActivity extends BaseActivity implements LoaderCallbacks<Curso
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_login);
+        //setContentView(R.layout.activity_login);
         // Set up the login form.
         mEmailView = (AutoCompleteTextView) findViewById(R.id.email);
         populateAutoComplete();
