@@ -21,7 +21,6 @@ import android.widget.EditText;
 import android.widget.TextView;
 
 import com.casc.rfidscanner.R;
-import com.casc.rfidscanner.service.ScanService;
 
 import org.xutils.view.annotation.ContentView;
 import org.xutils.view.annotation.ViewInject;
@@ -37,15 +36,6 @@ public class MainActivity extends BaseActivity
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setSupportActionBar(toolbar);
-
-        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
-        fab.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
-                        .setAction("Action", null).show();
-            }
-        });
 
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
@@ -67,12 +57,11 @@ public class MainActivity extends BaseActivity
         String  name = sharedPreferences.getString("name","");
         String pwd = sharedPreferences.getString("pwd","");
         myName.setText(name);
-        Log.i("*******************name",name);
 
     }
 
     public void initService() {
-        startService(new Intent(this, ScanService.class));
+      //  startService(new Intent(this, ScanService.class));
     }
 
     @Override
@@ -100,9 +89,9 @@ public class MainActivity extends BaseActivity
         int id = item.getItemId();
 
         //noinspection SimplifiableIfStatement
-        if (id == R.id.action_settings) {
+   /*     if (id == R.id.action_settings) {
             return true;
-        }
+        }*/
 
         return super.onOptionsItemSelected(item);
     }

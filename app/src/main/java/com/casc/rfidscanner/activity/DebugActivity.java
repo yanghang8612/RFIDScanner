@@ -5,7 +5,10 @@ import android.os.Bundle;
 
 import com.casc.rfidscanner.R;
 
-public class DebugActivity extends AppCompatActivity {
+import org.xutils.view.annotation.ContentView;
+
+
+public class DebugActivity extends BaseActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {

@@ -81,7 +81,7 @@
         </activity>
         <activity
             android:name=".activity.LoginActivity" />
-        <activity android:name=".activity.DebugActivity"></activity>
+        <activity android:name=".activity.DebugActivity"  android:label="调试状态"></activity>
     </application>
 
 </manifest>
