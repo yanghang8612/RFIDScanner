@@ -1,6 +1,7 @@
 package com.casc.rfidscanner.bean;
 
 import android.content.ContentValues;
+import android.database.Cursor;
 
 public class Tag {
 
@@ -115,7 +116,7 @@ public class Tag {
 
     public ContentValues transfor2ContentValues() {
         ContentValues values = new ContentValues();
-        if (id >= 0) values.put("_id", this.getId());
+        if (id != null && id >= 0) values.put("_id", this.getId());
         values.put("tid", this.getTid());
         values.put("rfid", this.getRfid());
         values.put("link", this.getLink());
@@ -123,5 +124,30 @@ public class Tag {
         values.put("latitude", this.getLatitude());
         values.put("timestamp", this.getTimestamp());
         return values;
+    }
+
+    @Override
+    public String toString() {
+        return "Tag{" +
+                "id=" + id +
+                ", tid='" + tid + '\'' +
+                ", rfid='" + rfid + '\'' +
+                ", link='" + link + '\'' +
+                ", longitude=" + longitude +
+                ", latitude=" + latitude +
+                ", timestamp='" + timestamp + '\'' +
+                '}';
+    }
+
+    public static Tag transforByCursor(Cursor c) {
+        int id = c.getInt(c.getColumnIndex("_id")); // SQLite feature
+        String tid = c.getString(c.getColumnIndex("tid"));
+        String rfid = c.getString(c.getColumnIndex("rfid"));
+        String link = c.getString(c.getColumnIndex("link"));
+        Double longitude = c.getDouble(c.getColumnIndex("longitude"));
+        Double latitude = c.getDouble(c.getColumnIndex("latitude"));
+        String timestamp = c.getString(c.getColumnIndex("timestamp"));
+
+        return new Tag(id, tid, rfid, link, longitude, latitude, timestamp);
     }
 }
