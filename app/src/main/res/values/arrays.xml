@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string-array name="link">
+        <item>桶注册</item>
+        <item>桶筛选</item>
+        <item>桶成品</item>
+        <item>桶出库</item>
+        <item>桶回流</item>
+        <item>桶报废</item>
+    </string-array>
+</resources>
