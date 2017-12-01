@@ -1,17 +1,13 @@
 package com.casc.rfidscanner.helper;
 
-import android.content.ContentValues;
 import android.content.Context;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.util.Log;
 
-import com.casc.rfidscanner.bean.Tag;
-import com.casc.rfidscanner.bean.User;
-
-import static com.casc.rfidscanner.utils.CommonUtils.randStr;
-
 public class DBOpenHelper extends SQLiteOpenHelper {
+
+    public static final String TAG = DBOpenHelper.class.getName();
 
     public final static int VERSION = 1;
     public final static String DB_NAME = "RFIDScanner.db";
@@ -35,8 +31,7 @@ public class DBOpenHelper extends SQLiteOpenHelper {
     //数据库第一次创建时候调用
     @Override
     public void onCreate(SQLiteDatabase db) {
-        System.out.println("=========++++++++++++============Create Database");
-        Log.i("=++++==Create Database", "DBTagHelper");
+        Log.i(TAG, "======Create Database START( DB_NAME = " + DB_NAME + ", VERSION = " + VERSION + ")");
         db.execSQL(CREATE_TBL_TAG);
         db.execSQL(CREATE_TBL_USER);
     }
@@ -44,7 +39,7 @@ public class DBOpenHelper extends SQLiteOpenHelper {
     //数据库文件版本号发生变化时调用
     @Override
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
-        System.out.println("update Database");
+        Log.i(TAG, "======upgrade Database( DB_NAME = " + DB_NAME + ", VERSION = " + VERSION + ")");
     }
 
 }

@@ -30,4 +30,6 @@ dependencies {
 
     compile 'org.xutils:xutils:3.5.0'
     compile 'com.alibaba:fastjson:1.2.30'
+
+    compile 'com.amitshekhar.android:debug-db:1.0.0'
 }
