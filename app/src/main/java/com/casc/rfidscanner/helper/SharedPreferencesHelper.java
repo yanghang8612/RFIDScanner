@@ -1,12 +1,12 @@
-package com.casc.rfidscanner.utils;
+package com.casc.rfidscanner.helper;
 
 import android.content.Context;
 import android.content.SharedPreferences;
 
 /**
- * SharedPreferences工具类，提供String，Integer，Boolean，Float，Long类型数据的存储和读写功能
+ * SharedPreferences辅助类，提供String，Integer，Boolean，Float，Long类型数据的存储和读写功能
  */
-public class SharedPreferencesUtils {
+public class SharedPreferencesHelper {
 
     private static final String FILE_NAME = "RFID_WATER";
     private static final int CONTEXT_MODEL =  Context.MODE_PRIVATE;
