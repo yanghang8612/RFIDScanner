@@ -13,12 +13,12 @@ public class DBOpenHelper extends SQLiteOpenHelper {
     public final static String DB_NAME = "RFIDScanner.db";
 
     public static final String TABLE_NAME_TAG = "tagTable";
-    public static final String TABLE_NAME_USER = "userTable";
+    public static final String TABLE_NAME_DRIVER = "driverTable";
+    public static final String TABLE_NAME_DEALER = "dealerTable";
 
-    public static String CREATE_TBL_TAG = "CREATE TABLE if not exists " + TABLE_NAME_TAG + "(_id integer primary key autoincrement," +
-            " tid text, rfid text, link text, longitude real, latitude real, timestamp text)";
-    private static String CREATE_TBL_USER = "CREATE TABLE if not exists " + TABLE_NAME_USER + "(_id integer primary key autoincrement," +
-            " name text, pwd text, type text)";
+    public static String CREATE_TBL_TAG = "CREATE TABLE if not exists " + TABLE_NAME_TAG + "(_id integer primary key autoincrement, textarea text)";
+    private static String CREATE_TBL_USER = "CREATE TABLE if not exists " + TABLE_NAME_DRIVER + "(_id integer primary key autoincrement, textarea text)";
+    private static String CREATE_TBL_DERIVER = "CREATE TABLE if not exists " + TABLE_NAME_DEALER + "(_id integer primary key autoincrement, textarea text)";
 
     public DBOpenHelper(Context context, String dbName, SQLiteDatabase.CursorFactory factory, int version) {
         super(context, dbName, factory, version);
@@ -34,6 +34,7 @@ public class DBOpenHelper extends SQLiteOpenHelper {
         Log.i(TAG, "======Create Database START( DB_NAME = " + DB_NAME + ", VERSION = " + VERSION + ")");
         db.execSQL(CREATE_TBL_TAG);
         db.execSQL(CREATE_TBL_USER);
+        db.execSQL(CREATE_TBL_DERIVER);
     }
 
     //数据库文件版本号发生变化时调用

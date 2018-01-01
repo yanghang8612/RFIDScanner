@@ -7,21 +7,116 @@ import android.database.sqlite.SQLiteDatabase;
 
 import com.casc.rfidscanner.helper.DBOpenHelper;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+/**
+ * 约定以TEXT类型的JSON串保存 缓存tag 以及 经销商列表、司机列表
+ * （若仅使用特定字段则解析JSON串）
+ */
 public class BaseDao {
+    private static final String COLUMN_ID = "_id";
+    private static final String COLUMN_TEXTAREA = "textarea";
+
     private DBOpenHelper dbOpenHelper;
     private SQLiteDatabase db;
 
-    private String tableName;
+    private String tableName; // 区分
 
     public BaseDao(String tableName, Context context) {
         this.tableName = tableName;
         this.dbOpenHelper = new DBOpenHelper(context);
     }
 
+    /**
+     * 插入新数据
+     *
+     * @param textarea
+     * @return
+     */
+    public long save(String textarea) {
+        ContentValues values = transfor2ContentValues(null, textarea);
+        return insertContentValues(values);
+    }
+
+    /**
+     * 查找所有JSON数据
+     *
+     * @return
+     */
+    public List<String> findAllTextarea() {
+        List<String> result = new ArrayList<String>();
+        Cursor c = simpleQuery(); // remain
+
+        while (c.moveToNext()) {
+            result.add(c.getString(c.getColumnIndex(COLUMN_TEXTAREA))); // JSON
+        }
+        c.close();
+        return result;
+    }
+
+    /**
+     * 查找所有JSON数据
+     *
+     * @return
+     */
+    public Map<Integer, String> findAll() {
+        Map<Integer, String> result = new HashMap<Integer, String>();
+        Cursor c = simpleQuery(); // remain
+
+        while (c.moveToNext()) {
+            int id = c.getInt(c.getColumnIndex(COLUMN_ID)); // SQLite feature
+            String textarea = c.getString(c.getColumnIndex(COLUMN_TEXTAREA)); // JSON
+            result.put(id, textarea);
+        }
+        c.close();
+        return result;
+    }
+
+    /**
+     * 按照id删除指定数据
+     *
+     * @param id
+     */
+    public int delete(int id) {
+        return deleteById(id);
+    }
+
+    /**
+     * 修改Tag
+     *
+     * @param id
+     * @param textarea
+     * @return
+     */
+    public int update(Integer id, String textarea) {
+        ContentValues values = transfor2ContentValues(id, textarea);
+        return update(values, COLUMN_ID + "=?", new String[]{id.toString()});
+    }
+
+    /**
+     * 通过id查找数据
+     *
+     * @param id
+     * @return
+     */
+    public String getById(int id) {
+        Cursor c = getByIdCursor(id);
+        while (c.moveToNext()) {
+            String textarea = c.getString(c.getColumnIndex(COLUMN_TEXTAREA));
+            c.close();
+            return textarea;
+        }
+        return null;
+    }
+
+
     protected long insertContentValues(ContentValues values) {
-        //获取SQLiteDatabase实例
+        // 获取SQLiteDatabase实例
         db = dbOpenHelper.getWritableDatabase();
-        //插入数据库中
+        // 插入数据库中
         long result = db.insert(tableName, null, values);
         close();
         return result;
@@ -29,7 +124,7 @@ public class BaseDao {
 
     protected Cursor simpleQuery() {
         db = dbOpenHelper.getReadableDatabase();
-        //获取Cursor
+        // 获取Cursor
         Cursor c = db.query(tableName, null, null, null, null, null, null, null);
 //        close();
         return c;
@@ -37,21 +132,21 @@ public class BaseDao {
 
     protected Cursor getByIdCursor(int id) {
         db = dbOpenHelper.getReadableDatabase();
-        //获取Cursor
-        Cursor c = db.query(tableName, null, "_id=?", new String[]{String.valueOf(id)}, null, null, null, null);
+        // 获取Cursor
+        Cursor c = db.query(tableName, null, COLUMN_ID + "=?", new String[]{String.valueOf(id)}, null, null, null, null);
 //        close();
         return c;
     }
 
-    protected int deleteByid(int id) {
+    protected int deleteById(int id) {
         db = dbOpenHelper.getWritableDatabase();
-        int result = db.delete(tableName, "_id=?", new String[]{String.valueOf(id)});
+        int result = db.delete(tableName, COLUMN_ID + "=?", new String[]{String.valueOf(id)});
         close();
         return result;
     }
 
 
-    //更新数据库的内容
+    // 更新数据库的内容
     protected int update(ContentValues values, String whereClause, String[] whereArgs) {
         db = dbOpenHelper.getWritableDatabase();
         int result = db.update(tableName, values, whereClause, whereArgs);
@@ -69,11 +164,18 @@ public class BaseDao {
         return count;
     }
 
-    //关闭数据库
+    // 关闭数据库
     public void close() {
         if (db != null) {
             db.close();
         }
+    }
+
+    public static ContentValues transfor2ContentValues(Integer id, String textarea) {
+        ContentValues values = new ContentValues();
+        if (id != null && id >= 0) values.put(COLUMN_ID, id);
+        values.put(COLUMN_TEXTAREA, textarea);
+        return values;
     }
 
 }

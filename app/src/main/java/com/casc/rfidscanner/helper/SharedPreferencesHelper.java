@@ -8,11 +8,12 @@ import android.content.SharedPreferences;
  */
 public class SharedPreferencesHelper {
 
-    private static final String FILE_NAME = "RFID_WATER";
-    private static final int CONTEXT_MODEL =  Context.MODE_PRIVATE;
+    private static final String FILE_NAME = "RFIDScannerSP";
+    private static final int CONTEXT_MODEL = Context.MODE_PRIVATE;
 
     /**
-     * 得到保存数据的方法，我们根据默认值得到保存的数据的具体类型，然后调用相对于的方法获取值
+     * 获取保存数据
+     * 根据默认值得到保存的数据的具体类型，然后调用相对于的方法获取值
      *
      * @param context
      * @param key
@@ -38,7 +39,7 @@ public class SharedPreferencesHelper {
     }
 
     /**
-     * 保存数据的方法，我们需要拿到保存数据的具体类型，然后根据类型调用不同的保存方法
+     * 保存数据
      *
      * @param context
      * @param key
@@ -59,6 +60,8 @@ public class SharedPreferencesHelper {
             editor.putFloat(key, (Float) object);
         } else if ("Long".equals(type)) {
             editor.putLong(key, (Long) object);
+        } else {
+            throw new IllegalArgumentException("Wrong class type of object in 'setParam'!");
         }
         editor.commit();
     }
