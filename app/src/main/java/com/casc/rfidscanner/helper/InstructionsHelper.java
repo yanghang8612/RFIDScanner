@@ -11,8 +11,8 @@ public class InstructionsHelper {
     private InstructionsHelper() {
     }
 
-    private static final byte INS_HEADER = (byte) 0xBB;
-    private static final byte INS_END = (byte) 0x7E;
+    public static final byte INS_HEADER = (byte) 0xBB;
+    public static final byte INS_END = (byte) 0x7E;
 
     /**
      * 指令帧类型
@@ -91,7 +91,7 @@ public class InstructionsHelper {
      * 多次轮询指令
      * index的7、8位表示次数
      * <p>
-     * 该指令要求芯片MCU 进行多次轮询Inventory 操作，轮询次数限制为0-65535 次。
+     * 该指令要求芯片MCU 进行多次轮询Inventory 操作，轮询次数限制为0至65535 次。
      *
      * @param cnt pollingAmount
      * @return
@@ -319,7 +319,7 @@ public class InstructionsHelper {
     private static final byte[] GET_QUERY_PARAMETER = new byte[]{INS_HEADER, INS_TYPE[0], (byte) 0x0D, (byte) 0x00, (byte) 0x00, (byte) 0x0D, INS_END};
 
     /**
-     * 设置Query 参数
+     * 设置Query 参数，取值范围为0至15
      * <p>
      * 参数为2 字节，具体参数按位拼接而成。
      *
@@ -339,6 +339,16 @@ public class InstructionsHelper {
         return setQueryParameter;
     }
 
+    /**
+     * 设置Query 参数，取值范围为0至15
+     * （DR、M、TRext不可设）
+     *
+     * @param sel
+     * @param session
+     * @param target
+     * @param q
+     * @return
+     */
     public static byte[] setQueryParameter(byte sel, byte session, byte target, int q) {
         byte[] para = new byte[2];
         para[0] = (byte) ((0x01 << 4) | ((sel & 0x03) << 2) | (session & 0x3)); // Para(MSB)
