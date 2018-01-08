@@ -29,34 +29,22 @@ public class BTReaderImpl implements TagReader {
 
     private InstructionDeal instructionDeal;
 
-    // Name for the SDP record when creating server socket
-    private static final String NAME = "BluetoothService";
-
     // Unique UUID for this application
     //private static final UUID MY_UUID = UUID.fromString("fa87c0d0-afac-11de-8a39-0800200c9a66");
     private static final UUID MY_UUID = UUID.fromString("00001101-0000-1000-8000-00805F9B34FB");
 
     // Member fields
     private final BluetoothAdapter mAdapter;
-    //    private final Handler mHandler;
-    //    private AcceptThread mAcceptThread;
-    private ConnectThread mConnectThread;
-    private ConnectedThread mConnectedThread;
+    private BTConnectThread mBTConnectThread;
+    private BTConnectedThread mConnectedThread;
     private int mState;
 
-//    private boolean isScanning; // 读写器接受扫描状态
-//    private boolean isConnected; // 读写器的连接状态
-
-    // Constants that indicate the current connection state
-    public static final int STATE_NONE = 0;       // we're doing nothing
-    public static final int STATE_LISTEN = 1;     // now listening for incoming connections
-    public static final int STATE_CONNECTING = 2; // now initiating an outgoing connection
-    public static final int STATE_CONNECTED = 3;  // now connected to a remote device
-
-//    private StringBuffer mOutStringBuffer; // String buffer for outgoing messages
-
     public BTReaderImpl(InstructionDeal instructionDeal) {
-        this.instructionDeal = instructionDeal;
+        if (instructionDeal != null) {
+            this.instructionDeal = instructionDeal;
+        } else {
+            throw new IllegalArgumentException(TAG + " InstructionDeal is NULL!");
+        }
 
         mAdapter = BluetoothAdapter.getDefaultAdapter();
         mState = STATE_NONE;
@@ -70,7 +58,8 @@ public class BTReaderImpl implements TagReader {
         }
 
         // 自动连接指定的MAC地址
-        String btReaderMAC = (String) SharedPreferencesHelper.getParam(context, GlobalParams.S_READER_MAC, null);
+        String btReaderMAC = (String) SharedPreferencesHelper.getParam(context, GlobalParams.S_READER_MAC, "");
+        Log.e(TAG, "btReaderMAC = " + btReaderMAC);
         boolean isAutoConnected = autoConnection(btReaderMAC);
         if (!isAutoConnected) {
             return false;
@@ -95,7 +84,7 @@ public class BTReaderImpl implements TagReader {
         byte[] queryParameter = InstructionsHelper.setQueryParameter((byte) 0x00, (byte) 0x00, (byte) 0x00, btReaderQvalue);
         sendCommand(queryParameter);
 
-        return false;
+        return true;
     }
 
     @Override
@@ -116,15 +105,22 @@ public class BTReaderImpl implements TagReader {
      * @param address
      * @return
      */
-    public boolean autoConnection(String address) {
+    private boolean autoConnection(String address) {
         Set<BluetoothDevice> pairedDevices = mAdapter.getBondedDevices();// 获取本机已配对设备
-        if (pairedDevices.size() > 0) {
+        if (pairedDevices != null && pairedDevices.size() > 0) {
             for (BluetoothDevice device1 : pairedDevices) {
                 if (device1.getAddress().equals(address)) {
                     // Get the BluetoothDevice object
 //                    BluetoothDevice device = device1;
                     // Attempt to connect to the device
-                    connect(device1);
+                    final BluetoothDevice d = device1;
+//                    new Thread(new Runnable() {
+//                        @Override
+//                        public void run() {
+//                            connect(d);
+//                        }
+//                    });
+                    connect(d);
                     return true;
                 }
             }
@@ -145,20 +141,20 @@ public class BTReaderImpl implements TagReader {
     /**
      * Return the current connection state.
      */
-    public synchronized int getState() {
+    private synchronized int getState() {
         return mState;
     }
 
     /**
      * Start the chat service. Called by the Activity onResume()
      */
-    public synchronized void start() {
+    private synchronized void start() {
         if (D) Log.d(TAG, "start");
 
         // Cancel any thread attempting to make a connection
-        if (mConnectThread != null) {
-            mConnectThread.cancel();
-            mConnectThread = null;
+        if (mBTConnectThread != null) {
+            mBTConnectThread.cancel();
+            mBTConnectThread = null;
         }
 
         // Cancel any thread currently running a connection
@@ -171,18 +167,18 @@ public class BTReaderImpl implements TagReader {
     }
 
     /**
-     * Start the ConnectThread to initiate a connection to a remote device.
+     * Start the BTConnectThread to initiate a connection to a remote device.
      *
      * @param device The BluetoothDevice to connect
      */
-    public synchronized void connect(BluetoothDevice device) {
+    private synchronized void connect(BluetoothDevice device) {
         if (D) Log.d(TAG, "connect to: " + device);
 
         // Cancel any thread attempting to make a connection
         if (mState == STATE_CONNECTING) {
-            if (mConnectThread != null) {
-                mConnectThread.cancel();
-                mConnectThread = null;
+            if (mBTConnectThread != null) {
+                mBTConnectThread.cancel();
+                mBTConnectThread = null;
             }
         }
 
@@ -193,24 +189,24 @@ public class BTReaderImpl implements TagReader {
         }
 
         // Start the thread to connect with the given device
-        mConnectThread = new ConnectThread(device);
-        mConnectThread.start();
+        mBTConnectThread = new BTConnectThread(device);
+        mBTConnectThread.start();
         setState(STATE_CONNECTING);
     }
 
     /**
-     * Start the ConnectedThread to begin managing a Bluetooth connection
+     * Start the BTConnectedThread to begin managing a Bluetooth connection
      *
      * @param socket The BluetoothSocket on which the connection was made
      * @param device The BluetoothDevice that has been connected
      */
-    public synchronized void connected(BluetoothSocket socket, BluetoothDevice device) {
+    private synchronized void connected(BluetoothSocket socket, BluetoothDevice device) {
         if (D) Log.d(TAG, "connected");
 
         // Cancel the thread that completed the connection
-        if (mConnectThread != null) {
-            mConnectThread.cancel();
-            mConnectThread = null;
+        if (mBTConnectThread != null) {
+            mBTConnectThread.cancel();
+            mBTConnectThread = null;
         }
 
         // Cancel any thread currently running a connection
@@ -220,15 +216,8 @@ public class BTReaderImpl implements TagReader {
         }
 
         // Start the thread to manage the connection and perform transmissions
-        mConnectedThread = new ConnectedThread(socket);
+        mConnectedThread = new BTConnectedThread(socket);
         mConnectedThread.start();
-
-        // Send the name of the connected device back to the UI Activity
-//        Message msg = mHandler.obtainMessage(GlobalParams.MESSAGE_DEVICE_NAME);
-//        Bundle bundle = new Bundle();
-//        bundle.putString(GlobalParams.DEVICE_NAME, device.getName());
-//        msg.setData(bundle);
-//        mHandler.sendMessage(msg);
 
         setState(STATE_CONNECTED);
         instructionDeal.onConnectionStart(); //
@@ -237,11 +226,11 @@ public class BTReaderImpl implements TagReader {
     /**
      * Stop all threads
      */
-    public synchronized void stop() {
+    private synchronized void stop() {
         if (D) Log.d(TAG, "stop");
-        if (mConnectThread != null) {
-            mConnectThread.cancel();
-            mConnectThread = null;
+        if (mBTConnectThread != null) {
+            mBTConnectThread.cancel();
+            mBTConnectThread = null;
         }
         if (mConnectedThread != null) {
             mConnectedThread.cancel();
@@ -251,15 +240,15 @@ public class BTReaderImpl implements TagReader {
     }
 
     /**
-     * Write to the ConnectedThread in an unsynchronized manner
+     * Write to the BTConnectedThread in an unsynchronized manner
      *
      * @param out The bytes to write
-     * @see ConnectedThread#write(byte[])
+     * @see BTConnectedThread#write(byte[])
      */
-    public void write(byte[] out) {
+    private void write(byte[] out) {
         // Create temporary object
-        ConnectedThread r;
-        // Synchronize a copy of the ConnectedThread
+        BTConnectedThread r;
+        // Synchronize a copy of the BTConnectedThread
         synchronized (this) {
             if (mState != STATE_CONNECTED) return;
             r = mConnectedThread;
@@ -291,11 +280,11 @@ public class BTReaderImpl implements TagReader {
      * with a device. It runs straight through; the connection either
      * succeeds or fails.
      */
-    private class ConnectThread extends Thread {
+    private class BTConnectThread extends Thread {
         private final BluetoothSocket mmSocket;
         private final BluetoothDevice mmDevice;
 
-        public ConnectThread(BluetoothDevice device) {
+        public BTConnectThread(BluetoothDevice device) {
             mmDevice = device;
             BluetoothSocket tmp = null;
 
@@ -310,8 +299,8 @@ public class BTReaderImpl implements TagReader {
         }
 
         public void run() {
-            Log.i(TAG, "BEGIN mConnectThread");
-            setName("ConnectThread");
+            Log.i(TAG, "BEGIN mBTConnectThread");
+            setName("BTConnectThread");
 
             // Always cancel discovery because it will slow down a connection
             mAdapter.cancelDiscovery();
@@ -333,9 +322,9 @@ public class BTReaderImpl implements TagReader {
                 return;
             }
 
-            // Reset the ConnectThread because we're done
+            // Reset the BTConnectThread because we're done
             synchronized (this) {
-                mConnectThread = null;
+                mBTConnectThread = null;
             }
 
             // Start the connected thread
@@ -355,13 +344,13 @@ public class BTReaderImpl implements TagReader {
      * This thread runs during a connection with a remote device.
      * It handles all incoming and outgoing transmissions.
      */
-    private class ConnectedThread extends Thread {
+    private class BTConnectedThread extends Thread {
         private final BluetoothSocket mmSocket;
         private final InputStream mmInStream;
         private final OutputStream mmOutStream;
 
-        public ConnectedThread(BluetoothSocket socket) {
-            Log.d(TAG, "create ConnectedThread");
+        public BTConnectedThread(BluetoothSocket socket) {
+            Log.d(TAG, "create BTConnectedThread");
             mmSocket = socket;
             InputStream tmpIn = null;
             OutputStream tmpOut = null;
@@ -379,7 +368,7 @@ public class BTReaderImpl implements TagReader {
         }
 
         public void run() {
-            Log.i(TAG, "BEGIN mConnectedThread");
+            Log.i(TAG, "BEGIN BT mConnectedThread");
 
             byte[] data = new byte[64];
             byte[] inBytes = new byte[64];

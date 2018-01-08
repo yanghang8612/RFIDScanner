@@ -46,4 +46,46 @@ public class GlobalParams {
     public static final String S_DEALER_INFO = "dealerinfo"; // 经销商
     public static final String S_DRIVER_INFO = "driverinfo"; // 司机
 
+    /**
+     * 读写器连接方式
+     */
+    public enum ReaderConnectionType {
+        BT, USB, BOTH
+    }
+
+    /**
+     * 工位
+     */
+    public enum LinkType {
+        R0("桶注册", ReaderConnectionType.USB),
+        R1("桶报废", ReaderConnectionType.USB),
+        R2("水企空桶回流", ReaderConnectionType.BT),
+        R3("桶筛选", ReaderConnectionType.USB),
+        R4("成品注册", ReaderConnectionType.USB),
+        R5("打垛", ReaderConnectionType.BOTH),
+        R6("水企成品出库", ReaderConnectionType.BT),
+        R10("经销商成品入库", ReaderConnectionType.USB),
+        R11("经销商成品出库", ReaderConnectionType.USB),
+        R12("经销商空桶入库", ReaderConnectionType.USB),
+        R13("经销商空桶出库", ReaderConnectionType.USB);
+
+        //        private String index;
+        private String vaule;
+        private ReaderConnectionType readerConnectionType;
+
+        LinkType(String value, ReaderConnectionType readerConnectionType) {
+//            this.index = index;
+            this.vaule = value;
+            this.readerConnectionType = readerConnectionType;
+        }
+
+        public String getVaule() {
+            return vaule;
+        }
+
+        public ReaderConnectionType getReaderConnectionType() {
+            return readerConnectionType;
+        }
+    }
+
 }
