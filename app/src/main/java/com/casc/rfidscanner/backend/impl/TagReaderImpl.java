@@ -25,7 +25,7 @@ public class TagReaderImpl implements TagReader {
         this.link = link;
 
         if (link.getReaderConnectionType().equals(GlobalParams.ReaderConnectionType.BT)) {
-            tagReader = new BTReaderImpl(instructionDeal);
+            tagReader = new BTReaderImpl(context, instructionDeal);
         } else {
             tagReader = new USBReaderImpl(context,instructionDeal);
         }
@@ -65,6 +65,11 @@ public class TagReaderImpl implements TagReader {
     @Override
     public boolean isConnected() {
         return tagReader.isConnected();
+    }
+
+    @Override
+    public void stop() {
+        tagReader.stop();
     }
 
 }

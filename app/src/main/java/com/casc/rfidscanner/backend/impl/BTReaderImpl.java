@@ -3,7 +3,12 @@ package com.casc.rfidscanner.backend.impl;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothSocket;
+import android.content.BroadcastReceiver;
 import android.content.Context;
+import android.content.ContextWrapper;
+import android.content.Intent;
+import android.content.IntentFilter;
+import android.os.Bundle;
 import android.util.Log;
 
 import com.casc.rfidscanner.GlobalParams;
@@ -11,10 +16,12 @@ import com.casc.rfidscanner.backend.InstructionDeal;
 import com.casc.rfidscanner.backend.TagReader;
 import com.casc.rfidscanner.helper.InstructionsHelper;
 import com.casc.rfidscanner.helper.SharedPreferencesHelper;
+import com.casc.rfidscanner.utils.ClsUtils;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.Set;
 import java.util.UUID;
@@ -31,7 +38,10 @@ public class BTReaderImpl implements TagReader {
 
     // Unique UUID for this application
     //private static final UUID MY_UUID = UUID.fromString("fa87c0d0-afac-11de-8a39-0800200c9a66");
-    private static final UUID MY_UUID = UUID.fromString("00001101-0000-1000-8000-00805F9B34FB");
+    private static final UUID MY_UUID = UUID.fromString("00001101-0000-1000-8000-00805F9B34FB"); // 串口
+//    private static final UUID MY_UUID = UUID.fromString("00002A4A-0000-1000-8000-00805F9B34FB"); // HID（人机交互设备）
+
+    private static final String DEFAULT_MAC_ADDRESS = "00:13:EF:D1:90:73";
 
     // Member fields
     private final BluetoothAdapter mAdapter;
@@ -39,7 +49,30 @@ public class BTReaderImpl implements TagReader {
     private BTConnectedThread mConnectedThread;
     private int mState;
 
-    public BTReaderImpl(InstructionDeal instructionDeal) {
+    private BroadcastReceiver searchDevices = new BroadcastReceiver() {
+
+        public void onReceive(Context context, Intent intent) {
+            String btReaderMAC = (String) SharedPreferencesHelper.getParam(context, GlobalParams.S_READER_MAC, DEFAULT_MAC_ADDRESS);
+            if (BluetoothDevice.ACTION_FOUND.equals(intent.getAction())) {
+                BluetoothDevice device = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
+                if (device.getBondState() == BluetoothDevice.BOND_NONE) { // 未配对
+                    if (device.getAddress().equals(btReaderMAC)) {
+                        // 进行配对
+//                        device.createBond();
+                        try {
+                            ClsUtils.createBond(device.getClass(), device);
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
+                    }
+                }
+            } else if (BluetoothAdapter.ACTION_DISCOVERY_FINISHED.equals(intent.getAction())) {
+                // 搜索结束
+            }
+        }
+    };
+
+    public BTReaderImpl(ContextWrapper context, InstructionDeal instructionDeal) {
         if (instructionDeal != null) {
             this.instructionDeal = instructionDeal;
         } else {
@@ -48,6 +81,17 @@ public class BTReaderImpl implements TagReader {
 
         mAdapter = BluetoothAdapter.getDefaultAdapter();
         mState = STATE_NONE;
+
+        // 注册Receiver来获取蓝牙设备相关的结果
+        IntentFilter intent = new IntentFilter();
+        intent.addAction(BluetoothDevice.ACTION_FOUND);// 用BroadcastReceiver来取得搜索结果
+        intent.addAction(BluetoothDevice.ACTION_BOND_STATE_CHANGED);
+        intent.addAction(BluetoothAdapter.ACTION_SCAN_MODE_CHANGED);
+        intent.addAction(BluetoothAdapter.ACTION_STATE_CHANGED);
+
+        intent.addAction(BluetoothAdapter.ACTION_DISCOVERY_FINISHED);
+        intent.addAction(BluetoothDevice.ACTION_PAIRING_REQUEST);
+        context.registerReceiver(searchDevices, intent);
     }
 
     @Override
@@ -64,8 +108,7 @@ public class BTReaderImpl implements TagReader {
         if (!isAutoConnected) {
             return false;
         }
-        // Initialize the buffer for outgoing messages
-//        mOutStringBuffer = new StringBuffer("");
+
         return true;
     }
 
@@ -98,6 +141,37 @@ public class BTReaderImpl implements TagReader {
         return false;
     }
 
+    /**
+     * 开启蓝牙搜索（更换MAC地址时调用此函数，触发配对）
+     */
+    public void startDiscovery() {
+        if (mAdapter.isDiscovering()) {
+            mAdapter.cancelDiscovery();
+        }
+        mAdapter.startDiscovery();
+    }
+
+
+    //得到配对的设备列表，清除已配对的设备
+    private void removePairDevice() {
+        if (mAdapter != null) {
+            // 获取已配对蓝牙列表的方法
+            Set<BluetoothDevice> bondedDevices = mAdapter.getBondedDevices();
+            for (BluetoothDevice device : bondedDevices) {
+                unpairDevice(device);
+            }
+        }
+    }
+
+    //反射来调用BluetoothDevice.removeBond取消设备的配对
+    private void unpairDevice(BluetoothDevice device) {
+        try {
+            Method m = device.getClass().getMethod("removeBond", (Class[]) null);
+            m.invoke(device, (Object[]) null);
+        } catch (Exception e) {
+            Log.e("mate", e.getMessage());
+        }
+    }
 
     /**
      * APP 启动时，自动连接指定 MAC 地址的蓝牙设备（本机已配对设备）
@@ -226,7 +300,7 @@ public class BTReaderImpl implements TagReader {
     /**
      * Stop all threads
      */
-    private synchronized void stop() {
+    public synchronized void stop() {
         if (D) Log.d(TAG, "stop");
         if (mBTConnectThread != null) {
             mBTConnectThread.cancel();

@@ -233,7 +233,7 @@ public class USBReaderImpl implements TagReader {
     /**
      * Stop all threads
      */
-    private synchronized void stop() {
+    public synchronized void stop() {
         if (D) Log.d(TAG, "stop");
         if (mConnectThread != null) {
             mConnectThread.cancel();

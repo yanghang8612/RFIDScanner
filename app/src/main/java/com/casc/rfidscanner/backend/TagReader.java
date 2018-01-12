@@ -46,5 +46,10 @@ public interface TagReader {
      * @return
      */
     boolean isConnected();
+
+    /**
+     * 终止连接
+     */
+    void stop();
 }
 
