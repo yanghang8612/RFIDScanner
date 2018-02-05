@@ -2,10 +2,83 @@
 <resources>
     <string-array name="link">
         <item>桶注册</item>
-        <item>桶筛选</item>
-        <item>桶成品</item>
-        <item>桶出库</item>
-        <item>桶回流</item>
         <item>桶报废</item>
+        <item>空桶回流</item>
+        <item>桶筛选</item>
+        <item>成品注册</item>
+        <item>成品出库</item>
+        <item>专用卡注册</item>
+    </string-array>
+    <string-array name="tag_lifecycle">
+        <item>1Min</item>
+        <item>2Min</item>
+        <item>3Min</item>
+        <item>4Min</item>
+        <item>5Min</item>
+        <item>6Min</item>
+        <item>7Min</item>
+        <item>8Min</item>
+        <item>9Min</item>
+    </string-array>
+    <string-array name="blank_interval">
+        <item>3</item>
+        <item>4</item>
+        <item>5</item>
+        <item>6</item>
+        <item>7</item>
+        <item>8</item>
+        <item>9</item>
+        <item>10</item>
+    </string-array>
+    <string-array name="reader_power">
+        <item>15dBm</item>
+        <item>16dBm</item>
+        <item>17dBm</item>
+        <item>18dBm</item>
+        <item>19dBm</item>
+        <item>20dBm</item>
+        <item>21dBm</item>
+        <item>22dBm</item>
+        <item>23dBm</item>
+        <item>24dBm</item>
+        <item>25dBm</item>
+        <item>26dBm</item>
+    </string-array>
+    <string-array name="reader_q_value">
+        <item>0</item>
+        <item>1</item>
+        <item>2</item>
+        <item>3</item>
+        <item>4</item>
+        <item>5</item>
+        <item>6</item>
+        <item>7</item>
+        <item>8</item>
+    </string-array>
+    <string-array name="reader_send_interval">
+        <item>50ms</item>
+        <item>100ms</item>
+        <item>150ms</item>
+        <item>200ms</item>
+        <item>250ms</item>
+        <item>300ms</item>
+        <item>350ms</item>
+        <item>400ms</item>
+        <item>450ms</item>
+        <item>500ms</item>
+    </string-array>
+    <string-array name="card_type">
+        <item>出库专用卡</item>
+        <item>运维专用卡</item>
+        <item>回流专用卡</item>
+    </string-array>
+    <string-array name="card_validity">
+        <item>1周</item>
+        <item>2周</item>
+        <item>3周</item>
+        <item>1个月</item>
+        <item>6个月</item>
+        <item>12个月</item>
+        <item>永久</item>
     </string-array>
 </resources>

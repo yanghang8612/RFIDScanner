@@ -1,0 +1,254 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:paddingTop="180dp"
+    android:paddingBottom="20dp"
+    android:paddingStart="20dp"
+    android:paddingEnd="20dp">
+
+    <LinearLayout
+        android:orientation="horizontal"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:padding="@dimen/delivery_detail_padding"
+        android:background="@drawable/bg_detail">
+
+        <LinearLayout
+            android:orientation="vertical"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1">
+
+            <LinearLayout
+                android:orientation="horizontal"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent"
+                    android:layout_weight="1"
+                    android:gravity="center">
+
+                    <TextView
+                        android:theme="@style/AppTheme.CommonText"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/card_id_label" />
+
+                    <TextView
+                        android:id="@+id/tv_detail_card_id"
+                        android:theme="@style/AppTheme.CommonText"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="HY1001" />
+
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent"
+                    android:layout_weight="2"
+                    android:gravity="center">
+
+                    <TextView
+                        android:theme="@style/AppTheme.CommonText"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/delivery_bill_id_label" />
+
+                    <TextView
+                        android:id="@+id/tv_detail_bill_id"
+                        android:theme="@style/AppTheme.CommonText"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="HY020171212001" />
+
+                </LinearLayout>
+
+            </LinearLayout>
+
+            <LinearLayout
+                android:orientation="horizontal"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/delivery_detail_margin"
+                android:layout_marginStart="@dimen/delivery_detail_margin"
+                android:layout_marginEnd="@dimen/delivery_detail_margin"
+                android:layout_marginBottom="8dp"
+                android:background="@drawable/bg_header">
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:theme="@style/AppTheme.CommonText"
+                    android:text="桶规格" />
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="2"
+                    android:gravity="center"
+                    android:theme="@style/AppTheme.CommonText"
+                    android:text="产品类型" />
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:gravity="end"
+                    android:theme="@style/AppTheme.CommonText"
+                    android:text="已出库" />
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:gravity="end"
+                    android:theme="@style/AppTheme.CommonText"
+                    android:text="数量" />
+
+            </LinearLayout>
+
+            <android.support.v7.widget.RecyclerView
+                android:id="@+id/rv_delivery_detail_goods"
+                android:layout_width="match_parent"
+                android:layout_height="144dp" />
+
+            <LinearLayout
+                android:orientation="horizontal"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/delivery_detail_margin"
+                android:layout_marginEnd="@dimen/delivery_detail_margin"
+                android:gravity="end">
+
+                <TextView
+                    android:theme="@style/AppTheme.CommonText"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/delivery_count_label" />
+
+                <TextView
+                    android:id="@+id/tv_detail_delivery_count"
+                    android:theme="@style/AppTheme.CommonText"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginEnd="@dimen/item_delivery_bill_padding"
+                    android:text="@string/number_default_value" />
+
+                <TextView
+                    android:theme="@style/AppTheme.CommonText"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/total_count_label" />
+
+                <TextView
+                    android:id="@+id/tv_detail_total_count"
+                    android:theme="@style/AppTheme.CommonText"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/number_default_value" />
+
+            </LinearLayout>
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="1dp"
+            android:layout_height="match_parent"
+            android:layout_marginEnd="@dimen/delivery_detail_margin"
+            android:layout_marginBottom="64dp"
+            android:background="@color/divider" />
+
+        <LinearLayout
+            android:orientation="vertical"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:theme="@style/AppTheme.CommonText"
+                android:text="货物详细列表：" />
+
+            <LinearLayout
+                android:orientation="horizontal"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/delivery_detail_margin"
+                android:layout_marginBottom="8dp"
+                android:background="@drawable/bg_header">
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="2"
+                    android:theme="@style/AppTheme.CommonText"
+                    android:text="出库时间" />
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="2"
+                    android:gravity="center"
+                    android:theme="@style/AppTheme.CommonText"
+                    android:text="桶身码" />
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:gravity="center"
+                    android:theme="@style/AppTheme.CommonText"
+                    android:text="桶规格" />
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="2"
+                    android:gravity="end"
+                    android:theme="@style/AppTheme.CommonText"
+                    android:text="产品名称" />
+
+            </LinearLayout>
+
+            <android.support.v7.widget.RecyclerView
+                android:id="@+id/rv_detail_products"
+                android:layout_width="match_parent"
+                android:layout_height="0dp"
+                android:layout_weight="1" />
+
+            <LinearLayout
+                android:orientation="horizontal"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/delivery_detail_margin">
+
+                <Button
+                    android:id="@+id/btn_detail_close"
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent"
+                    android:layout_weight="1"
+                    android:theme="@style/ButtonGrey"
+                    android:text="@string/close_button_text" />
+
+                <Button
+                    android:id="@+id/btn_detail_confirm"
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent"
+                    android:layout_weight="1"
+                    android:theme="@style/ButtonPrimary"
+                    android:text="@string/confirm_delivery_button_text" />
+
+            </LinearLayout>
+
+        </LinearLayout>
+
+    </LinearLayout>
+
+</LinearLayout>

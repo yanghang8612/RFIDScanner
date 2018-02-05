@@ -3,62 +3,46 @@
     package="com.casc.rfidscanner"
     android:installLocation="internalOnly">
 
+    <uses-feature android:name="android.hardware.usb.host" />
+
+     <!-- permission for internet access -->
     <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.CHANGE_WIFI_STATE" />
     <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+
+    <!-- permission for self-restart -->
     <uses-permission android:name="android.permission.DISABLE_KEYGUARD" />
     <uses-permission android:name="android.permission.WAKE_LOCK" />
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
 
-    <uses-feature android:name="android.hardware.usb.host" />
-
-    <!-- To auto-complete the email text field in the login form with the user's emails -->
-    <uses-permission android:name="android.permission.GET_ACCOUNTS" />
-    <uses-permission android:name="android.permission.READ_PROFILE" />
-    <uses-permission android:name="android.permission.READ_CONTACTS" />
-
+    <!-- permission for bluetooth -->
     <uses-permission android:name="android.permission.BLUETOOTH_ADMIN" />
     <uses-permission android:name="android.permission.BLUETOOTH" />
 
+    <!-- permission for status bar -->
+    <uses-permission android:name="android.permission.EXPAND_STATUS_BAR" />
+    <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
+
+    <!-- permission for vibrate -->
+    <uses-permission android:name="android.permission.VIBRATE" />
+
+    <!-- permission for others -->
+    <uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS" />
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.WRITE_SETTINGS" />
+    <uses-permission android:name="android.permission.READ_PHONE_STATE" />
+    <uses-permission android:name="android.permission.BATTERY_STATS" />
+
     <application
+        android:name=".MyApplication"
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
-        android:theme="@style/AppTheme">
-        <activity
-            android:name=".activity.MainActivity"
-            android:label="@string/app_name"
-            android:theme="@style/AppTheme.NoActionBar">
-
-            <!--
-                <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
-
-                <category android:name="android.intent.category.LAUNCHER" />
-            </intent-filter>
-            -->
-            <!-- Launch as default on IoT startup -->
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
-
-                <category android:name="android.intent.category.IOT_LAUNCHER" />
-                <category android:name="android.intent.category.DEFAULT" />
-            </intent-filter>
-            <!-- Launch when USB device attached -->
-            <intent-filter>
-                <action android:name="android.hardware.usb.action.USB_DEVICE_ATTACHED" />
-                <action android:name="android.hardware.usb.action.USB_DEVICE_DETACHED" />
-            </intent-filter>
-            <!-- Filter reader device -->
-            <meta-data
-                android:name="android.hardware.usb.action.USB_DEVICE_ATTACHED"
-                android:resource="@xml/device_filter" />
-            <meta-data
-                android:name="android.hardware.usb.action.USB_DEVICE_DETACHED"
-                android:resource="@xml/device_filter" />
-        </activity>
+        android:theme="@style/AppTheme"
+        android:sharedUserId="android.uid.system">
 
         <receiver android:name=".receiver.BluetoothReceiver" >
             <intent-filter android:priority="1000">
@@ -72,7 +56,6 @@
             android:exported="true">
             <intent-filter>
                 <category android:name="android.intent.category.DEFAULT" />
-
                 <action android:name="android.intent.action.BOOT_COMPLETED" />
                 <action android:name="android.intent.action.QUICKBOOT_POWERON" />
                 <action android:name="com.htc.intent.action.QUICKBOOT_POWERON" />
@@ -80,17 +63,35 @@
         </receiver>
 
         <activity
-            android:name=".activity.SplanshActivity"
-            android:label="@string/app_name"
-            android:theme="@style/AppTheme.FullScreen">
+            android:name=".activity.MainActivity"
+            android:screenOrientation="landscape"
+            android:launchMode="singleTask">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
+                <category android:name="android.intent.category.HOME" />
+                <category android:name="android.intent.category.DEFAULT" />
             </intent-filter>
         </activity>
+
         <activity
-            android:name=".activity.LoginActivity" />
-        <activity android:name=".activity.DebugActivity"  android:label="调试状态"></activity>
+            android:name=".activity.SplashActivity"
+            android:screenOrientation="landscape" />
+
+        <activity
+            android:name=".activity.DeliveryDetailActivity"
+            android:theme="@style/AppTheme.Transparent"
+            android:screenOrientation="landscape" />
+
+        <activity
+            android:name=".activity.RefluxDetailActivity"
+            android:theme="@style/AppTheme.Transparent"
+            android:screenOrientation="landscape" />
+
+        <activity
+            android:name=".activity.ConfigActivity"
+            android:screenOrientation="landscape" />
+
     </application>
 
 </manifest>

@@ -11,6 +11,10 @@ public class ActivityCollector {
 
     private ActivityCollector(){}
 
+    public static Activity getTopActivity() {
+        return activities.get(activities.size() - 1);
+    }
+
     public static void addActivity(Activity activity) {
         if (activities == null) {
             return;

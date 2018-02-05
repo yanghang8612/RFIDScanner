@@ -8,8 +8,6 @@ import android.util.Log;
 
 import com.casc.rfidscanner.utils.ClsUtils;
 
-import java.util.Date;
-
 /**
  * 蓝牙自动配对
  */
@@ -30,7 +28,7 @@ public class BluetoothReceiver extends BroadcastReceiver {
                 // 调用setPin方法进行配对
                 boolean ret = ClsUtils.setPin(mBluetoothDevice.getClass(), mBluetoothDevice, PIN);
 
-                Log.e(TAG, "PAIRING_REQUEST done!( MAC: " + mBluetoothDevice.getAddress() + ")");
+                Log.i(TAG, "PAIRING_REQUEST done!( MAC: " + mBluetoothDevice.getAddress() + ")");
             } catch (Exception e) {
                 e.printStackTrace();
             }

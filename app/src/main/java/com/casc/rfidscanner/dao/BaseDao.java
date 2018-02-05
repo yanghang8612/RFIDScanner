@@ -4,8 +4,9 @@ import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
+import android.util.Pair;
 
-import com.casc.rfidscanner.helper.DBOpenHelper;
+import com.casc.rfidscanner.helper.DBHelper;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -20,14 +21,14 @@ public class BaseDao {
     private static final String COLUMN_ID = "_id";
     private static final String COLUMN_TEXTAREA = "textarea";
 
-    private DBOpenHelper dbOpenHelper;
+    private DBHelper dbHelper;
     private SQLiteDatabase db;
 
     private String tableName; // 区分
 
     public BaseDao(String tableName, Context context) {
         this.tableName = tableName;
-        this.dbOpenHelper = new DBOpenHelper(context);
+        this.dbHelper = DBHelper.getInstance(context);
     }
 
     /**
@@ -57,13 +58,26 @@ public class BaseDao {
         return result;
     }
 
+    public Pair<Integer, String> findOne() {
+        Pair<Integer, String> result = null;
+        Cursor c = simpleQuery(); // remain
+
+        while (c.moveToNext()) {
+            int id = c.getInt(c.getColumnIndex(COLUMN_ID)); // SQLite feature
+            String textarea = c.getString(c.getColumnIndex(COLUMN_TEXTAREA)); // JSON
+            result = new Pair<>(id, textarea);
+        }
+        c.close();
+        return result;
+    }
+
     /**
      * 查找所有JSON数据
      *
      * @return
      */
     public Map<Integer, String> findAll() {
-        Map<Integer, String> result = new HashMap<Integer, String>();
+        Map<Integer, String> result = new HashMap<>();
         Cursor c = simpleQuery(); // remain
 
         while (c.moveToNext()) {
@@ -115,7 +129,7 @@ public class BaseDao {
 
     protected long insertContentValues(ContentValues values) {
         // 获取SQLiteDatabase实例
-        db = dbOpenHelper.getWritableDatabase();
+        db = dbHelper.getWritableDatabase();
         // 插入数据库中
         long result = db.insert(tableName, null, values);
         close();
@@ -123,7 +137,7 @@ public class BaseDao {
     }
 
     protected Cursor simpleQuery() {
-        db = dbOpenHelper.getReadableDatabase();
+        db = dbHelper.getReadableDatabase();
         // 获取Cursor
         Cursor c = db.query(tableName, null, null, null, null, null, null, null);
 //        close();
@@ -131,7 +145,7 @@ public class BaseDao {
     }
 
     protected Cursor getByIdCursor(int id) {
-        db = dbOpenHelper.getReadableDatabase();
+        db = dbHelper.getReadableDatabase();
         // 获取Cursor
         Cursor c = db.query(tableName, null, COLUMN_ID + "=?", new String[]{String.valueOf(id)}, null, null, null, null);
 //        close();
@@ -139,7 +153,7 @@ public class BaseDao {
     }
 
     protected int deleteById(int id) {
-        db = dbOpenHelper.getWritableDatabase();
+        db = dbHelper.getWritableDatabase();
         int result = db.delete(tableName, COLUMN_ID + "=?", new String[]{String.valueOf(id)});
         close();
         return result;
@@ -148,7 +162,7 @@ public class BaseDao {
 
     // 更新数据库的内容
     protected int update(ContentValues values, String whereClause, String[] whereArgs) {
-        db = dbOpenHelper.getWritableDatabase();
+        db = dbHelper.getWritableDatabase();
         int result = db.update(tableName, values, whereClause, whereArgs);
         close();
         return result;
