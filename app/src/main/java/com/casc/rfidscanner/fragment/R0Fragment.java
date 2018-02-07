@@ -189,6 +189,8 @@ public class R0Fragment extends BaseFragment implements InstructionHandler {
             }
             else {
                 mBodyCodeIcl.clear();
+                mIsBodyCodeWritten = false;
+                mRegisterBtn.setEnabled(false);
             }
             }
         });

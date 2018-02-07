@@ -296,8 +296,10 @@ public class InputCodeLayout extends RelativeLayout implements TextWatcher, View
     }
 
     public void setHeader(String header) {
-        mHeader = header;
-        onFinishInflate();
+        if (header != null && !header.equals(mHeader)) {
+            mHeader = header;
+            onFinishInflate();
+        }
     }
 
     /**
