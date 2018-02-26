@@ -3,7 +3,7 @@ package com.casc.rfidscanner;
 import android.app.Application;
 import android.content.Context;
 import android.net.ConnectivityManager;
-import android.net.NetworkInfo;
+import android.net.NetworkCapabilities;
 import android.net.wifi.WifiManager;
 import android.support.annotation.NonNull;
 import android.util.Log;
@@ -42,6 +42,8 @@ public class MyApplication extends Application {
 
     private WifiManager wifiManager;
 
+    private ConnectivityManager connectivityManager;
+
     @Override
     public void onCreate() {
         super.onCreate();
@@ -51,7 +53,8 @@ public class MyApplication extends Application {
 
         // 初始化相关字段
         instance = this;
-        wifiManager=(WifiManager) getSystemService(Context.WIFI_SERVICE);
+        wifiManager = (WifiManager) getSystemService(Context.WIFI_SERVICE);
+        connectivityManager = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
 
         // 初始化读写器实例（USB、蓝牙）和标签缓存
         MyVars.executor = Executors.newScheduledThreadPool(10);
@@ -109,30 +112,35 @@ public class MyApplication extends Application {
 
         @Override
         public void run() {
-            if (wifiManager.getWifiState() == WifiManager.WIFI_STATE_DISABLED)
-                wifiManager.setWifiEnabled(true);
-            NetworkInfo networkInfo = ((ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE)).getActiveNetworkInfo();
-            EventBus.getDefault().post(MyVars.status.setReaderStatus(MyVars.getReader().isConnected())
-                    .setNetworkStatus(networkInfo != null && networkInfo.isAvailable()));
-            NetHelper.getInstance().sendHeartbeat().enqueue(new Callback<Reply>() {
-                @Override
-                public void onResponse(@NonNull Call<Reply> call, @NonNull Response<Reply> response) {
-                    if (response.isSuccessful()) {
-                        if (!MyVars.status.platformStatus)
-                            EventBus.getDefault().post(MyVars.status.setPlatformStatus(true));
-                    } else {
-                        if (MyVars.status.platformStatus)
-                            EventBus.getDefault().post(MyVars.status.setPlatformStatus(false));
+            try {
+                if (wifiManager.getWifiState() == WifiManager.WIFI_STATE_DISABLED)
+                    wifiManager.setWifiEnabled(true);
+                NetworkCapabilities networkCapabilities = connectivityManager.getNetworkCapabilities(connectivityManager.getActiveNetwork());
+                EventBus.getDefault().post(MyVars.status.setReaderStatus(MyVars.getReader().isConnected())
+                        .setNetworkStatus(networkCapabilities != null &&
+                                networkCapabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_VALIDATED)));
+                NetHelper.getInstance().sendHeartbeat().enqueue(new Callback<Reply>() {
+                    @Override
+                    public void onResponse(@NonNull Call<Reply> call, @NonNull Response<Reply> response) {
+                        if (response.isSuccessful()) {
+                            if (!MyVars.status.platformStatus)
+                                EventBus.getDefault().post(MyVars.status.setPlatformStatus(true));
+                        } else {
+                            if (MyVars.status.platformStatus)
+                                EventBus.getDefault().post(MyVars.status.setPlatformStatus(false));
+                        }
                     }
-                }
 
-                @Override
-                public void onFailure(@NonNull Call<Reply> call, @NonNull Throwable t) {
-                    if (MyVars.status.platformStatus) {
-                        EventBus.getDefault().post(MyVars.status.setPlatformStatus(false));
+                    @Override
+                    public void onFailure(@NonNull Call<Reply> call, @NonNull Throwable t) {
+                        if (MyVars.status.platformStatus) {
+                            EventBus.getDefault().post(MyVars.status.setPlatformStatus(false));
+                        }
                     }
-                }
-            });
+                });
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
         }
     }
 }
