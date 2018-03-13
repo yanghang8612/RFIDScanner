@@ -26,8 +26,8 @@ public class Product {
         this.waterBrand = MyVars.config.getWaterBrandByCode(epc[11]);
         this.waterSpec = MyVars.config.getWaterSpecByCode(epc[12]);
         int code = 0;
-        code += (epc[13] << 16);
-        code += (epc[14] << 8);
+        code += ((epc[13] & 0xFF) << 16);
+        code += ((epc[14] & 0xFF) << 8);
         code += (epc[15] & 0xFF);
         this.bodyCode = MyVars.config.getCompanySymbol() + String.format("%06d", code);
     }

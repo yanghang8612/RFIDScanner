@@ -2,8 +2,7 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:orientation="vertical"
     android:layout_width="match_parent"
-    android:layout_height="0dp"
-    android:layout_weight="1"
+    android:layout_height="match_parent"
     android:gravity="center">
 
     <LinearLayout
@@ -12,20 +11,26 @@
         android:layout_weight="1"
         android:gravity="center">
 
-        <TextView
-            android:layout_width="wrap_content"
+        <LinearLayout
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="@string/process_scanned_count_label"
-            android:textSize="@dimen/process_count_text_size"
-            android:textColor="@color/black" />
+            android:gravity="center_horizontal">
 
-        <TextView
-            android:id="@+id/tv_scanned_count"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="@string/number_default_value"
-            android:textSize="@dimen/process_count_text_size"
-            android:textColor="@color/black" />
+            <TextView
+                android:theme="@style/AppTheme.BigText"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/process_scanned_count_label" />
+
+            <TextView
+                android:id="@+id/tv_scanned_count"
+                android:theme="@style/AppTheme.LargeNumber"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="@dimen/process_count_margin"
+                android:text="@string/number_default_value"/>
+
+        </LinearLayout>
 
     </LinearLayout>
 
@@ -35,20 +40,26 @@
         android:layout_weight="1"
         android:gravity="center">
 
-        <TextView
-            android:layout_width="wrap_content"
+        <LinearLayout
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="@string/process_uploaded_count_label"
-            android:textSize="@dimen/process_count_text_size"
-            android:textColor="@color/black" />
+            android:gravity="center_horizontal">
 
-        <TextView
-            android:id="@+id/tv_uploaded_count"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="@string/number_default_value"
-            android:textSize="@dimen/process_count_text_size"
-            android:textColor="@color/black" />
+            <TextView
+                android:theme="@style/AppTheme.BigText"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/process_uploaded_count_label" />
+
+            <TextView
+                android:id="@+id/tv_uploaded_count"
+                android:theme="@style/AppTheme.LargeNumber"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="@dimen/process_count_margin"
+                android:text="@string/number_default_value" />
+
+        </LinearLayout>
 
     </LinearLayout>
 
@@ -58,20 +69,26 @@
         android:layout_weight="1"
         android:gravity="center">
 
-        <TextView
-            android:layout_width="wrap_content"
+        <LinearLayout
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="@string/process_stored_count_label"
-            android:textSize="@dimen/process_count_text_size"
-            android:textColor="@color/black" />
+            android:gravity="center_horizontal">
 
-        <TextView
-            android:id="@+id/tv_stored_count"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="@string/number_default_value"
-            android:textSize="@dimen/process_count_text_size"
-            android:textColor="@color/black" />
+            <TextView
+                android:theme="@style/AppTheme.BigText"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/process_stored_count_label"/>
+
+            <TextView
+                android:id="@+id/tv_stored_count"
+                android:theme="@style/AppTheme.LargeNumber"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="@dimen/process_count_margin"
+                android:text="@string/number_default_value" />
+
+        </LinearLayout>
 
     </LinearLayout>
 

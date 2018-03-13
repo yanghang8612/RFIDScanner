@@ -20,13 +20,15 @@
 
     <dimen name="r0_content_margin">16dp</dimen>
     <dimen name="r0_content_text_size">12sp</dimen>
-    <dimen name="r0_body_code_size">40dp</dimen>
+    <dimen name="r0_button_text_size">24sp</dimen>
+    <dimen name="r0_body_code_size">64dp</dimen>
+    <dimen name="r0_body_code_text_size">24sp</dimen>
 
     <dimen name="r0_keyboard_radius">6dp</dimen>
-    <dimen name="r0_keyboard_text_size">18sp</dimen>
+    <dimen name="r0_keyboard_text_size">24sp</dimen>
     <dimen name="r0_keyboard_padding">6dp</dimen>
     <dimen name="r0_keyboard_margin_bottom">6dp</dimen>
-    <dimen name="r0_keyboard_size">56dp</dimen>
+    <dimen name="r0_keyboard_size">80dp</dimen>
 
     <dimen name="card_keyboard_radius">6dp</dimen>
     <dimen name="card_keyboard_text_size">18sp</dimen>
@@ -34,12 +36,18 @@
     <dimen name="card_keyboard_margin_bottom">6dp</dimen>
     <dimen name="card_keyboard_size">56dp</dimen>
 
-    <dimen name="r6_padding">24dp</dimen>
-    <dimen name="r6_margin">10dp</dimen>
+    <dimen name="r2_padding">24dp</dimen>
+    <dimen name="r2_margin">16dp</dimen>
 
-    <dimen name="item_specify_text_size">12sp</dimen>
+    <dimen name="r6_padding">24dp</dimen>
+    <dimen name="r6_margin">16dp</dimen>
+
+    <dimen name="rn_padding">24dp</dimen>
+    <dimen name="rn_margin">16dp</dimen>
+
+    <dimen name="item_specify_text_size">16sp</dimen>
     <dimen name="item_specify_padding">8dp</dimen>
-    <dimen name="item_specify_height">36dp</dimen>
+    <dimen name="item_specify_height">64dp</dimen>
 
     <dimen name="item_config_text_size">12sp</dimen>
     <dimen name="item_config_padding">8dp</dimen>
@@ -51,25 +59,23 @@
     <dimen name="item_reflux_bill_margin">24dp</dimen>
     <dimen name="item_reflux_bill_padding">10dp</dimen>
 
-    <dimen name="item_goods_height">24dp</dimen>
-    <dimen name="item_goods_margin">24dp</dimen>
-    <dimen name="item_product_height">24dp</dimen>
-    <dimen name="item_hint_height">16dp</dimen>
-    <dimen name="item_reader_height">36dp</dimen>
+    <dimen name="item_goods_margin">8dp</dimen>
 
     <dimen name="delivery_detail_padding">24dp</dimen>
-    <dimen name="delivery_detail_margin">24dp</dimen>
+    <dimen name="delivery_detail_margin">16dp</dimen>
 
     <dimen name="reflux_detail_padding">24dp</dimen>
-    <dimen name="reflux_detail_margin">24dp</dimen>
+    <dimen name="reflux_detail_margin">16dp</dimen>
 
     <dimen name="config_item_height">48dp</dimen>
     <dimen name="config_item_margin">16dp</dimen>
 
-    <dimen name="process_count_text_size">24sp</dimen>
+    <dimen name="r0_config_text_size">16sp</dimen>
     <dimen name="r1_button_text_size">24sp</dimen>
+
     <dimen name="header_icon_width">24dp</dimen>
     <dimen name="header_icon_margin">2dp</dimen>
 
+    <dimen name="process_count_margin">36dp</dimen>
 
 </resources>

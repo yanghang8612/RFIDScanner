@@ -20,8 +20,8 @@ import com.casc.rfidscanner.activity.RefluxDetailActivity;
 import com.casc.rfidscanner.adapter.HintAdapter;
 import com.casc.rfidscanner.adapter.RefluxBillAdapter;
 import com.casc.rfidscanner.backend.InstructionHandler;
+import com.casc.rfidscanner.bean.Bucket;
 import com.casc.rfidscanner.bean.Hint;
-import com.casc.rfidscanner.bean.Product;
 import com.casc.rfidscanner.bean.RefluxBill;
 import com.casc.rfidscanner.helper.ConfigHelper;
 import com.casc.rfidscanner.helper.NetHelper;
@@ -103,8 +103,8 @@ public class R2Fragment extends BaseFragment implements InstructionHandler {
     // 历史回流记录的缓存，用于排除偶然扫描数据
     private Set<String> mCache = new HashSet<>();
 
-    // 检测到的空白期间隔
-    private int mBlankCount;
+    // 读取到的EPC计数以及检测到的空白期间隔
+    private int mReadCount, mBlankCount;
 
     // 工作状态
     private WorkStatus mStatus;
@@ -123,7 +123,7 @@ public class R2Fragment extends BaseFragment implements InstructionHandler {
         final MessageReflux reflux = new MessageReflux();
         reflux.setDealer(message.dealer);
         reflux.setDriver(message.driver);
-        for (Product bucket : bill.getBuckets()) {
+        for (Bucket bucket : bill.getBuckets()) {
             reflux.addBucket(bucket.getTime() / 1000, CommonUtils.bytesToHex(bucket.getEpc()));
         }
         NetHelper.getInstance().uploadRefluxMessage(reflux).enqueue(new Callback<Reply>() {
@@ -170,7 +170,7 @@ public class R2Fragment extends BaseFragment implements InstructionHandler {
     @Override
     protected void initFragment() {
         mHintAdapter = new HintAdapter(mHints);
-        mBillAdapter = new RefluxBillAdapter(getContext(), mBills);
+        mBillAdapter = new RefluxBillAdapter(mBills);
         mBillAdapter.setOnItemClickListener(new BaseQuickAdapter.OnItemClickListener() {
             @Override
             public void onItemClick(BaseQuickAdapter adapter, View view, int position) {
@@ -183,7 +183,7 @@ public class R2Fragment extends BaseFragment implements InstructionHandler {
 
         mHintRv.setLayoutManager(new LinearLayoutManager(getContext()));
         mHintRv.setAdapter(mHintAdapter);
-        mBillView.setLayoutManager(new GridLayoutManager(getContext(), 2));
+        mBillView.setLayoutManager(new LinearLayoutManager(getContext()));
         mBillView.setAdapter(mBillAdapter);
         mStoredBillCountTv.setText(String.valueOf(MyVars.cache.getStoredRefluxBill()));
         MyVars.fragmentExecutor.scheduleWithFixedDelay(new BillNoOperationCheckTask(), 0, 1, TimeUnit.SECONDS);
@@ -200,6 +200,7 @@ public class R2Fragment extends BaseFragment implements InstructionHandler {
         int command = ins[2] & 0xFF;
         switch (command) {
             case 0x22: // 轮询成功的处理流程
+                mBlankCount = 0;
                 int pl = ((ins[3] & 0xFF) << 8) + (ins[4] & 0xFF);
                 byte[] epc = Arrays.copyOfRange(ins, 8, pl + 3);
                 String epcStr = CommonUtils.bytesToHex(epc);
@@ -207,36 +208,42 @@ public class R2Fragment extends BaseFragment implements InstructionHandler {
                     case NONE: // 检测到未注册标签，是否提示
                         break;
                     case BUCKET:
-                        mHandler.sendMessage(Message.obtain(mHandler, MSG_IS_WORKING));
-                        if (!mTempEPCs.contains(epcStr)) { // 扫到的EPC均判重后加入temp列表里
-                            mTempEPCs.add(epcStr);
-                            mHandler.sendMessage(Message.obtain(mHandler, MSG_UPDATE_COUNT));
+                        mReadCount++;
+                        if (mReadCount >= MyParams.SINGLE_CART_MIN_SCANNED_COUNT) {
+                            mHandler.sendMessage(Message.obtain(mHandler, MSG_IS_WORKING));
+                            if (!mTempEPCs.contains(epcStr)) { // 扫到的EPC均判重后加入temp列表里
+                                mTempEPCs.add(epcStr);
+                                mHandler.sendMessage(Message.obtain(mHandler, MSG_UPDATE_COUNT));
+                            }
                         }
                         break;
                     case CARD_REFLUX:
-                        mHandler.sendMessage(Message.obtain(mHandler, MSG_IS_WORKING));
-                        if (mCurBill == null) {
-                            if (mBillsMap.containsKey(epcStr)) {
-                                mCurBill = mBillsMap.get(epcStr);
-                            }
-                            else {
-                                try {
-                                    mCurBill = new RefluxBill(epc);
-                                } catch (Exception e) {
-                                    isCardEPCCodeError = true;
-                                    return;
+                        mReadCount++;
+                        if (mReadCount >= MyParams.SINGLE_CART_MIN_SCANNED_COUNT) {
+                            mHandler.sendMessage(Message.obtain(mHandler, MSG_IS_WORKING));
+                            if (mCurBill == null) {
+                                if (mBillsMap.containsKey(epcStr)) {
+                                    mCurBill = mBillsMap.get(epcStr);
                                 }
-                                mBills.add(0, mCurBill);
-                                mBillsMap.put(epcStr, mCurBill);
+                                else {
+                                    try {
+                                        mCurBill = new RefluxBill(epc);
+                                    } catch (Exception e) {
+                                        isCardEPCCodeError = true;
+                                        return;
+                                    }
+                                    mBills.add(0, mCurBill);
+                                    mBillsMap.put(epcStr, mCurBill);
+                                }
+                                mCurBill.setUpdatedTime(System.currentTimeMillis());
+                                mCurBill.setHighlight(true);
+                                EventBus.getDefault().post(new BillUpdatedMessage());
+                                SpeechSynthesizer.getInstance().speak(mCurBill.getCardNum() + "回收中");
                             }
-                            mCurBill.setUpdatedTime(System.currentTimeMillis());
-                            mCurBill.setHighlight(true);
-                            EventBus.getDefault().post(new BillUpdatedMessage());
-                            SpeechSynthesizer.getInstance().speak(mCurBill.getCardNum() + "回收中");
-                        }
-                        else if (!Arrays.equals(epc, mCurBill.getCardEPC()) && !isMultiRefluxMentioned) {
-                            isMultiRefluxMentioned = true;
-                            SpeechSynthesizer.getInstance().speak("回收中发现两张以上回流卡");
+                            else if (!Arrays.equals(epc, mCurBill.getCardEPC()) && !isMultiRefluxMentioned) {
+                                isMultiRefluxMentioned = true;
+                                SpeechSynthesizer.getInstance().speak("回收中发现两张以上回流卡");
+                            }
                         }
                         break;
                     case CARD_ADMIN:
@@ -252,12 +259,14 @@ public class R2Fragment extends BaseFragment implements InstructionHandler {
                         }
                         break;
                 }
-                mBlankCount = 0;
                 break;
             default: // 命令帧执行失败的处理流程，本环节只有轮询失败
                 mAdminCardScannedCount = 0;
                 if (++mBlankCount == Integer.valueOf(ConfigHelper.getParam(MyParams.S_BLANK_INTERVAL))) { // 达到了空白期间隔设定值
-                    if (isCardEPCCodeError) {
+                    if (mReadCount < MyParams.SINGLE_CART_MIN_SCANNED_COUNT) {
+                        mReadCount = 0;
+                    }
+                    else if (isCardEPCCodeError) {
                         SpeechSynthesizer.getInstance().speak("解析回流卡出错，请重试或联系营销人员");
                     }
                     else if (mCurBill == null && !mTempEPCs.isEmpty()) { // 检测到有桶在回收但是没有扫到回流卡，应声音提示
@@ -299,7 +308,7 @@ public class R2Fragment extends BaseFragment implements InstructionHandler {
                     // 添加空桶到回流单中
                     int count = 0;
                     for (String epc : outer.mTempEPCs) {
-                        if (outer.mCurBill.addBucket(new Product(epc))) {
+                        if (outer.mCurBill.addBucket(new Bucket(epc))) {
                             count++;
                         }
                     }

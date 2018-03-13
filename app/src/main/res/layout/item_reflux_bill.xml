@@ -4,35 +4,40 @@
     android:id="@+id/cv_reflux_bill_root"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_margin="@dimen/item_reflux_bill_margin"
-    app:cardCornerRadius="6dp"
+    android:layout_marginTop="8dp"
+    android:layout_marginBottom="8dp"
+    android:layout_marginStart="6dp"
+    android:layout_marginEnd="6dp"
+    app:cardCornerRadius="8dp"
+    app:cardElevation="4dp"
     app:cardBackgroundColor="@color/snow">
 
     <LinearLayout
         android:orientation="vertical"
         android:layout_width="match_parent"
-        android:layout_height="match_parent">
+        android:layout_height="match_parent"
+        android:layout_marginStart="8dp"
+        android:layout_marginEnd="@dimen/item_reflux_bill_margin"
+        android:padding="@dimen/item_reflux_bill_padding">
 
         <LinearLayout
             android:orientation="horizontal"
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:layout_marginStart="@dimen/item_reflux_bill_margin"
-            android:layout_marginEnd="@dimen/item_reflux_bill_margin"
-            android:padding="@dimen/item_reflux_bill_padding">
+            android:layout_height="wrap_content">
 
             <TextView
-                android:theme="@style/AppTheme.CommonText"
+                android:theme="@style/AppTheme.BillText"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="@string/card_id_label" />
 
             <TextView
                 android:id="@+id/tv_reflux_bill_card_id"
-                android:theme="@style/AppTheme.CommonText"
+                android:theme="@style/AppTheme.BillText"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="HYR001" />
+                android:background="@drawable/bg_bill_card_normal"
+                android:text="HY1001" />
 
         </LinearLayout>
 
@@ -40,89 +45,29 @@
             android:orientation="horizontal"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginStart="@dimen/item_reflux_bill_margin"
-            android:layout_marginEnd="@dimen/item_reflux_bill_margin"
-            android:layout_marginBottom="8dp"
-            android:background="@drawable/bg_header">
-
-            <TextView
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:gravity="start"
-                android:theme="@style/AppTheme.CommonText"
-                android:text="桶规格" />
-
-            <TextView
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="2"
-                android:gravity="center"
-                android:theme="@style/AppTheme.CommonText"
-                android:text="产品类型" />
-
-            <TextView
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:gravity="end"
-                android:theme="@style/AppTheme.CommonText"
-                android:text="已回流数量" />
-
-        </LinearLayout>
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:minHeight="96dp">
-
-            <android.support.v7.widget.RecyclerView
-                android:id="@+id/rv_reflux_bill_goods"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content" />
-
-        </LinearLayout>
-
-        <LinearLayout
-            android:orientation="horizontal"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="@dimen/item_reflux_bill_margin"
-            android:layout_marginEnd="@dimen/item_reflux_bill_margin"
-            android:paddingTop="@dimen/item_reflux_bill_padding"
-            android:paddingBottom="@dimen/item_reflux_bill_padding"
-            android:gravity="center">
-
-            <Button
-                android:id="@+id/btn_reflux_bill_detail"
-                android:layout_width="100dp"
-                android:layout_height="40dp"
-                android:layout_marginStart="@dimen/item_reflux_bill_margin"
-                android:theme="@style/ButtonBill"
-                android:visibility="gone"
-                android:text="详细"
-                android:textSize="12sp" />
+            android:gravity="end">
 
             <LinearLayout
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
+                android:layout_weight="5" />
+
+            <TextView
+                android:theme="@style/AppTheme.BillText"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:gravity="end">
+                android:text="@string/reflux_count_label" />
 
-                <TextView
-                    android:theme="@style/AppTheme.CommonText"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="@string/reflux_count_label" />
-
-                <TextView
-                    android:id="@+id/tv_reflux_count"
-                    android:theme="@style/AppTheme.CommonText"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="@string/number_default_value" />
-
-            </LinearLayout>
+            <TextView
+                android:id="@+id/tv_reflux_count"
+                android:theme="@style/AppTheme.BigNumber"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:layout_marginStart="@dimen/r2_margin"
+                android:gravity="end"
+                android:text="@string/number_default_value" />
 
         </LinearLayout>
 

@@ -47,14 +47,9 @@ public class CommonUtils {
         return result;
     }
 
-    public static EPCType validEPC(byte[] epc) {
-        byte[] validHeader = generateEPCHeader();
-        for (int i = 0; i < validHeader.length; i++) {
-            if (epc[i] != validHeader[i])
-                return EPCType.NONE;
-        }
+    public static EPCType getEPCType(byte[] epc) {
         if (epc.length == MyParams.EPC_BUCKET_LENGTH && epc[MyParams.EPC_TYPE_INDEX] == EPCType.BUCKET.getCode())
-            return EPCType.BUCKET;
+        return EPCType.BUCKET;
         else if (epc.length == MyParams.EPC_DELIVERY_CARD_LENGTH && epc[MyParams.EPC_TYPE_INDEX] == EPCType.CARD_DELIVERY.getCode())
             return EPCType.CARD_DELIVERY;
         else if (epc.length == MyParams.EPC_ADMIN_CARD_LENGTH && epc[MyParams.EPC_TYPE_INDEX] == EPCType.CARD_ADMIN.getCode())
@@ -63,6 +58,17 @@ public class CommonUtils {
             return EPCType.CARD_REFLUX;
         else
             return EPCType.NONE;
+    }
+
+    public static EPCType validEPC(byte[] epc) {
+        byte[] validHeader = generateEPCHeader();
+        if (epc == null || epc.length < validHeader.length)
+            return EPCType.NONE;
+        for (int i = 0; i < validHeader.length; i++) {
+            if (epc[i] != validHeader[i])
+                return EPCType.NONE;
+        }
+        return getEPCType(epc);
     }
 
     private static final char[] headerArray = "0123456789ABCDEFGHJKLMNPQRTUWXY".toCharArray();
@@ -87,9 +93,9 @@ public class CommonUtils {
         return color.toString();
     }
 
-    public static Map<String,  String> generateRequestHeader() {
+    public static Map<String,  String> generateRequestHeader(String role) {
         Map<String, String> header = new HashMap<>();
-        header.put("role", "02");
+        header.put("role", role);
         header.put("user_key", "abc");
         header.put("request_time", new SimpleDateFormat("yyyy-MM-dd-HH:mm:ss", Locale.CHINA).format(new Date()));
         header.put("random_number", String.valueOf(new Random().nextInt()));

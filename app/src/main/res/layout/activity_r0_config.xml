@@ -1,0 +1,199 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:gravity="end">
+
+    <LinearLayout
+        android:layout_width="300dp"
+        android:layout_height="match_parent"
+        android:layout_marginBottom="16dp"
+        android:layout_marginEnd="16dp"
+        android:layout_marginTop="64dp"
+        android:background="@drawable/bg_r0_config"
+        android:orientation="vertical"
+        android:padding="16dp">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:gravity="center_vertical">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/bucket_spec_label"
+                android:textColor="@color/black"
+                android:textSize="@dimen/r0_config_text_size" />
+
+            <com.weiwangcn.betterspinner.library.BetterSpinner
+                android:id="@+id/spn_bucket_spec"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:textSize="@dimen/r0_config_text_size" />
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:gravity="center_vertical">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/bucket_type_label"
+                android:textColor="@color/black"
+                android:textSize="@dimen/r0_config_text_size" />
+
+            <com.weiwangcn.betterspinner.library.BetterSpinner
+                android:id="@+id/spn_bucket_type"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:textSize="@dimen/r0_config_text_size" />
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:gravity="center_vertical">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/water_brand_label"
+                android:textColor="@color/black"
+                android:textSize="@dimen/r0_config_text_size" />
+
+            <com.weiwangcn.betterspinner.library.BetterSpinner
+                android:id="@+id/spn_water_brand"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:textSize="@dimen/r0_config_text_size" />
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:gravity="center_vertical">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/water_spec_label"
+                android:textColor="@color/black"
+                android:textSize="@dimen/r0_config_text_size" />
+
+            <com.weiwangcn.betterspinner.library.BetterSpinner
+                android:id="@+id/spn_water_spec"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:textSize="@dimen/r0_config_text_size" />
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:gravity="center_vertical">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/bucket_producer_label"
+                android:textColor="@color/black"
+                android:textSize="@dimen/r0_config_text_size" />
+
+            <com.weiwangcn.betterspinner.library.BetterSpinner
+                android:id="@+id/spn_bucket_producer"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:textSize="@dimen/r0_config_text_size" />
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:gravity="center_vertical">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/bucket_owner_label"
+                android:textColor="@color/black"
+                android:textSize="@dimen/r0_config_text_size" />
+
+            <com.weiwangcn.betterspinner.library.BetterSpinner
+                android:id="@+id/spn_bucket_owner"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:textSize="@dimen/r0_config_text_size" />
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:gravity="center_vertical">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/bucket_user_label"
+                android:textColor="@color/black"
+                android:textSize="@dimen/r0_config_text_size" />
+
+            <com.weiwangcn.betterspinner.library.BetterSpinner
+                android:id="@+id/spn_bucket_user"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:textSize="@dimen/r0_config_text_size" />
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:gravity="center_vertical">
+
+            <Button
+                android:id="@+id/btn_r0_config_confirm"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:theme="@style/ButtonPrimary"
+                android:text="确认"
+                android:textSize="@dimen/r0_config_text_size" />
+
+            <Button
+                android:id="@+id/btn_r0_config_cancel"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:theme="@style/ButtonGrey"
+                android:text="取消"
+                android:textSize="@dimen/r0_config_text_size" />
+
+        </LinearLayout>
+
+    </LinearLayout>
+
+</LinearLayout>

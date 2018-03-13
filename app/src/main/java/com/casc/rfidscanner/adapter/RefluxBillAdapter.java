@@ -15,37 +15,22 @@ import com.chad.library.adapter.base.BaseViewHolder;
 
 import java.util.List;
 
-public class RefluxBillAdapter extends BaseQuickAdapter<RefluxBill, BaseViewHolder> implements BaseQuickAdapter.OnItemClickListener {
+public class RefluxBillAdapter extends BaseQuickAdapter<RefluxBill, BaseViewHolder> {
 
-    // Adapter上下文，提供给创建goods列表view的LayoutManager使用
-    private Context context;
-
-    public RefluxBillAdapter(Context context, @Nullable List<RefluxBill> data) {
+    public RefluxBillAdapter(@Nullable List<RefluxBill> data) {
         super(R.layout.item_reflux_bill, data);
-        this.context = context;
     }
 
     @Override
     protected void convert(BaseViewHolder helper, RefluxBill item) {
         CardView root = helper.getView(R.id.cv_reflux_bill_root);
         root.setCardBackgroundColor(item.isHighlight() ?
-                MyApplication.getInstance().getResources().getColor(R.color.bright_gray) :
-                MyApplication.getInstance().getResources().getColor(R.color.snow));
-        item.getGoodsAdapter().setOnItemClickListener(this);
-        RecyclerView goodsListView = helper.getView(R.id.rv_reflux_bill_goods);
-        if (goodsListView.getLayoutManager() == null)
-            goodsListView.setLayoutManager(new LinearLayoutManager(context));
-        goodsListView.setAdapter(item.getGoodsAdapter());
+                MyApplication.getInstance().getColor(R.color.powder_blue) :
+                MyApplication.getInstance().getColor(R.color.snow));
+        helper.setBackgroundRes(R.id.tv_reflux_bill_card_id,
+                item.isHighlight() ? R.drawable.bg_bill_card_highlight :
+                        R.drawable.bg_bill_card_normal);
         helper.setText(R.id.tv_reflux_bill_card_id, item.getCardID())
-                .setText(R.id.tv_reflux_count, String.valueOf(item.getRefluxCount()))
-                .addOnClickListener(R.id.btn_reflux_bill_detail);
-    }
-
-    @Override
-    public void onItemClick(BaseQuickAdapter adapter, View view, int position) {
-        while (!(view instanceof CardView)) {
-            view = (View) view.getParent();
-        }
-        view.callOnClick();
+                .setText(R.id.tv_reflux_count, String.valueOf(item.getRefluxCount()));
     }
 }

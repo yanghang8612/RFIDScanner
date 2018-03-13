@@ -19,14 +19,11 @@ public class RefluxBill {
 
     private List<Goods> goods = new ArrayList<>();
 
-    private List<Product> buckets = new ArrayList<>();
-
-    private GoodsAdapter goodsAdapter;
+    private List<Bucket> buckets = new ArrayList<>();
 
     public RefluxBill(byte[] cardEPC) {
         this.cardEPC = cardEPC;
         this.cardID = MyVars.config.getCompanySymbol() + "R" + String.format("%03d", ((cardEPC[6] & 0xFF) << 8) + (cardEPC[7] & 0xFF));
-        this.goodsAdapter = new GoodsAdapter(goods);
     }
 
     public boolean isHighlight() {
@@ -61,19 +58,15 @@ public class RefluxBill {
         return goods;
     }
 
-    public List<Product> getBuckets() {
+    public List<Bucket> getBuckets() {
         return buckets;
-    }
-
-    public GoodsAdapter getGoodsAdapter() {
-        return goodsAdapter;
     }
 
     public int getRefluxCount() {
         return buckets.size();
     }
 
-    public boolean addBucket(Product bucket) {
+    public boolean addBucket(Bucket bucket) {
         int index = findMatchedBucketIndex(bucket);
         if (index == -1) {
             buckets.add(0, bucket);
@@ -88,11 +81,10 @@ public class RefluxBill {
             }
             matchedGoods.addCurCount();
         }
-        goodsAdapter.notifyDataSetChanged();
         return index == -1;
     }
 
-    private int findMatchedBucketIndex(Product bucket) {
+    private int findMatchedBucketIndex(Bucket bucket) {
         for (int i = 0; i < buckets.size(); i++) {
             if (Arrays.equals(buckets.get(i).getEpc(), bucket.getEpc())) {
                 return i;
@@ -101,9 +93,9 @@ public class RefluxBill {
         return -1;
     }
 
-    private Goods findMatchedGoods(Product product) {
+    private Goods findMatchedGoods(Bucket bucket) {
         for (Goods goods : goods) {
-            if (goods.isBucketMatched(product))
+            if (goods.isBucketMatched(bucket))
                 return goods;
         }
         return null;

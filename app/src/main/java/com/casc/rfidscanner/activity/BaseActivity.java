@@ -70,6 +70,24 @@ public abstract class BaseActivity extends AppCompatActivity implements View.OnS
     }
 
     /**
+     * 判定某个坐标为x、y的点是否在view范围内
+     */
+    protected boolean isTouchPointInView(View view, int x, int y) {
+        if (view == null) {
+            return false;
+        }
+        int[] location = new int[2];
+        view.getLocationOnScreen(location);
+        int left = location[0];
+        int top = location[1];
+        int right = left + view.getMeasuredWidth();
+        int bottom = top + view.getMeasuredHeight();
+        //view.isClickable() &&
+        return y >= top && y <= bottom && x >= left
+                && x <= right;
+    }
+
+    /**
      * 通过重写Activity的该方法，监视用户点击事件，判断是否需要隐藏软键盘
      */
     @Override

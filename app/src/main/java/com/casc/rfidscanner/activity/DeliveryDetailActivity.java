@@ -6,14 +6,18 @@ import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.view.MotionEvent;
+import android.view.View;
+import android.widget.Button;
 import android.widget.TextView;
+import android.widget.ViewFlipper;
 
 import com.afollestad.materialdialogs.DialogAction;
 import com.afollestad.materialdialogs.MaterialDialog;
 import com.casc.rfidscanner.MyVars;
 import com.casc.rfidscanner.R;
+import com.casc.rfidscanner.adapter.BucketAdapter;
 import com.casc.rfidscanner.adapter.GoodsAdapter;
-import com.casc.rfidscanner.adapter.ProductAdapter;
 import com.casc.rfidscanner.bean.DeliveryBill;
 import com.casc.rfidscanner.message.BillFinishedMessage;
 import com.casc.rfidscanner.message.BillUpdatedMessage;
@@ -30,30 +34,34 @@ public class DeliveryDetailActivity extends BaseActivity {
 
     private static final String TAG = DeliveryDetailActivity.class.getSimpleName();
 
-    @BindView(R.id.tv_detail_card_id) TextView mCardIDTV;
-    @BindView(R.id.tv_detail_bill_id) TextView mBillIDTV;
-    @BindView(R.id.tv_detail_delivery_count) TextView mDeliveryCountTV;
-    @BindView(R.id.tv_detail_total_count) TextView mTotalCountTV;
-
-    @BindView(R.id.rv_delivery_detail_goods) RecyclerView mGoodsRV;
-    @BindView(R.id.rv_detail_products) RecyclerView mProductsRV;
-
-    private GoodsAdapter goodsAdapter;
-    private ProductAdapter productAdapter;
-    private DeliveryBill mBill;
-
     public static void actionStart(Context context) {
         Intent intent = new Intent(context, DeliveryDetailActivity.class);
         //intent.setFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
         context.startActivity(intent);
-        ((BaseActivity) context).overridePendingTransition(R.anim.push_bottom_in, 0);
+        ((BaseActivity) context).overridePendingTransition(R.anim.push_right_in, 0);
     }
+
+    @BindView(R.id.tv_delivery_detail_card_id) TextView mCardIDTv;
+    @BindView(R.id.tv_delivery_detail_bill_id) TextView mBillIDTv;
+    @BindView(R.id.tv_delivery_detail_delivery_count) TextView mDeliveryCountTv;
+    @BindView(R.id.tv_delivery_detail_total_count) TextView mTotalCountTv;
+
+    @BindView(R.id.vf_delivery_detail_content) ViewFlipper mContentVf;
+    @BindView(R.id.rv_delivery_detail_goods) RecyclerView mGoodsRv;
+    @BindView(R.id.rv_delivery_detail_buckets) RecyclerView mBucketsRv;
+
+    @BindView(R.id.btn_detail_view_buckets) Button mViewBucketsBtn;
+    @BindView(R.id.btn_detail_view_brief) Button mViewBriefBtn;
+
+    private GoodsAdapter mGoodsAdapter;
+    private BucketAdapter mBucketAdapter;
+    private DeliveryBill mBill;
 
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void onMessageEvent(BillUpdatedMessage message) {
-        mDeliveryCountTV.setText(String.valueOf(mBill.getDeliveryCount()));
-        goodsAdapter.notifyDataSetChanged();
-        productAdapter.notifyDataSetChanged();
+        mDeliveryCountTv.setText(String.valueOf(mBill.getDeliveryCount()));
+        mGoodsAdapter.notifyDataSetChanged();
+        mBucketAdapter.notifyDataSetChanged();
     }
 
     @Override
@@ -63,18 +71,18 @@ public class DeliveryDetailActivity extends BaseActivity {
         ButterKnife.bind(this);
 
         mBill = MyVars.deliveryBillToShow;
-        mCardIDTV.setText(mBill.getCardID());
-        mBillIDTV.setText(mBill.getBillID());
-        mDeliveryCountTV.setText(String.valueOf(mBill.getDeliveryCount()));
-        mTotalCountTV.setText(String.valueOf(mBill.getTotalCount()));
+        mCardIDTv.setText(mBill.getCardID());
+        mBillIDTv.setText(mBill.getBillID());
+        mDeliveryCountTv.setText(String.valueOf(mBill.getDeliveryCount()));
+        mTotalCountTv.setText(String.valueOf(mBill.getTotalCount()));
 
-        goodsAdapter = new GoodsAdapter(mBill.getGoods());
-        mGoodsRV.setLayoutManager(new LinearLayoutManager(this));
-        mGoodsRV.setAdapter(goodsAdapter);
+        mGoodsAdapter = new GoodsAdapter(mBill.getGoods());
+        mGoodsRv.setLayoutManager(new LinearLayoutManager(this));
+        mGoodsRv.setAdapter(mGoodsAdapter);
 
-        productAdapter = new ProductAdapter(mBill.getProducts());
-        mProductsRV.setLayoutManager(new LinearLayoutManager(this));
-        mProductsRV.setAdapter(productAdapter);
+        mBucketAdapter = new BucketAdapter(mBill.getBuckets());
+        mBucketsRv.setLayoutManager(new LinearLayoutManager(this));
+        mBucketsRv.setAdapter(mBucketAdapter);
     }
 
     @Override
@@ -93,6 +101,39 @@ public class DeliveryDetailActivity extends BaseActivity {
     public void finish() {
         super.finish();
         overridePendingTransition(0, R.anim.push_bottom_out);
+    }
+
+    @Override
+    public boolean dispatchTouchEvent(MotionEvent ev) {
+        int x = (int) ev.getRawX();
+        int y = (int) ev.getRawY();
+        if (!isTouchPointInView(findViewById(R.id.ll_delivery_detail_content), x, y)) {
+            finish();
+        }
+        return super.dispatchTouchEvent(ev);
+    }
+
+    @OnClick(R.id.btn_detail_close)
+    void onCloseButtonClicked() {
+        finish();
+    }
+
+    @OnClick(R.id.btn_detail_view_buckets)
+    void onViewBucketsButtonClicked() {
+        mViewBucketsBtn.setVisibility(View.GONE);
+        mViewBriefBtn.setVisibility(View.VISIBLE);
+        mContentVf.setInAnimation(this, R.anim.push_right_in);
+        mContentVf.setOutAnimation(this, R.anim.push_left_out);
+        mContentVf.showNext();
+    }
+
+    @OnClick(R.id.btn_detail_view_brief)
+    void onViewBriefButtonClicked() {
+        mViewBucketsBtn.setVisibility(View.VISIBLE);
+        mViewBriefBtn.setVisibility(View.GONE);
+        mContentVf.setInAnimation(this, R.anim.push_left_in);
+        mContentVf.setOutAnimation(this, R.anim.push_right_out);
+        mContentVf.showPrevious();
     }
 
     @OnClick(R.id.btn_detail_confirm)
@@ -127,10 +168,5 @@ public class DeliveryDetailActivity extends BaseActivity {
                     }
                 })
                 .show();
-    }
-
-    @OnClick(R.id.btn_detail_close)
-    void onRootClicked() {
-        finish();
     }
 }

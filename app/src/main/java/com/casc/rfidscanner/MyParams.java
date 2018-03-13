@@ -24,6 +24,7 @@ public class MyParams {
     public static final int SELECT_MAX_TRY_COUNT = 1; // 次数
     public static final int READ_TID_MAX_TRY_COUNT = 3; // 次数
     public static final int READ_TID_MAX_WAIT_TIME = 3000; // ms
+    public static final int SINGLE_CART_MIN_SCANNED_COUNT = 10; // 次数
     public static final int ADMIN_CARD_SCANNED_COUNT = 5; // 次数
     public static final int BILL_NO_OPERATION_CHECK_INTERVAL = 5 * 60 * 1000; // ms
     public static final int PRODUCT_LIST_MAX_COUNT = 1000;
@@ -58,7 +59,6 @@ public class MyParams {
     public static final String S_LONGITUDE = "longitude"; // 经度
     public static final String S_LATITUDE = "latitude"; // 纬度
     public static final String S_HEIGHT = "height"; // 高度
-    public static final String S_CODE = "code";
     // 平台软件外部接口，统一使用一个json字符串存储
     public static final String S_API_JSON = "api_json";
     public static final Map<String, String> CONFIG_DEFAULT_MAP = new HashMap<>();
@@ -68,16 +68,16 @@ public class MyParams {
         CONFIG_DEFAULT_MAP.put(S_MAIN_PLATFORM_ADDR, "http://106.37.201.142");
         CONFIG_DEFAULT_MAP.put(S_STANDBY_PLATFORM_ADDR, "http://106.37.201.142:8888");
         CONFIG_DEFAULT_MAP.put(S_READER_ID, "100000000000000000000001");
-        CONFIG_DEFAULT_MAP.put(LinkType.R0.power, "15dBm");CONFIG_DEFAULT_MAP.put(LinkType.R0.qValue, "0");CONFIG_DEFAULT_MAP.put(LinkType.R0.sendInterval, "100ms");
-        CONFIG_DEFAULT_MAP.put(LinkType.R1.power, "15dBm");CONFIG_DEFAULT_MAP.put(LinkType.R1.qValue, "0");CONFIG_DEFAULT_MAP.put(LinkType.R1.sendInterval, "100ms");
+        CONFIG_DEFAULT_MAP.put(LinkType.R0.power, "15dBm");CONFIG_DEFAULT_MAP.put(LinkType.R0.qValue, "0");CONFIG_DEFAULT_MAP.put(LinkType.R0.sendInterval, "50ms");
+        CONFIG_DEFAULT_MAP.put(LinkType.R1.power, "15dBm");CONFIG_DEFAULT_MAP.put(LinkType.R1.qValue, "0");CONFIG_DEFAULT_MAP.put(LinkType.R1.sendInterval, "50ms");
         CONFIG_DEFAULT_MAP.put(LinkType.R2.power, "26dBm");CONFIG_DEFAULT_MAP.put(LinkType.R2.qValue, "8");CONFIG_DEFAULT_MAP.put(LinkType.R2.sendInterval, "50ms");
-        CONFIG_DEFAULT_MAP.put(LinkType.R3.power, "15dBm");CONFIG_DEFAULT_MAP.put(LinkType.R3.qValue, "0");CONFIG_DEFAULT_MAP.put(LinkType.R3.sendInterval, "100ms");
-        CONFIG_DEFAULT_MAP.put(LinkType.R4.power, "15dBm");CONFIG_DEFAULT_MAP.put(LinkType.R4.qValue, "0");CONFIG_DEFAULT_MAP.put(LinkType.R4.sendInterval, "100ms");
+        CONFIG_DEFAULT_MAP.put(LinkType.R3.power, "15dBm");CONFIG_DEFAULT_MAP.put(LinkType.R3.qValue, "0");CONFIG_DEFAULT_MAP.put(LinkType.R3.sendInterval, "50ms");
+        CONFIG_DEFAULT_MAP.put(LinkType.R4.power, "15dBm");CONFIG_DEFAULT_MAP.put(LinkType.R4.qValue, "0");CONFIG_DEFAULT_MAP.put(LinkType.R4.sendInterval, "50ms");
         CONFIG_DEFAULT_MAP.put(LinkType.R6.power, "26dBm");CONFIG_DEFAULT_MAP.put(LinkType.R6.qValue, "8");CONFIG_DEFAULT_MAP.put(LinkType.R6.sendInterval, "50ms");
-        CONFIG_DEFAULT_MAP.put(LinkType.Card.power, "15dBm");CONFIG_DEFAULT_MAP.put(LinkType.Card.qValue, "0");CONFIG_DEFAULT_MAP.put(LinkType.Card.sendInterval, "100ms");
+        CONFIG_DEFAULT_MAP.put(LinkType.RN.power, "15dBm");CONFIG_DEFAULT_MAP.put(LinkType.RN.qValue, "0");CONFIG_DEFAULT_MAP.put(LinkType.RN.sendInterval, "50ms");
+        CONFIG_DEFAULT_MAP.put(LinkType.Card.power, "15dBm");CONFIG_DEFAULT_MAP.put(LinkType.Card.qValue, "0");CONFIG_DEFAULT_MAP.put(LinkType.Card.sendInterval, "50ms");
         CONFIG_DEFAULT_MAP.put(S_READER_MAC, "00:00:00:00:00:00");CONFIG_DEFAULT_MAP.put(S_LONGITUDE, "121.39");
         CONFIG_DEFAULT_MAP.put(S_LATITUDE, "37.52");CONFIG_DEFAULT_MAP.put(S_HEIGHT, "922.88");
-        CONFIG_DEFAULT_MAP.put(S_CODE, "1");
     }
 
     /**

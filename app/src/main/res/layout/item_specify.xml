@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <TextView xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
-    android:layout_height="@dimen/item_specify_height"
+    android:layout_height="wrap_content"
     android:padding="@dimen/item_specify_padding"
     android:textSize="@dimen/item_specify_text_size"
     android:textColor="@color/black" />

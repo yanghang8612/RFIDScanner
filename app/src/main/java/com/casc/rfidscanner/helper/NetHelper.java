@@ -1,11 +1,13 @@
 package com.casc.rfidscanner.helper;
 
+import android.os.Message;
 import android.support.annotation.NonNull;
 
 import com.casc.rfidscanner.MyParams;
 import com.casc.rfidscanner.helper.param.MessageCardReg;
 import com.casc.rfidscanner.helper.param.MessageCommon;
 import com.casc.rfidscanner.helper.param.MessageConfig;
+import com.casc.rfidscanner.helper.param.MessageDealer;
 import com.casc.rfidscanner.helper.param.MessageDelivery;
 import com.casc.rfidscanner.helper.param.MessageQuery;
 import com.casc.rfidscanner.helper.param.MessageReflux;
@@ -44,73 +46,83 @@ public class NetHelper implements Callback<Reply> {
     public Call<Reply> checkBodyCodeAndTID(MessageQuery query) {
         return netInterface.checkBodyCodeAndTID(
                 ConfigHelper.getParam(MyParams.S_MAIN_PLATFORM_ADDR) + "/api/message/bucket/query",
-                CommonUtils.generateRequestHeader(),
+                CommonUtils.generateRequestHeader("02"),
                 query);
     }
 
     public Call<Reply> uploadR0Message(MessageRegister r0) {
-        netInterface.cacheData(ConfigHelper.getParam(MyParams.S_MAIN_PLATFORM_ADDR) + "/cache", r0.getStage(),
-                "/api/message/bucket/common", new Gson().toJson(r0))
-                .enqueue(this);
         return netInterface.uploadR0Message(
                 ConfigHelper.getParam(MyParams.S_MAIN_PLATFORM_ADDR) + "/api/message/bucket/register",
-                CommonUtils.generateRequestHeader(),
+                CommonUtils.generateRequestHeader("02"),
                 r0);
     }
 
     public Call<Reply> uploadCommonMessage(MessageCommon common) {
-        netInterface.cacheData(ConfigHelper.getParam(MyParams.S_MAIN_PLATFORM_ADDR) + "/cache", common.getStage(),
-                "/api/message/bucket/common", new Gson().toJson(common))
-                .enqueue(this);
         return netInterface.uploadCommonMessage(
                 ConfigHelper.getParam(MyParams.S_MAIN_PLATFORM_ADDR) + "/api/message/bucket/common",
-                CommonUtils.generateRequestHeader(),
+                CommonUtils.generateRequestHeader("02"),
                 CommonUtils.generateRequestBody(common));
     }
 
     public Call<Reply> uploadDeliveryMessage(MessageDelivery delivery) {
-        netInterface.cacheData(ConfigHelper.getParam(MyParams.S_MAIN_PLATFORM_ADDR) + "/cache", delivery.getStage(),
-                "/api/message/bucket/elecformout", new Gson().toJson(delivery))
-                .enqueue(this);
         return netInterface.uploadDeliveryMessage(
                 ConfigHelper.getParam(MyParams.S_MAIN_PLATFORM_ADDR) + "/api/message/bucket/elecformout",
-                CommonUtils.generateRequestHeader(),
+                CommonUtils.generateRequestHeader("02"),
                 CommonUtils.generateRequestBody(delivery));
     }
 
     public Call<Reply> uploadRefluxMessage(MessageReflux reflux) {
-        netInterface.cacheData(ConfigHelper.getParam(MyParams.S_MAIN_PLATFORM_ADDR) + "/cache", reflux.getStage(),
-                "/api/message/bucket/elecformin", new Gson().toJson(reflux))
-                .enqueue(this);
         return netInterface.uploadRefluxMessage(
                 ConfigHelper.getParam(MyParams.S_MAIN_PLATFORM_ADDR) + "/api/message/bucket/elecformin",
-                CommonUtils.generateRequestHeader(),
+                CommonUtils.generateRequestHeader("02"),
                 CommonUtils.generateRequestBody(reflux));
+    }
+
+    public Call<Reply> uploadDealerMessage(MessageDealer dealer) {
+        String path = "";
+        switch (dealer.getStage()) {
+            case "10":
+                path = "fullelecformin";
+                break;
+            case "11":
+                path = "fullelecformout";
+                break;
+            case "12":
+                path = "emptyelecformin";
+                break;
+            case "13":
+                path = "emptyelecformout";
+                break;
+        }
+        return netInterface.uploadDealerMessage(
+                ConfigHelper.getParam(MyParams.S_MAIN_PLATFORM_ADDR) + "/api/dealermessage/bucket/" + path,
+                CommonUtils.generateRequestHeader("03"),
+                CommonUtils.generateRequestBody(dealer));
     }
 
     public Call<Reply> getConfig(MessageConfig config) {
         return netInterface.getConfig(
                 ConfigHelper.getParam(MyParams.S_MAIN_PLATFORM_ADDR) + "/api/device/parameter",
-                CommonUtils.generateRequestHeader(),
+                CommonUtils.generateRequestHeader("02"),
                 config);
     }
 
     public Call<Reply> sendHeartbeat() {
         return netInterface.sendHeartbeat(
                 ConfigHelper.getParam(MyParams.S_MAIN_PLATFORM_ADDR) + "/api/message/heartbeat",
-                CommonUtils.generateRequestHeader());
+                CommonUtils.generateRequestHeader("02"));
     }
 
     public Call<Reply> uploadCardRegMessage(MessageCardReg card) {
         return netInterface.uploadCardRegMessage(
                 ConfigHelper.getParam(MyParams.S_MAIN_PLATFORM_ADDR) + "/api/device/card/register",
-                CommonUtils.generateRequestHeader(), card);
+                CommonUtils.generateRequestHeader("02"), card);
     }
 
     public Call<Reply> uploadAdminLoginInfo(RequestBody login) {
         return netInterface.uploadAdminLoginInfo(
                 ConfigHelper.getParam(MyParams.S_MAIN_PLATFORM_ADDR) + "/api/message/bucket/login",
-                CommonUtils.generateRequestHeader(), login);
+                CommonUtils.generateRequestHeader("02"), login);
     }
 
     @Override

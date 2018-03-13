@@ -8,12 +8,13 @@
     <string name="r3_title">桶筛选</string>
     <string name="r4_title">成品水注册</string>
     <string name="r6_title">成品水出库</string>
+    <string name="rn_title">水站库存管理</string>
     <string name="card_title">专用卡注册</string>
     <string name="config_title">配置管理</string>
 
-     <!-- common string for all fragments -->
+    <!-- common string for all fragments -->
     <string name="reader_connection_status_label">读写器连接状态</string>
-    <string name="network_connection_status_label">网络连接状态</string>
+    <string name="network_connection_status_label">互联网连接状态</string>
     <string name="platform_connection_status_label">平台连接状态</string>
     <string name="action_save">保存</string>
     <string name="action_cancel">取消</string>
@@ -30,7 +31,7 @@
     <string name="water_spec_label">水规格：</string>
     <string name="bucket_producer_label">桶生产方：</string>
     <string name="bucket_owner_label">桶所有方：</string>
-    <string name="bucket_user_label">桶合法使用方：</string>
+    <string name="bucket_user_label">桶使用方：</string>
     <string name="dealer_label">经销商：</string>
     <string name="driver_label">司机：</string>
     <string name="epc_label">EPC：</string>
@@ -39,21 +40,24 @@
     <string name="body_code_label">桶身码：</string>
     <string name="register_button_text">注册</string>
     <string name="scanning_status_label">扫描状态：</string>
-    <string name="delivery_count_label">已出库总数量：</string>
-    <string name="reflux_count_label">已回收总数量：</string>
-    <string name="total_count_label">总数量：</string>
-    <string name="uploaded_bill_count_label">已上传交接单数量：</string>
-    <string name="stored_bill_count_label">已转储交接单数量：</string>
-    <string name="work_status_label">工作状态：</string>
-    <string name="temp_count_label">当前扫描桶数量：</string>
+    <string name="delivery_count_label">总出库</string>
+    <string name="reflux_count_label">总回收</string>
+    <string name="total_count_label">总数量</string>
+    <string name="uploaded_bill_count_label">已上传单数：</string>
+    <string name="stored_bill_count_label">已转储单数：</string>
+    <string name="work_status_label">工作状态</string>
+    <string name="temp_count_label">扫描数量</string>
 
     <string name="card_id_label">卡号：</string>
     <string name="delivery_bill_id_label">提货单号：</string>
+    <string name="view_buckets_button_text">桶详细信息</string>
+    <string name="view_brief_button_text">简要信息</string>
     <string name="confirm_delivery_button_text">确认出库</string>
     <string name="delete_delivery_button_text">取消出库单</string>
     <string name="confirm_reflux_button_text">确认回收</string>
     <string name="delete_reflux_button_text">取消回收单</string>
-    <string name="close_button_text">返回</string>
+    <string name="close_button_text">关闭</string>
+    <string name="back_button_text">返回</string>
     <string name="clear_button_text">清空数据</string>
     <string name="body_code_default_value">HY123456</string>
     <string name="config_link_label">工位</string>
@@ -72,8 +76,8 @@
     <string name="config_reader_list_label">可用蓝牙设备列表</string>
     <string name="save_config_button_text">保存配置</string>
     <string name="resume_button_text">返回</string>
-    <string name="process_scanned_count_label">已扫描数量：</string>
-    <string name="process_uploaded_count_label">已上传数量：</string>
-    <string name="process_stored_count_label">已转储数量：</string>
+    <string name="process_scanned_count_label">已扫描数量</string>
+    <string name="process_uploaded_count_label">已上传数量</string>
+    <string name="process_stored_count_label">已转储数量</string>
 
 </resources>

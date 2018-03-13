@@ -36,42 +36,43 @@
     <LinearLayout
         android:orientation="horizontal"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_margin="@dimen/r6_margin">
+        android:layout_height="match_parent">
 
         <LinearLayout
-            android:orientation="horizontal"
+            android:orientation="vertical"
             android:layout_width="0dp"
             android:layout_height="match_parent"
-            android:layout_weight="3"
+            android:layout_weight="1"
             android:gravity="center">
 
             <LinearLayout
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:layout_width="match_parent"
+                android:layout_height="0dp"
                 android:layout_weight="1"
                 android:gravity="center">
 
                 <TextView
+                    android:theme="@style/AppTheme.BigText"
                     android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="5"
-                    android:theme="@style/AppTheme.CommonText"
-                    android:gravity="end"
+                    android:layout_height="match_parent"
+                    android:layout_weight="1"
+                    android:gravity="center"
                     android:text="@string/work_status_label" />
 
                 <LinearLayout
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
-                    android:layout_weight="4">
+                    android:layout_weight="1"
+                    android:gravity="center">
 
                     <TextView
                         android:id="@+id/tv_r2_work_status"
+                        android:theme="@style/AppTheme.BigText"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:theme="@style/AppTheme.CommonText"
                         android:background="@drawable/bg_status_normal"
-                        android:gravity="start"
+                        android:gravity="center"
                         android:text="空闲" />
 
                 </LinearLayout>
@@ -79,48 +80,78 @@
             </LinearLayout>
 
             <LinearLayout
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:layout_width="match_parent"
+                android:layout_height="0dp"
                 android:layout_weight="1"
                 android:gravity="center">
 
                 <TextView
-                    android:theme="@style/AppTheme.CommonText"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
+                    android:theme="@style/AppTheme.BigText"
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent"
+                    android:layout_weight="1"
+                    android:gravity="center"
                     android:text="@string/temp_count_label" />
 
                 <TextView
                     android:id="@+id/tv_r2_temp_count"
-                    android:theme="@style/AppTheme.CommonText"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="@string/number_default_value" />
+                    android:theme="@style/AppTheme.BigText"
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent"
+                    android:layout_weight="1"
+                    android:gravity="center"
+                    android:text="@string/number_default_value"
+                    android:textSize="64sp"/>
 
             </LinearLayout>
 
+            <android.support.v7.widget.RecyclerView
+                android:id="@+id/rv_r2_hint_list"
+                android:layout_width="match_parent"
+                android:layout_height="200dp"
+                android:layout_margin="@dimen/r6_margin"
+                android:padding="8dp"
+                android:background="@drawable/sp_corner" />
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="1dp"
+            android:layout_height="match_parent"
+            android:layout_marginTop="@dimen/r2_margin"
+            android:layout_marginBottom="@dimen/r2_margin"
+            android:background="@color/black" />
+
+        <LinearLayout
+            android:orientation="vertical"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="2"
+            android:padding="@dimen/r2_padding">
+
             <LinearLayout
-                android:orientation="vertical"
-                android:layout_width="0dp"
-                android:layout_height="match_parent"
-                android:layout_weight="1"
-                android:gravity="center">
+                android:orientation="horizontal"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center"
+                android:background="@drawable/bg_bill_count">
 
                 <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="0dp"
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent"
                     android:layout_weight="1"
                     android:gravity="center">
 
                     <TextView
-                        android:theme="@style/AppTheme.CommonText"
+                        android:theme="@style/AppTheme.BigText"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="@string/uploaded_bill_count_label" />
 
                     <TextView
                         android:id="@+id/tv_r2_uploaded_bill_count"
-                        android:theme="@style/AppTheme.CommonText"
+                        android:theme="@style/AppTheme.BigText"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="@string/number_default_value" />
@@ -128,20 +159,20 @@
                 </LinearLayout>
 
                 <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="0dp"
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent"
                     android:layout_weight="1"
                     android:gravity="center">
 
                     <TextView
-                        android:theme="@style/AppTheme.CommonText"
+                        android:theme="@style/AppTheme.BigText"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="@string/stored_bill_count_label" />
 
                     <TextView
                         android:id="@+id/tv_r2_stored_bill_count"
-                        android:theme="@style/AppTheme.CommonText"
+                        android:theme="@style/AppTheme.BigText"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="@string/number_default_value"/>
@@ -150,21 +181,15 @@
 
             </LinearLayout>
 
+            <android.support.v7.widget.RecyclerView
+                android:id="@+id/rv_reflux_bill"
+                android:layout_width="match_parent"
+                android:layout_height="0dp"
+                android:layout_weight="1"
+                android:paddingTop="6dp" />
+
         </LinearLayout>
 
-        <android.support.v7.widget.RecyclerView
-            android:id="@+id/rv_r2_hint_list"
-            android:layout_width="0dp"
-            android:layout_height="100dp"
-            android:layout_weight="1"
-            android:padding="6dp"
-            android:background="@drawable/sp_corner"/>
-
     </LinearLayout>
-
-    <android.support.v7.widget.RecyclerView
-        android:id="@+id/rv_reflux_bill"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content" />
 
 </LinearLayout>

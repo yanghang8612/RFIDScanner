@@ -261,7 +261,8 @@ public class USBReaderImpl implements TagReader {
                             if (totalCount == length + 7) {
                                 if ((data[2] & 0xFF) == 0xB6) mIsPowerSet = true; // 设置功率成功
                                 if ((data[2] & 0xFF) == 0x0E) mIsQValueSet = true; // 设置Q值成功
-                                else mInstructionHandler.deal(Arrays.copyOf(data, totalCount)); // 回调函数
+                                else if(mInstructionHandler != null)
+                                    mInstructionHandler.deal(Arrays.copyOf(data, totalCount)); // 回调函数
                                 totalCount = length = 0;
                                 startFlag = false;
                             }

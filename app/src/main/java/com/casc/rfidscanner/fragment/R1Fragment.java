@@ -13,9 +13,9 @@ import com.casc.rfidscanner.MyParams;
 import com.casc.rfidscanner.MyVars;
 import com.casc.rfidscanner.R;
 import com.casc.rfidscanner.activity.ConfigActivity;
-import com.casc.rfidscanner.adapter.ProductAdapter;
+import com.casc.rfidscanner.adapter.BucketAdapter;
 import com.casc.rfidscanner.backend.InstructionHandler;
-import com.casc.rfidscanner.bean.Product;
+import com.casc.rfidscanner.bean.Bucket;
 import com.casc.rfidscanner.helper.InsHelper;
 import com.casc.rfidscanner.message.TagStoredMessage;
 import com.casc.rfidscanner.message.TagUploadedMessage;
@@ -47,10 +47,10 @@ public class R1Fragment extends BaseFragment implements InstructionHandler {
     @BindView(R.id.rv_scrap_products) RecyclerView mScrapProductsRv;
 
     // 已报废桶列表
-    private List<Product> mProducts = new ArrayList<>();
+    private List<Bucket> mBuckets = new ArrayList<>();
 
     // 已报废桶列表适配器
-    private ProductAdapter mAdapter;
+    private BucketAdapter mAdapter;
 
     // Fragment内部handler
     private Handler mHandler = new InnerHandler(this);
@@ -73,7 +73,7 @@ public class R1Fragment extends BaseFragment implements InstructionHandler {
     @Override
     protected void initFragment() {
         mStoredCountTv.setText(String.valueOf(MyVars.cache.getStoredCount()));
-        mAdapter = new ProductAdapter(mProducts);
+        mAdapter = new BucketAdapter(mBuckets);
         mScrapProductsRv.setLayoutManager(new LinearLayoutManager(getContext()));
         mScrapProductsRv.setAdapter(mAdapter);
     }
@@ -97,7 +97,7 @@ public class R1Fragment extends BaseFragment implements InstructionHandler {
                         break;
                     case BUCKET:
                         if (isWorking && MyVars.cache.insert(CommonUtils.bytesToHex(epc))) {
-                            mProducts.add(0, new Product(epc));
+                            mBuckets.add(0, new Bucket(epc));
                             mHandler.sendMessage(Message.obtain(mHandler, MSG_INCREASE_SCANNED_COUNT));
                             // 下发Mash指令
                             MyVars.getReader().sendCommand(InsHelper.getEPCSelectParameter(epc), MyParams.SELECT_MAX_TRY_COUNT);
@@ -138,7 +138,7 @@ public class R1Fragment extends BaseFragment implements InstructionHandler {
         }
         else {
             isWorking = true;
-            mProducts.clear();
+            mBuckets.clear();
             mAdapter.notifyDataSetChanged();
             ((Button) view).setText("停止报废");
         }
@@ -159,7 +159,7 @@ public class R1Fragment extends BaseFragment implements InstructionHandler {
                 case MSG_INCREASE_SCANNED_COUNT:
                     outer.increaseCount(outer.mScannedCountTv);
                     outer.mAdapter.notifyDataSetChanged();
-                    outer.playSound(0, 1);
+                    outer.playSound();
                     break;
             }
         }

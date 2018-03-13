@@ -1,42 +1,39 @@
 package com.casc.rfidscanner.fragment;
 
 import android.content.Context;
-import android.graphics.Color;
 import android.os.Handler;
 import android.os.Message;
 import android.os.Vibrator;
+import android.support.design.widget.FloatingActionButton;
 import android.support.v7.widget.CardView;
-import android.support.v7.widget.LinearLayoutManager;
-import android.support.v7.widget.RecyclerView;
 import android.util.Log;
-import android.view.View;
-import android.widget.ArrayAdapter;
 import android.widget.Button;
+import android.widget.ImageView;
 import android.widget.TextView;
 
+import com.baidu.tts.client.SpeechSynthesizer;
 import com.casc.rfidscanner.MyApplication;
 import com.casc.rfidscanner.MyParams;
 import com.casc.rfidscanner.MyVars;
 import com.casc.rfidscanner.R;
 import com.casc.rfidscanner.activity.ConfigActivity;
-import com.casc.rfidscanner.adapter.HintAdapter;
-import com.casc.rfidscanner.adapter.ProductAdapter;
+import com.casc.rfidscanner.activity.MainActivity;
+import com.casc.rfidscanner.activity.R0ConfigActivity;
+import com.casc.rfidscanner.activity.R0ListActivity;
 import com.casc.rfidscanner.backend.InstructionHandler;
-import com.casc.rfidscanner.bean.Hint;
+import com.casc.rfidscanner.bean.Bucket;
 import com.casc.rfidscanner.bean.LinkType;
-import com.casc.rfidscanner.bean.Product;
-import com.casc.rfidscanner.helper.ConfigHelper;
 import com.casc.rfidscanner.helper.InsHelper;
 import com.casc.rfidscanner.helper.NetHelper;
 import com.casc.rfidscanner.helper.param.MessageQuery;
 import com.casc.rfidscanner.helper.param.MessageRegister;
 import com.casc.rfidscanner.helper.param.Reply;
 import com.casc.rfidscanner.layout.InputCodeLayout;
+import com.casc.rfidscanner.message.ConfigChangedMessage;
 import com.casc.rfidscanner.message.ConfigUpdatedMessage;
 import com.casc.rfidscanner.message.MultiStatusMessage;
+import com.casc.rfidscanner.utils.ActivityCollector;
 import com.casc.rfidscanner.utils.CommonUtils;
-import com.suke.widget.SwitchButton;
-import com.weiwangcn.betterspinner.library.BetterSpinner;
 
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
@@ -47,7 +44,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import at.markushi.ui.CircleButton;
 import butterknife.BindView;
 import butterknife.OnClick;
 import retrofit2.Response;
@@ -60,63 +56,29 @@ public class R0Fragment extends BaseFragment implements InstructionHandler {
     private static final String TAG = R0Fragment.class.getSimpleName();
     private static final int READ_MAX_TRY_COUNT = 5;
     private static final int WRITE_MAX_TRY_COUNT = 3;
+    private static final int NETWORK_WAIT_COUNT = 4;
     private static final int CAN_REGISTER_READ_COUNT = 10;
     // Constant for InnerHandler message.what
-    private static final int MSG_SWITCH_CARD_VISIBILITY = 0;
-    private static final int MSG_UPDATE_HINT = 1;
-    private static final int MSG_SUCCESS = 2;
-    private static final int MSG_FAILED = 3;
-
-    @BindView(R.id.btn_modify) CircleButton mModifyBtn;
-    @BindView(R.id.btn_cancel) CircleButton mCancelBtn;
-    @BindView(R.id.btn_save) CircleButton mSaveBtn;
-
-    @BindView(R.id.tv_product_bucket_spec) TextView mBucketSpecTv;
-    @BindView(R.id.spn_bucket_spec) BetterSpinner mBucketSpecSpn;
-
-    @BindView(R.id.tv_bucket_type) TextView mBucketTypeTv;
-    @BindView(R.id.spn_bucket_type) BetterSpinner mBucketTypeSpn;
-
-    @BindView(R.id.tv_product_water_brand) TextView mWaterBrandTv;
-    @BindView(R.id.spn_water_brand) BetterSpinner mWaterBrandSpn;
-
-    @BindView(R.id.tv_product_water_spec) TextView mWaterSpecTv;
-    @BindView(R.id.spn_water_spec) BetterSpinner mWaterSpecSpn;
-
-    @BindView(R.id.tv_bucket_producer) TextView mBucketProducerTv;
-    @BindView(R.id.spn_bucket_producer) BetterSpinner mBucketProducerSpn;
-
-    @BindView(R.id.tv_bucket_owner) TextView mBucketOwnerTv;
-    @BindView(R.id.spn_bucket_owner) BetterSpinner mBucketOwnerSpn;
-
-    @BindView(R.id.tv_bucket_user) TextView mBucketUserTv;
-    @BindView(R.id.spn_bucket_user) BetterSpinner mBucketUserSpn;
-
-    @BindView(R.id.tv_epc) TextView mEpcTv;
-    @BindView(R.id.tv_rssi) TextView mRssiTv;
-    @BindView(R.id.tv_registered_count) TextView mRegisteredCountTv;
+    private static final int MSG_SUCCESS = 0;
+    private static final int MSG_FAILED = 1;
+    private static final int MSG_UPDATE_HINT = 2;
 
     @BindView(R.id.icl_body_code) InputCodeLayout mBodyCodeIcl;
-    @BindView(R.id.sbtn_auto_complete) SwitchButton mAutoCompleteSbtn;
     @BindView(R.id.btn_register) Button mRegisterBtn;
+    @BindView(R.id.iv_tag_status) ImageView mTagStatusIv;
+    @BindView(R.id.tv_registered_count) TextView mRegisteredCountTv;
+    @BindView(R.id.tv_config_info) TextView mConfigInfoTv;
+    @BindView(R.id.tv_r0_hint) TextView mHintContentTv;
+    @BindView(R.id.fab_r0_config) FloatingActionButton mConfigFab;
 
-    @BindView(R.id.rv_registered_list) RecyclerView mRegisteredRv;
-    @BindView(R.id.rv_r0_hint_list) RecyclerView mHintRv;
+    private String mBucketSpec, mBucketType, mWaterBrand, mWaterSpec,
+            mBucketProducer, mBucketOwner, mBucketUser;
 
     // 已注册桶列表
-    private List<Product> mProducts = new ArrayList<>();
+    private List<Bucket> mBuckets = new ArrayList<>();
 
-    // 提示消息列表
-    private List<Hint> mHints = new ArrayList<>();
-
-    // 已注册桶列表适配器
-    private ProductAdapter mRegisteredAdapter;
-
-    // 提示消息列表适配器
-    private HintAdapter mHintAdapter;
-
-    // 编辑状态和注册状态的标志符
-    private boolean mIsEditing, mIsRegistering;
+    // 注册状态的标志符
+    private boolean mIsRegistering;
 
     // 当前读取的EPC和数据存储区数据
     private byte[] mScannedEPC, mDataRead;
@@ -128,16 +90,10 @@ public class R0Fragment extends BaseFragment implements InstructionHandler {
     private boolean mIsUnregisteredEPCRead, mIsAllConnectionsReady, mIsBodyCodeWritten;
 
     // 要注册的桶实例
-    private Product mProductToRegister;
+    private Bucket mBucketToRegister;
 
     // 系统震动辅助类
     private Vibrator mVibrator;
-
-    // 自动填写标志位
-    private boolean isAutoComplete;
-
-    // 自动填写的桶身码
-    private int mBodyCode;
 
     // Fragment内部handler
     private Handler mHandler = new InnerHandler(this);
@@ -157,41 +113,31 @@ public class R0Fragment extends BaseFragment implements InstructionHandler {
 
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void onMessageEvent(ConfigUpdatedMessage message) {
-        super.onMessageEvent(message);
         updateConfigViews();
+    }
+
+    @Subscribe(threadMode = ThreadMode.MAIN)
+    public void onMessageEvent(ConfigChangedMessage message) {
+        mBucketSpec = message.bucketSpec;
+        mBucketType = message.bucketType;
+        mWaterBrand = message.waterBrand;
+        mWaterSpec = message.waterSpec;
+        mBucketProducer = message.bucketProducer;
+        mBucketOwner = message.bucketOwner;
+        mBucketUser = message.bucketUser;
+        mConfigInfoTv.setText(mBucketSpec + mWaterBrand + mWaterSpec);
     }
 
     @Override
     protected void initFragment() {
-        initConfigViews();
         updateConfigViews();
-        mRegisteredAdapter = new ProductAdapter(mProducts);
-        mHintAdapter = new HintAdapter(mHints);
+        MyVars.registeredBuckets = mBuckets;
         mVibrator = (Vibrator) getActivity().getSystemService(Context.VIBRATOR_SERVICE);
-
         mBodyCodeIcl.setOnInputCompleteListener(new InputCodeLayout.OnInputCompleteCallback() {
             @Override
             public void onInputCompleteListener(String code) {
                 mIsBodyCodeWritten = true;
                 mRegisterBtn.setEnabled(canRegister());
-            }
-        });
-        mRegisteredRv.setLayoutManager(new LinearLayoutManager(getContext()));
-        mRegisteredRv.setAdapter(mRegisteredAdapter);
-        mHintRv.setLayoutManager(new LinearLayoutManager(getContext()));
-        mHintRv.setAdapter(mHintAdapter);
-        mBodyCode = Integer.valueOf(ConfigHelper.getParam(MyParams.S_CODE));
-        mAutoCompleteSbtn.setOnCheckedChangeListener(new SwitchButton.OnCheckedChangeListener() {
-            @Override
-            public void onCheckedChanged(SwitchButton view, boolean isChecked) {
-            if (isChecked)  {
-                mBodyCodeIcl.setCode(String.format("%06d", mBodyCode));
-            }
-            else {
-                mBodyCodeIcl.clear();
-                mIsBodyCodeWritten = false;
-                mRegisterBtn.setEnabled(false);
-            }
             }
         });
     }
@@ -216,72 +162,43 @@ public class R0Fragment extends BaseFragment implements InstructionHandler {
         }
     }
 
-    @OnClick(R.id.btn_modify)
-    void onModifyButtonClicked() {
-        mIsEditing = true;
-        mRegisterBtn.setEnabled(false);
-        mBucketSpecSpn.setText(mBucketSpecTv.getText());
-        mBucketTypeSpn.setText(mBucketTypeTv.getText());
-        mWaterBrandSpn.setText(mWaterBrandTv.getText());
-        mWaterSpecSpn.setText(mWaterSpecTv.getText());
-        mBucketProducerSpn.setText(mBucketProducerTv.getText());
-        mBucketOwnerSpn.setText(mBucketOwnerTv.getText());
-        mBucketUserSpn.setText(mBucketUserTv.getText());
-        mHandler.sendMessageDelayed(Message.obtain(mHandler, MSG_SWITCH_CARD_VISIBILITY), 100);
+    @OnClick(R.id.tv_registered_count)
+    void onRegisteredCountTextViewClicked() {
+        if (ActivityCollector.getTopActivity() instanceof MainActivity) {
+            R0ListActivity.actionStart(this.getContext());
+        }
     }
 
-    @OnClick(R.id.btn_cancel)
-    void onCancelButtonClicked() {
-        mIsEditing = false;
-        mRegisterBtn.setEnabled(canRegister());
-        mHandler.sendMessageDelayed(Message.obtain(mHandler, MSG_SWITCH_CARD_VISIBILITY), 100);
-    }
-
-    @OnClick(R.id.btn_save)
-    void onSaveButtonClicked() {
-        mIsEditing = false;
-        mRegisterBtn.setEnabled(canRegister());
-        mBucketSpecTv.setText(mBucketSpecSpn.getText());
-        mBucketTypeTv.setText(mBucketTypeSpn.getText());
-        mWaterBrandTv.setText(mWaterBrandSpn.getText());
-        mWaterSpecTv.setText(mWaterSpecSpn.getText());
-        mBucketProducerTv.setText(mBucketProducerSpn.getText());
-        mBucketOwnerTv.setText(mBucketOwnerSpn.getText());
-        mBucketUserTv.setText(mBucketUserSpn.getText());
-        mHandler.sendMessageDelayed(Message.obtain(mHandler, MSG_SWITCH_CARD_VISIBILITY), 100);
+    @OnClick(R.id.fab_r0_config)
+    void onConfigInfoTextViewClicked() {
+        if (ActivityCollector.getTopActivity() instanceof MainActivity) {
+            R0ConfigActivity.actionStart(this.getContext(),
+                    new String[]{mBucketSpec, mBucketType, mWaterBrand, mWaterSpec,
+                            mBucketProducer, mBucketOwner, mBucketUser});
+        }
     }
 
     @OnClick(R.id.btn_register)
     void onRegisterButtonClicked() {
-        // 清空提示区，已便本次注册使用
-        mHints.clear();
-        mHintAdapter.notifyDataSetChanged();
-//        // 简单检查是否与刚注册过的重复
-//        for (Product p : mProducts) {
-//            if (p.getBodyCode().equals(mBodyCodeIcl.getCode())) {
-//                writeHint("请勿重复注册");
-//                return;
-//            }
-//        }
         // 修改注册标志位，禁用界面按钮
         mIsRegistering = true;
-        mModifyBtn.setEnabled(false);
-        mAutoCompleteSbtn.setEnabled(false);
+        mConfigFab.setEnabled(false);
         mRegisterBtn.setEnabled(false);
+        mHintContentTv.setText("");
         // EPC组装，并生成Product实例
         byte[] epc = new byte[16];
         System.arraycopy(CommonUtils.generateEPCHeader(), 0, epc, 0, 5);
         epc[5] = (byte) 0x00;
         System.arraycopy(BigInteger.valueOf(System.currentTimeMillis() / 1000).toByteArray(), 0, epc, 6, 4);
-        epc[10] = MyVars.config.getCodeByBucketSpec(mBucketSpecTv.getText().toString());
-        epc[11] = MyVars.config.getCodeByWaterBrand(mWaterBrandTv.getText().toString());
-        epc[12] = MyVars.config.getCodeByWaterSpec(mWaterSpecTv.getText().toString());
-        //epc[13] = MyVars.config.getCodeByBucketType(mBucketTypeTv.getText().toString());
+        epc[10] = MyVars.config.getCodeByBucketSpec(mBucketSpec);
+        epc[11] = MyVars.config.getCodeByWaterBrand(mWaterBrand);
+        epc[12] = MyVars.config.getCodeByWaterSpec(mWaterSpec);
+        //epc[13] = MyVars.config.getCodeByBucketType(mBucketType);
         int bodyCode = Integer.valueOf(mBodyCodeIcl.getCode().substring(2));
         epc[13] = (byte) ((bodyCode & 0x00FF0000) >> 16);
         epc[14] = (byte) ((bodyCode & 0x0000FF00) >> 8);
         epc[15] = (byte) (bodyCode & 0x000000FF);
-        mProductToRegister = new Product(epc);
+        mBucketToRegister = new Bucket(epc);
         // 开始写入任务
         MyVars.executor.execute(new WriteEPCTask());
     }
@@ -293,15 +210,13 @@ public class R0Fragment extends BaseFragment implements InstructionHandler {
             R.id.cv_keyboard_zero
     })
     void onKeyboardClicked(CardView view) {
-        if (mAutoCompleteSbtn.isChecked()) return;
-        mVibrator.vibrate(30);
+        mVibrator.vibrate(80);
         TextView textView = (TextView) view.getChildAt(0);
         mBodyCodeIcl.addCode(textView.getText().toString());
     }
 
     @OnClick(R.id.cv_keyboard_clear)
     void onKeyboardClearClicked() {
-        if (mAutoCompleteSbtn.isChecked()) return;
         mVibrator.vibrate(80);
         mBodyCodeIcl.clear();
         mIsBodyCodeWritten = false;
@@ -310,118 +225,69 @@ public class R0Fragment extends BaseFragment implements InstructionHandler {
 
     @OnClick(R.id.cv_keyboard_back)
     void onKeyboardBackClicked() {
-        if (mAutoCompleteSbtn.isChecked()) return;
-        mVibrator.vibrate(50);
+        mVibrator.vibrate(80);
         mBodyCodeIcl.deleteCode();
         mIsBodyCodeWritten = false;
         mRegisterBtn.setEnabled(false);
     }
 
-    private void initConfigViews() {
-        if (!MyVars.config.getBucketSpecInfo().isEmpty())
-            mBucketSpecTv.setText(MyVars.config.getBucketSpecInfo().get(0).getSpecify());
-
-        if (!MyVars.config.getBucketTypeInfo().isEmpty())
-            mBucketTypeTv.setText(MyVars.config.getBucketTypeInfo().get(0).getSpecify());
-
-        if (!MyVars.config.getWaterBrandInfo().isEmpty())
-            mWaterBrandTv.setText(MyVars.config.getWaterBrandInfo().get(0).getSpecify());
-
-        if (!MyVars.config.getWaterSpecInfo().isEmpty())
-            mWaterSpecTv.setText(MyVars.config.getWaterSpecInfo().get(0).getSpecify());
-
-        if (!MyVars.config.getBucketProducerInfo().isEmpty())
-            mBucketProducerTv.setText(MyVars.config.getBucketProducerInfo().get(0).getSpecify());
-
-        if (!MyVars.config.getBucketOwnerInfo().isEmpty())
-            mBucketOwnerTv.setText(MyVars.config.getBucketOwnerInfo().get(0).getSpecify());
-
-        if (!MyVars.config.getBucketUserInfo().isEmpty())
-            mBucketUserTv.setText(MyVars.config.getBucketUserInfo().get(0).getSpecify());
-    }
-
     private void updateConfigViews() {
         mBodyCodeIcl.setHeader(MyVars.config.getCompanySymbol());
-        try {
-            MyVars.config.getCodeByBucketSpec(mBucketSpecTv.getText().toString());
-        } catch (IllegalArgumentException e) {
-            if (!MyVars.config.getBucketSpecInfo().isEmpty())
-                mBucketSpecTv.setText(MyVars.config.getBucketSpecInfo().get(0).getSpecify());
-            else
-                mBucketSpecTv.setText("");
-        }
-        mBucketSpecSpn.setAdapter(new ArrayAdapter<>(MyApplication.getInstance(),
-                R.layout.item_specify, MyVars.config.getBucketSpecInfo()));
 
         try {
-            MyVars.config.getCodeByBucketType(mBucketTypeTv.getText().toString());
-        } catch (IllegalArgumentException e) {
-            if (!MyVars.config.getBucketTypeInfo().isEmpty())
-                mBucketTypeTv.setText(MyVars.config.getBucketTypeInfo().get(0).getSpecify());
-            else
-                mBucketTypeTv.setText("");
+            MyVars.config.getCodeByBucketSpec(mBucketSpec);
+        } catch (Exception e) {
+            mBucketSpec = MyVars.config.getBucketSpecInfo().isEmpty() ? null :
+                    MyVars.config.getBucketSpecInfo().get(0).getSpecify();
         }
-        mBucketTypeSpn.setAdapter(new ArrayAdapter<>(MyApplication.getInstance(),
-                R.layout.item_specify, MyVars.config.getBucketTypeInfo()));
 
         try {
-            MyVars.config.getCodeByWaterBrand(mWaterBrandTv.getText().toString());
-        } catch (IllegalArgumentException e) {
-            if (!MyVars.config.getWaterBrandInfo().isEmpty())
-                mWaterBrandTv.setText(MyVars.config.getWaterBrandInfo().get(0).getSpecify());
-            else
-                mWaterBrandTv.setText("");
+            MyVars.config.getCodeByBucketType(mBucketType);
+        } catch (Exception e) {
+            mBucketType = MyVars.config.getBucketTypeInfo().isEmpty() ? null :
+                    MyVars.config.getBucketTypeInfo().get(0).getSpecify();
         }
-        mWaterBrandSpn.setAdapter(new ArrayAdapter<>(MyApplication.getInstance(),
-                R.layout.item_specify, MyVars.config.getWaterBrandInfo()));
 
         try {
-            MyVars.config.getCodeByWaterSpec(mWaterSpecTv.getText().toString());
-        } catch (IllegalArgumentException e) {
-            if (!MyVars.config.getWaterSpecInfo().isEmpty())
-                mWaterSpecTv.setText(MyVars.config.getWaterSpecInfo().get(0).getSpecify());
-            else
-                mWaterSpecTv.setText("");
+            MyVars.config.getCodeByWaterBrand(mWaterBrand);
+        } catch (Exception e) {
+            mWaterBrand = MyVars.config.getWaterBrandInfo().isEmpty() ? null :
+                    MyVars.config.getWaterBrandInfo().get(0).getSpecify();
         }
-        mWaterSpecSpn.setAdapter(new ArrayAdapter<>(MyApplication.getInstance(),
-                R.layout.item_specify, MyVars.config.getWaterSpecInfo()));
 
         try {
-            MyVars.config.getCodeByBucketProducer(mBucketProducerTv.getText().toString());
-        } catch (IllegalArgumentException e) {
-            if (!MyVars.config.getBucketProducerInfo().isEmpty())
-                mBucketProducerTv.setText(MyVars.config.getBucketProducerInfo().get(0).getSpecify());
-            else
-                mBucketProducerTv.setText("");
+            MyVars.config.getCodeByWaterSpec(mWaterSpec);
+        } catch (Exception e) {
+            mWaterSpec = MyVars.config.getWaterSpecInfo().isEmpty() ? null :
+                    MyVars.config.getWaterSpecInfo().get(0).getSpecify();
         }
-        mBucketProducerSpn.setAdapter(new ArrayAdapter<>(MyApplication.getInstance(),
-                R.layout.item_specify, MyVars.config.getBucketProducerInfo()));
 
         try {
-            MyVars.config.getCodeByBucketOwner(mBucketOwnerTv.getText().toString());
-        } catch (IllegalArgumentException e) {
-            if (!MyVars.config.getBucketOwnerInfo().isEmpty())
-                mBucketOwnerTv.setText(MyVars.config.getBucketOwnerInfo().get(0).getSpecify());
-            else
-                mBucketOwnerTv.setText("");
+            MyVars.config.getCodeByBucketProducer(mBucketProducer);
+        } catch (Exception e) {
+            mBucketProducer = MyVars.config.getBucketProducerInfo().isEmpty() ? null :
+                    MyVars.config.getBucketProducerInfo().get(0).getSpecify();
         }
-        mBucketOwnerSpn.setAdapter(new ArrayAdapter<>(MyApplication.getInstance(),
-                R.layout.item_specify, MyVars.config.getBucketOwnerInfo()));
 
         try {
-            MyVars.config.getCodeByBucketUser(mBucketUserTv.getText().toString());
-        } catch (IllegalArgumentException e) {
-            if (!MyVars.config.getBucketUserInfo().isEmpty())
-                mBucketUserTv.setText(MyVars.config.getBucketUserInfo().get(0).getSpecify());
-            else
-                mBucketUserTv.setText("");
+            MyVars.config.getCodeByBucketOwner(mBucketOwner);
+        } catch (Exception e) {
+            mBucketOwner = MyVars.config.getBucketOwnerInfo().isEmpty() ? null :
+                    MyVars.config.getBucketOwnerInfo().get(0).getSpecify();
         }
-        mBucketUserSpn.setAdapter(new ArrayAdapter<>(MyApplication.getInstance(),
-                R.layout.item_specify, MyVars.config.getBucketUserInfo()));
+
+        try {
+            MyVars.config.getCodeByBucketUser(mBucketUser);
+        } catch (Exception e) {
+            mBucketUser = MyVars.config.getBucketUserInfo().isEmpty() ? null :
+                    MyVars.config.getBucketUserInfo().get(0).getSpecify();
+        }
+
+        mConfigInfoTv.setText(mBucketSpec + mWaterBrand + mWaterSpec);
     }
 
     private void writeTaskSuccess() {
-        mProducts.add(0, mProductToRegister);
+        mBuckets.add(0, mBucketToRegister);
         mHandler.sendMessage(Message.obtain(mHandler, MSG_SUCCESS));
     }
 
@@ -429,14 +295,16 @@ public class R0Fragment extends BaseFragment implements InstructionHandler {
         mHandler.sendMessage(Message.obtain(mHandler, MSG_FAILED));
     }
 
-    private void writeHint(String content) {
-        mHints.add(0, new Hint(content));
-        mHandler.sendMessage(Message.obtain(mHandler, MSG_UPDATE_HINT));
+    private void writeHint(R0Hint hint) {
+        Message message = new Message();
+        message.what = MSG_UPDATE_HINT;
+        message.obj = hint;
+        mHandler.sendMessage(message);
     }
 
     private boolean canRegister() {
-        return MyVars.getReader().isConnected() & !mIsRegistering && !mIsEditing &&
-                mIsAllConnectionsReady && mIsUnregisteredEPCRead && mIsBodyCodeWritten;
+        return MyVars.getReader().isConnected() & !mIsRegistering &&
+                mIsUnregisteredEPCRead && mIsAllConnectionsReady && mIsBodyCodeWritten;
     }
 
     private static class InnerHandler extends Handler {
@@ -450,27 +318,7 @@ public class R0Fragment extends BaseFragment implements InstructionHandler {
         @Override
         public void handleMessage(Message msg) {
             R0Fragment outer = mOuter.get();
-            boolean isEditing = outer.mIsEditing;
             switch (msg.what) {
-                case MSG_SWITCH_CARD_VISIBILITY:
-                    outer.mModifyBtn.setVisibility(isEditing ? View.GONE : View.VISIBLE);
-                    outer.mCancelBtn.setVisibility(isEditing ? View.VISIBLE : View.GONE);
-                    outer.mSaveBtn.setVisibility(isEditing ? View.VISIBLE : View.GONE);
-                    outer.mBucketSpecTv.setVisibility(isEditing ? View.GONE : View.VISIBLE);
-                    outer.mBucketSpecSpn.setVisibility(isEditing ? View.VISIBLE : View.GONE);
-                    outer.mBucketTypeTv.setVisibility(isEditing ? View.GONE : View.VISIBLE);
-                    outer.mBucketTypeSpn.setVisibility(isEditing ? View.VISIBLE : View.GONE);
-                    outer.mWaterBrandTv.setVisibility(isEditing ? View.GONE : View.VISIBLE);
-                    outer.mWaterBrandSpn.setVisibility(isEditing ? View.VISIBLE : View.GONE);
-                    outer.mWaterSpecTv.setVisibility(isEditing ? View.GONE : View.VISIBLE);
-                    outer.mWaterSpecSpn.setVisibility(isEditing ? View.VISIBLE : View.GONE);
-                    outer.mBucketProducerTv.setVisibility(isEditing ? View.GONE : View.VISIBLE);
-                    outer.mBucketProducerSpn.setVisibility(isEditing ? View.VISIBLE : View.GONE);
-                    outer.mBucketOwnerTv.setVisibility(isEditing ? View.GONE : View.VISIBLE);
-                    outer.mBucketOwnerSpn.setVisibility(isEditing ? View.VISIBLE : View.GONE);
-                    outer.mBucketUserTv.setVisibility(isEditing ? View.GONE : View.VISIBLE);
-                    outer.mBucketUserSpn.setVisibility(isEditing ? View.VISIBLE : View.GONE);
-                    break;
                 case MSG_RECEIVED_FRAME_FROM_READER:
                     byte[] data = (byte[]) msg.obj;
                     outer.mIsUnregisteredEPCRead = false;
@@ -489,6 +337,7 @@ public class R0Fragment extends BaseFragment implements InstructionHandler {
                         switch (epcType) {
                             case BUCKET: // 检测到注册桶标签，也允许注册
                             case NONE: // 检测到未注册桶标签，允许注册
+                                outer.mTagStatusIv.setImageResource(R.drawable.ic_connection_normal);
                                 if (outer.mReadCount > CAN_REGISTER_READ_COUNT) {
                                     outer.mIsUnregisteredEPCRead = true;
                                     outer.mRegisterBtn.setEnabled(outer.canRegister());
@@ -503,10 +352,10 @@ public class R0Fragment extends BaseFragment implements InstructionHandler {
                                 break;
                         }
                         outer.mReadNoneCount = 0;
-                        outer.mEpcTv.setBackgroundColor(outer.getResources().getColor(R.color.white));
+                        //outer.mEpcTv.setBackgroundColor(outer.getResources().getColor(R.color.white));
                         //outer.mEpcTv.setText(CommonUtils.bytesToHex(epc));
-                        outer.mEpcTv.setText(CommonUtils.bytesToHex(epc) + epcType.getComment());
-                        outer.mRssiTv.setText(data[5] + "dBm");
+                        //outer.mEpcTv.setText(CommonUtils.bytesToHex(epc) + epcType.getComment());
+                        //outer.mRssiTv.setText(data[5] + "dBm");
                     }
                     else if ((data[2] & 0xFF) == 0xFF){ // 命令帧执行失败的处理流程
                         switch (data[5] & 0xFF) {
@@ -518,12 +367,14 @@ public class R0Fragment extends BaseFragment implements InstructionHandler {
                                     outer.mIsUnregisteredEPCRead = false;
                                     outer.mRegisterBtn.setEnabled(false);
                                 }
-                                outer.mEpcTv.setBackgroundColor(Color.parseColor(CommonUtils.generateGradientRedColor(outer.mReadNoneCount)));
+                                outer.mTagStatusIv.setImageResource(R.drawable.ic_connection_abnormal);
+                                //outer.mEpcTv.setBackgroundColor(Color.parseColor(CommonUtils.generateGradientRedColor(outer.mReadNoneCount)));
                                 break;
                             case 0x09: // 读时标签不在场区
                             case 0x10: // 写时标签不在场区
                             case 0x16: // Access Password错误
                                 Log.i(TAG, "标准错误");
+                                Log.i(TAG, CommonUtils.bytesToHex(data));
                                 break;
                             case 0xA4: // 读Locked
                             case 0xB4: // 写Locked
@@ -532,32 +383,39 @@ public class R0Fragment extends BaseFragment implements InstructionHandler {
                         }
                     }
                     break;
-                case MSG_UPDATE_HINT:
-                    outer.mHintAdapter.notifyDataSetChanged();
-                    break;
                 case MSG_SUCCESS:
-                    if (outer.mAutoCompleteSbtn.isChecked()) {
-                        outer.mBodyCodeIcl.setCode(String.format("%06d", ++outer.mBodyCode));
-                        ConfigHelper.setParam(MyParams.S_CODE, String.valueOf(outer.mBodyCode));
-                    } else {
-                        outer.mBodyCodeIcl.clear();
-                        outer.mIsBodyCodeWritten = false;
-                    }
+                    int bodyCode = Integer.valueOf(outer.mBodyCodeIcl.getCode().substring(2));
+                    outer.mBodyCodeIcl.setCode(String.format("%06d", ++bodyCode));
                     outer.mIsRegistering = false;
-                    outer.mRegisteredAdapter.notifyDataSetChanged();
-                    outer.mRegisteredCountTv.setText(String.valueOf(outer.mProducts.size()));
-                    outer.mModifyBtn.setEnabled(true);
-                    outer.mAutoCompleteSbtn.setEnabled(true);
+                    outer.mRegisteredCountTv.setText(String.valueOf(outer.mBuckets.size()));
                     outer.mRegisterBtn.setEnabled(false);
-                    outer.playSound(0, 1);
+                    outer.mConfigFab.setEnabled(true);
+                    SpeechSynthesizer.getInstance().speak("注册成功");
                     break;
                 case MSG_FAILED:
                     outer.mIsRegistering = false;
-                    outer.mModifyBtn.setEnabled(true);
-                    outer.mAutoCompleteSbtn.setEnabled(true);
                     outer.mRegisterBtn.setEnabled(outer.canRegister());
+                    outer.mConfigFab.setEnabled(true);
+                    SpeechSynthesizer.getInstance().speak("注册失败");
+                    break;
+                case MSG_UPDATE_HINT:
+                    R0Hint hint = (R0Hint) msg.obj;
+                    outer.mHintContentTv.setTextColor(hint.isSuccess ?
+                            MyApplication.getInstance().getColor(R.color.green) :
+                            MyApplication.getInstance().getColor(R.color.indian_red));
+                    outer.mHintContentTv.setText(hint.content);
                     break;
             }
+        }
+    }
+
+    private class R0Hint {
+        boolean isSuccess;
+        String content;
+
+        R0Hint(boolean isSuccess, String content) {
+            this.isSuccess = isSuccess;
+            this.content = content;
         }
     }
 
@@ -574,47 +432,42 @@ public class R0Fragment extends BaseFragment implements InstructionHandler {
                         InsHelper.getEPCSelectParameter(mScannedEPC), MyParams.SELECT_MAX_TRY_COUNT);
 
                 // 尝试读取TID
-                writeHint("读取TID");
                 mDataRead = null;
                 MyVars.getReader().sendCommand(InsHelper.getReadMemBank(
                         CommonUtils.hexToBytes("00000000"), InsHelper.MemBankType.TID,
                         MyParams.TID_START_INDEX, MyParams.TID_LENGTH), READ_MAX_TRY_COUNT);
                 Thread.sleep((READ_MAX_TRY_COUNT + 1) * LinkType.getSendInterval());
                 if (mDataRead == null) {
-                    writeHint("读取TID失败");
+                    writeHint(new R0Hint(false, "注册失败,读取TID失败"));
                     writeTaskFailed();
                     return;
                 } else {
-                    mProductToRegister.setTid(mDataRead);
+                    writeHint(new R0Hint(true, "读取TID成功"));
+                    mBucketToRegister.setTid(mDataRead);
                 }
 
                 // 通过向平台发送TID与桶身码的参数，根据返回结果判定是否重复注册
-                writeHint("检查重复注册");
-                MessageQuery messageQuery = new MessageQuery(CommonUtils.bytesToHex(mProductToRegister.getTid()),
-                        mProductToRegister.getBodyCode());
+                MessageQuery messageQuery = new MessageQuery(CommonUtils.bytesToHex(mBucketToRegister.getTid()),
+                        mBucketToRegister.getBodyCode());
                 Response<Reply> queryResponse = NetHelper.getInstance().checkBodyCodeAndTID(messageQuery).execute();
+                Thread.sleep(NETWORK_WAIT_COUNT * LinkType.getSendInterval());
                 if (!queryResponse.isSuccessful()) {
-                    writeHint("平台连接失败");
+                    writeHint(new R0Hint(false, "注册失败,平台连接失败"));
                     writeTaskFailed();
                     return;
-                }
-                else if (queryResponse.body() != null && queryResponse.body().getCode() == 210) {
-                    writeHint("TID已注册");
+                } else if (queryResponse.body() != null && queryResponse.body().getCode() == 210) {
+                    writeHint(new R0Hint(false, "注册失败,TID已注册"));
                     writeTaskFailed();
                     return;
-                }
-                else if (queryResponse.body() != null && queryResponse.body().getCode() == 211) {
-                    if (mAutoCompleteSbtn.isChecked()) {
-                        mBodyCodeIcl.setCode(String.format("%06d", ++mBodyCode));
-                        ConfigHelper.setParam(MyParams.S_CODE, String.valueOf(mBodyCode));
-                    }
-                    writeHint("桶身码已注册");
+                } else if (queryResponse.body() != null && queryResponse.body().getCode() == 211) {
+                    writeHint(new R0Hint(false, "注册失败,桶身码已注册"));
                     writeTaskFailed();
                     return;
+                } else {
+                    writeHint(new R0Hint(true, "检验重复注册成功"));
                 }
 
                 // 写入PC
-                writeHint("写入PC");
                 mDataRead = null;
                 MyVars.getReader().sendCommand(InsHelper.getWriteMemBank(
                         CommonUtils.hexToBytes("00000000"), InsHelper.MemBankType.EPC,
@@ -624,57 +477,63 @@ public class R0Fragment extends BaseFragment implements InstructionHandler {
                         InsHelper.MemBankType.EPC,
                         1, 1), READ_MAX_TRY_COUNT);
                 Thread.sleep((WRITE_MAX_TRY_COUNT + READ_MAX_TRY_COUNT + 1) * LinkType.getSendInterval());
-                if (mDataRead == null || ((mDataRead[0] & 0xFF) >> 3) != mProductToRegister.getEpc().length / 2) {
-                    writeHint("写入PC失败");
+                if (mDataRead == null || ((mDataRead[0] & 0xFF) >> 3) != mBucketToRegister.getEpc().length / 2) {
+                    writeHint(new R0Hint(false, "注册失败,写入PC失败"));
                     writeTaskFailed();
                     return;
+                } else {
+                    writeHint(new R0Hint(true, "写入PC成功"));
                 }
 
                 // 写入EPC
-                writeHint("写入EPC");
                 mDataRead = null;
                 MyVars.getReader().sendCommand(InsHelper.getWriteMemBank(
                         CommonUtils.hexToBytes("00000000"), InsHelper.MemBankType.EPC,
-                        2, mProductToRegister.getEpc()), WRITE_MAX_TRY_COUNT);
+                        2, mBucketToRegister.getEpc()), WRITE_MAX_TRY_COUNT);
                 MyVars.getReader().sendCommand(
-                        InsHelper.getEPCSelectParameter(mProductToRegister.getEpc()), 2);
+                        InsHelper.getEPCSelectParameter(mBucketToRegister.getEpc()), 2);
                 MyVars.getReader().sendCommand(InsHelper.getReadMemBank(
                         CommonUtils.hexToBytes("00000000"), InsHelper.MemBankType.EPC,
                         2, MyParams.EPC_BUCKET_LENGTH / 2), READ_MAX_TRY_COUNT);
                 Thread.sleep((WRITE_MAX_TRY_COUNT + READ_MAX_TRY_COUNT + 3) * LinkType.getSendInterval());
-                if (!Arrays.equals(mDataRead, mProductToRegister.getEpc())) {
-                    writeHint("写入EPC失败");
+                if (!Arrays.equals(mDataRead, mBucketToRegister.getEpc())) {
+                    writeHint(new R0Hint(false, "注册失败,写入EPC失败"));
                     writeTaskFailed();
                     return;
+                } else {
+                    writeHint(new R0Hint(true, "写入EPC成功"));
                 }
 
                 // 尝试上报平台
-                writeHint("上报平台");
                 MessageRegister message = new MessageRegister();
-                message.setBucketspec(mBucketSpecTv.getText().toString());
-                message.setBuckettype(mBucketTypeTv.getText().toString());
-                message.setWaterbrand(mWaterBrandTv.getText().toString());
-                message.setWaterspec(mWaterSpecTv.getText().toString());
-                message.setBucketproducer(mBucketProducerTv.getText().toString());
-                message.setBucketowner(mBucketOwnerTv.getText().toString());
-                message.setBucketuser(mBucketUserTv.getText().toString());
+                message.setBucketspec(mBucketSpec);
+                message.setBuckettype(mBucketType);
+                message.setWaterbrand(mWaterBrand);
+                message.setWaterspec(mWaterSpec);
+                message.setBucketproducer(mBucketProducer);
+                message.setBucketowner(mBucketOwner);
+                message.setBucketuser(mBucketUser);
                 message.addBucketInfo(
-                        CommonUtils.bytesToHex(mProductToRegister.getTid()),
-                        CommonUtils.bytesToHex(mProductToRegister.getEpc()),
-                        mProductToRegister.getBodyCode());
+                        CommonUtils.bytesToHex(mBucketToRegister.getTid()),
+                        CommonUtils.bytesToHex(mBucketToRegister.getEpc()),
+                        mBucketToRegister.getBodyCode());
                 Response<Reply> responseR0 = NetHelper.getInstance().uploadR0Message(message).execute();
+                Thread.sleep(NETWORK_WAIT_COUNT * LinkType.getSendInterval());
                 if (!responseR0.isSuccessful()) {
-                    writeHint("平台连接失败");
+                    Log.i(TAG, responseR0.toString());
+                    writeHint(new R0Hint(false, "注册失败,平台连接失败"));
                     writeTaskFailed();
                     return;
+                } else {
+                    writeHint(new R0Hint(true, "上报平台成功"));
                 }
             } catch (Exception e) {
                 e.printStackTrace();
-                writeHint("网络通信失败");
+                writeHint(new R0Hint(false, "注册失败,网络通信失败"));
                 writeTaskFailed();
                 return;
             }
-            writeHint(mProductToRegister.getBodyCode() + " 注册成功");
+            writeHint(new R0Hint(true, mBucketToRegister.getBodyCode() + "注册成功"));
             writeTaskSuccess();
         }
     }

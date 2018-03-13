@@ -12,6 +12,7 @@ import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.text.Editable;
 import android.text.TextWatcher;
+import android.util.Log;
 import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
@@ -24,11 +25,16 @@ import com.casc.rfidscanner.adapter.ReaderAdapter;
 import com.casc.rfidscanner.backend.impl.BLEReaderImpl;
 import com.casc.rfidscanner.bean.LinkType;
 import com.casc.rfidscanner.helper.ConfigHelper;
+import com.casc.rfidscanner.message.ConfigChangedMessage;
+import com.casc.rfidscanner.message.ConfigUpdatedMessage;
+import com.casc.rfidscanner.message.ReaderInitMessage;
 import com.casc.rfidscanner.utils.ClsUtils;
 import com.chad.library.adapter.base.BaseQuickAdapter;
 import com.rengwuxian.materialedittext.MaterialEditText;
 import com.rengwuxian.materialedittext.validation.RegexpValidator;
 import com.weiwangcn.betterspinner.library.BetterSpinner;
+
+import org.greenrobot.eventbus.EventBus;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -238,6 +244,8 @@ public class ConfigActivity extends BaseActivity {
             ConfigHelper.setParam(MyParams.S_MAIN_PLATFORM_ADDR, mMainPlatformAddrMet.getText().toString());
             ConfigHelper.setParam(MyParams.S_STANDBY_PLATFORM_ADDR, mStandbyPlatformAddrMet.getText().toString());
             ConfigHelper.setParam(MyParams.S_READER_MAC, mReaderMacTv.getText().toString());
+
+            EventBus.getDefault().post(new ReaderInitMessage());
             finish();
         }
     }

@@ -31,6 +31,7 @@ import com.casc.rfidscanner.helper.NetHelper;
 import com.casc.rfidscanner.helper.param.MessageCardReg;
 import com.casc.rfidscanner.helper.param.Reply;
 import com.casc.rfidscanner.layout.InputCodeLayout;
+import com.casc.rfidscanner.message.ConfigUpdatedMessage;
 import com.casc.rfidscanner.message.MultiStatusMessage;
 import com.casc.rfidscanner.utils.CommonUtils;
 import com.weiwangcn.betterspinner.library.BetterSpinner;
@@ -289,7 +290,7 @@ public class CardFragment extends BaseFragment implements InstructionHandler {
                             outer.mRegisterBtn.setEnabled(outer.canRegister());
                         }
                         outer.mReadNoneCount = 0;
-                        outer.mEpcTv.setBackgroundColor(outer.getResources().getColor(R.color.white));
+                        outer.mEpcTv.setBackgroundColor(MyApplication.getInstance().getColor(R.color.white));
                         //outer.mEpcTv.setText(CommonUtils.bytesToHex(epc));
                         outer.mEpcTv.setText(CommonUtils.bytesToHex(epc) + CommonUtils.validEPC(epc).getComment());
                         outer.mRssiTv.setText(data[5] + "dBm");
@@ -327,7 +328,7 @@ public class CardFragment extends BaseFragment implements InstructionHandler {
                     outer.mBodyCodeIcl.clear();
                     outer.mCardAdapter.notifyDataSetChanged();
                     outer.mRegisterBtn.setEnabled(false);
-                    outer.playSound(0, 1);
+                    outer.playSound();
                     break;
                 case MSG_FAILED:
                     outer.mIsRegistering = false;

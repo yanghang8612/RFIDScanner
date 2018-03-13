@@ -5,9 +5,16 @@
         <item>桶报废</item>
         <item>空桶回流</item>
         <item>桶筛选</item>
-        <item>成品注册</item>
-        <item>成品出库</item>
+        <item>成品水注册</item>
+        <item>成品水出库</item>
+        <item>水站库存管理</item>
         <item>专用卡注册</item>
+    </string-array>
+    <string-array name="rn_link">
+        <item>成品水入库</item>
+        <item>成品水售出</item>
+        <item>空桶回收</item>
+        <item>空桶返厂</item>
     </string-array>
     <string-array name="tag_lifecycle">
         <item>1Min</item>

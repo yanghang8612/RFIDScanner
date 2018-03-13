@@ -12,6 +12,7 @@ import com.casc.rfidscanner.helper.ConfigHelper;
 import com.casc.rfidscanner.helper.DBHelper;
 import com.casc.rfidscanner.helper.NetHelper;
 import com.casc.rfidscanner.helper.param.MessageCommon;
+import com.casc.rfidscanner.helper.param.MessageDealer;
 import com.casc.rfidscanner.helper.param.MessageDelivery;
 import com.casc.rfidscanner.helper.param.MessageReflux;
 import com.casc.rfidscanner.helper.param.Reply;
@@ -47,12 +48,15 @@ public class TagCache {
 
     private final BaseDao refluxDao;
 
+    private final BaseDao dealerDao;
+
     private final BaseDao loginDao;
 
     public TagCache(Context context) {
         this.tagDao = new BaseDao(DBHelper.TABLE_NAME_TAG, context);
         this.deliveryDao = new BaseDao(DBHelper.TABLE_NAME_DELIVERY, context);
         this.refluxDao = new BaseDao(DBHelper.TABLE_NAME_REFLUX, context);
+        this.dealerDao = new BaseDao(DBHelper.TABLE_NAME_DEALER, context);
         this.loginDao = new BaseDao(DBHelper.TABLE_NAME_LOGIN, context);
         MyVars.executor.scheduleWithFixedDelay(new LifecycleCheckTask(), 0, 100, TimeUnit.MILLISECONDS);
         MyVars.executor.scheduleWithFixedDelay(new StoredUploadTask(), 3000, 500, TimeUnit.MILLISECONDS); // 延迟5秒开始，便于界面有时间显示
@@ -101,6 +105,14 @@ public class TagCache {
 
     public synchronized void storeRefluxBill(MessageReflux bill) {
         refluxDao.save(new Gson().toJson(bill));
+    }
+
+    public synchronized long getStoredDealerBill() {
+        return dealerDao.count();
+    }
+
+    public synchronized void storeDealerBill(MessageDealer bill) {
+        dealerDao.save(new Gson().toJson(bill));
     }
 
     public synchronized void storeLoginInfo(String login) {
@@ -216,6 +228,19 @@ public class TagCache {
                         Reply body = response.body();
                         if (response.isSuccessful() && body != null && body.getCode() == 200) {
                             refluxDao.delete(reflux.first);
+                            EventBus.getDefault().post(new BillUploadedMessage(true));
+                        }
+                    } catch (IOException ignored) {}
+                }
+                if (dealerDao.count() != 0) {
+                    final Pair<Integer, String> dealer = dealerDao.findOne();
+                    try {
+                        Response<Reply> response = NetHelper.getInstance()
+                                .uploadDealerMessage(new Gson().fromJson(dealer.second, MessageDealer.class))
+                                .execute();
+                        Reply body = response.body();
+                        if (response.isSuccessful() && body != null && body.getCode() == 200) {
+                            dealerDao.delete(dealer.first);
                             EventBus.getDefault().post(new BillUploadedMessage(true));
                         }
                     } catch (IOException ignored) {}

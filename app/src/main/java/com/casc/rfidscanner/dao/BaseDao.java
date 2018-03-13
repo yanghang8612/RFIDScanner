@@ -19,7 +19,7 @@ import java.util.Map;
  */
 public class BaseDao {
     private static final String COLUMN_ID = "_id";
-    private static final String COLUMN_TEXTAREA = "textarea";
+    private static final String COLUMN_CONTENT = "content";
 
     private DBHelper dbHelper;
     private SQLiteDatabase db;
@@ -33,26 +33,21 @@ public class BaseDao {
 
     /**
      * 插入新数据
-     *
-     * @param textarea
-     * @return
      */
-    public long save(String textarea) {
-        ContentValues values = transfor2ContentValues(null, textarea);
+    public long save(String content) {
+        ContentValues values = transfor2ContentValues(null, content);
         return insertContentValues(values);
     }
 
     /**
      * 查找所有JSON数据
-     *
-     * @return
      */
-    public List<String> findAllTextarea() {
-        List<String> result = new ArrayList<String>();
+    public List<String> findAllContent() {
+        List<String> result = new ArrayList<>();
         Cursor c = simpleQuery(); // remain
 
         while (c.moveToNext()) {
-            result.add(c.getString(c.getColumnIndex(COLUMN_TEXTAREA))); // JSON
+            result.add(c.getString(c.getColumnIndex(COLUMN_CONTENT))); // JSON
         }
         c.close();
         return result;
@@ -64,8 +59,8 @@ public class BaseDao {
 
         while (c.moveToNext()) {
             int id = c.getInt(c.getColumnIndex(COLUMN_ID)); // SQLite feature
-            String textarea = c.getString(c.getColumnIndex(COLUMN_TEXTAREA)); // JSON
-            result = new Pair<>(id, textarea);
+            String content = c.getString(c.getColumnIndex(COLUMN_CONTENT)); // JSON
+            result = new Pair<>(id, content);
         }
         c.close();
         return result;
@@ -82,8 +77,8 @@ public class BaseDao {
 
         while (c.moveToNext()) {
             int id = c.getInt(c.getColumnIndex(COLUMN_ID)); // SQLite feature
-            String textarea = c.getString(c.getColumnIndex(COLUMN_TEXTAREA)); // JSON
-            result.put(id, textarea);
+            String content = c.getString(c.getColumnIndex(COLUMN_CONTENT)); // JSON
+            result.put(id, content);
         }
         c.close();
         return result;
@@ -91,8 +86,6 @@ public class BaseDao {
 
     /**
      * 按照id删除指定数据
-     *
-     * @param id
      */
     public int delete(int id) {
         return deleteById(id);
@@ -100,13 +93,9 @@ public class BaseDao {
 
     /**
      * 修改Tag
-     *
-     * @param id
-     * @param textarea
-     * @return
      */
-    public int update(Integer id, String textarea) {
-        ContentValues values = transfor2ContentValues(id, textarea);
+    public int update(Integer id, String content) {
+        ContentValues values = transfor2ContentValues(id, content);
         return update(values, COLUMN_ID + "=?", new String[]{id.toString()});
     }
 
@@ -119,9 +108,9 @@ public class BaseDao {
     public String getById(int id) {
         Cursor c = getByIdCursor(id);
         while (c.moveToNext()) {
-            String textarea = c.getString(c.getColumnIndex(COLUMN_TEXTAREA));
+            String content = c.getString(c.getColumnIndex(COLUMN_CONTENT));
             c.close();
-            return textarea;
+            return content;
         }
         return null;
     }
@@ -188,7 +177,7 @@ public class BaseDao {
     public static ContentValues transfor2ContentValues(Integer id, String textarea) {
         ContentValues values = new ContentValues();
         if (id != null && id >= 0) values.put(COLUMN_ID, id);
-        values.put(COLUMN_TEXTAREA, textarea);
+        values.put(COLUMN_CONTENT, textarea);
         return values;
     }
 

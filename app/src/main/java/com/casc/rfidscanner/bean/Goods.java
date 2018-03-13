@@ -52,7 +52,7 @@ public class Goods {
         this.curCount--;
     }
 
-    public boolean isBucketMatched(Product bucket) {
+    public boolean isBucketMatched(Bucket bucket) {
         return bucketSpec.equals(bucket.getBucketSpec()) &&
                 waterBrand.equals(bucket.getWaterBrand()) &&
                 waterSpec.equals(bucket.getWaterSpec());

@@ -3,6 +3,7 @@ package com.casc.rfidscanner;
 import com.casc.rfidscanner.activity.ConfigActivity;
 import com.casc.rfidscanner.backend.TagCache;
 import com.casc.rfidscanner.backend.TagReader;
+import com.casc.rfidscanner.bean.Bucket;
 import com.casc.rfidscanner.bean.Config;
 import com.casc.rfidscanner.bean.DeliveryBill;
 import com.casc.rfidscanner.bean.RefluxBill;
@@ -10,6 +11,7 @@ import com.casc.rfidscanner.message.BatteryStatusMessage;
 import com.casc.rfidscanner.message.MultiStatusMessage;
 import com.casc.rfidscanner.utils.ActivityCollector;
 
+import java.util.List;
 import java.util.concurrent.ScheduledExecutorService;
 
 public class MyVars {
@@ -33,6 +35,8 @@ public class MyVars {
     public static DeliveryBill deliveryBillToShow = null;
 
     public static RefluxBill refluxBillToShow = null;
+
+    public static List<Bucket> registeredBuckets = null;
 
     public static BatteryStatusMessage batteryStatus = null;
 

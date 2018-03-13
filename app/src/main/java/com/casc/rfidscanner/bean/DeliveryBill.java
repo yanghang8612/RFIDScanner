@@ -27,9 +27,7 @@ public class DeliveryBill {
 
     private List<Goods> goods = new ArrayList<>();
 
-    private List<Product> products = new ArrayList<>();
-
-    private GoodsAdapter goodsAdapter;
+    private List<Bucket> buckets = new ArrayList<>();
 
     public DeliveryBill(byte[] cardEPC) {
         this.cardEPC = cardEPC;
@@ -62,7 +60,6 @@ public class DeliveryBill {
                 }
             }
         }
-        this.goodsAdapter = new GoodsAdapter(goods);
     }
 
     public boolean isHighlight() {
@@ -117,49 +114,43 @@ public class DeliveryBill {
         return goods;
     }
 
-    public List<Product> getProducts() {
-        return products;
-    }
-
-    public GoodsAdapter getGoodsAdapter() {
-        return goodsAdapter;
+    public List<Bucket> getBuckets() {
+        return buckets;
     }
 
     public int getDeliveryCount() {
-        return products.size();
+        return buckets.size();
     }
 
-    public boolean addProduct(Product product) {
-        int index = findMatchedProductIndex(product);
+    public boolean addProduct(Bucket bucket) {
+        int index = findMatchedProductIndex(bucket);
         if (index == -1) {
-            products.add(0, product);
-            Goods matchedGoods = findMatchedGoods(product);
+            buckets.add(0, bucket);
+            Goods matchedGoods = findMatchedGoods(bucket);
             if (matchedGoods == null) {
                 matchedGoods = new Goods(
-                        product.getBucketSpec(),
-                        product.getWaterBrand(),
-                        product.getWaterSpec(),
+                        bucket.getBucketSpec(),
+                        bucket.getWaterBrand(),
+                        bucket.getWaterSpec(),
                         0);
                 goods.add(matchedGoods);
             }
             matchedGoods.addCurCount();
         }
-        goodsAdapter.notifyDataSetChanged();
         return index == -1;
     }
 
-    public boolean removeProduct(Product product) {
-        int index = findMatchedProductIndex(product);
+    public boolean removeProduct(Bucket bucket) {
+        int index = findMatchedProductIndex(bucket);
         if (index != -1) {
-            products.remove(index);
-            Goods matchedGoods = findMatchedGoods(product);
+            buckets.remove(index);
+            Goods matchedGoods = findMatchedGoods(bucket);
             if (matchedGoods != null) {
                 matchedGoods.minusCurCount();
                 if (matchedGoods.getCurCount() == 0 && matchedGoods.getTotalCount() == 0)
                     goods.remove(matchedGoods);
             }
         }
-        goodsAdapter.notifyDataSetChanged();
         return index != -1;
     }
 
@@ -171,18 +162,26 @@ public class DeliveryBill {
         return true;
     }
 
-    private int findMatchedProductIndex(Product product) {
-        for (int i = 0; i < products.size(); i++) {
-            if (Arrays.equals(products.get(i).getEpc(), product.getEpc())) {
+    public boolean checkGoods() {
+        for (Goods goods : goods) {
+            if (goods.getTotalCount() == 0)
+                return false;
+        }
+        return buckets.size() <= totalCount;
+    }
+
+    private int findMatchedProductIndex(Bucket bucket) {
+        for (int i = 0; i < buckets.size(); i++) {
+            if (Arrays.equals(buckets.get(i).getEpc(), bucket.getEpc())) {
                 return i;
             }
         }
         return -1;
     }
 
-    private Goods findMatchedGoods(Product product) {
+    private Goods findMatchedGoods(Bucket bucket) {
         for (Goods goods : goods) {
-            if (goods.isBucketMatched(product))
+            if (goods.isBucketMatched(bucket))
                 return goods;
         }
         return null;

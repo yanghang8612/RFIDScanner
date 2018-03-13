@@ -36,6 +36,9 @@ public interface NetInterface {
     Call<Reply> uploadRefluxMessage(@Url String url, @QueryMap Map<String, String> header, @Body RequestBody reflux);
 
     @POST
+    Call<Reply> uploadDealerMessage(@Url String url, @QueryMap Map<String, String> header, @Body RequestBody dealer);
+
+    @POST
     Call<Reply> getConfig(@Url String url, @QueryMap Map<String, String> header, @Body MessageConfig config);
 
     @GET

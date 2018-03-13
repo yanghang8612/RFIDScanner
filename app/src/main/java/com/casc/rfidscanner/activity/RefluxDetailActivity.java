@@ -6,16 +6,20 @@ import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.view.MotionEvent;
+import android.view.View;
 import android.widget.ArrayAdapter;
+import android.widget.Button;
 import android.widget.TextView;
+import android.widget.ViewFlipper;
 
 import com.afollestad.materialdialogs.DialogAction;
 import com.afollestad.materialdialogs.MaterialDialog;
 import com.casc.rfidscanner.MyApplication;
 import com.casc.rfidscanner.MyVars;
 import com.casc.rfidscanner.R;
+import com.casc.rfidscanner.adapter.BucketAdapter;
 import com.casc.rfidscanner.adapter.GoodsAdapter;
-import com.casc.rfidscanner.adapter.ProductAdapter;
 import com.casc.rfidscanner.bean.RefluxBill;
 import com.casc.rfidscanner.message.BillFinishedMessage;
 import com.casc.rfidscanner.message.BillUpdatedMessage;
@@ -33,31 +37,35 @@ public class RefluxDetailActivity extends BaseActivity {
 
     private static final String TAG = RefluxDetailActivity.class.getSimpleName();
 
-    @BindView(R.id.tv_reflux_detail_card_id) TextView mCardIDTV;
-    @BindView(R.id.tv_reflux_detail_count) TextView mRefluxCountTV;
-
-    @BindView(R.id.spn_dealer) BetterSpinner mDealerSpn;
-    @BindView(R.id.spn_driver) BetterSpinner mDriverSpn;
-
-    @BindView(R.id.rv_reflux_detail_goods) RecyclerView mGoodsRV;
-    @BindView(R.id.rv_reflux_detail_buckets) RecyclerView mBucketsRV;
-
-    private GoodsAdapter goodsAdapter;
-    private ProductAdapter productAdapter;
-    private RefluxBill mBill;
-
     public static void actionStart(Context context) {
         Intent intent = new Intent(context, RefluxDetailActivity.class);
         intent.setFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
         context.startActivity(intent);
-        ((BaseActivity) context).overridePendingTransition(R.anim.push_bottom_in, 0);
+        ((BaseActivity) context).overridePendingTransition(R.anim.push_right_in, 0);
     }
+
+    @BindView(R.id.tv_reflux_detail_card_id) TextView mCardIDTv;
+    @BindView(R.id.tv_reflux_detail_count) TextView mRefluxCountTv;
+
+    @BindView(R.id.spn_dealer) BetterSpinner mDealerSpn;
+    @BindView(R.id.spn_driver) BetterSpinner mDriverSpn;
+
+    @BindView(R.id.vf_reflux_detail_content) ViewFlipper mContentVf;
+    @BindView(R.id.rv_reflux_detail_goods) RecyclerView mGoodsRv;
+    @BindView(R.id.rv_reflux_detail_buckets) RecyclerView mBucketsRv;
+
+    @BindView(R.id.btn_detail_view_buckets) Button mViewBucketsBtn;
+    @BindView(R.id.btn_detail_view_brief) Button mViewBriefBtn;
+
+    private GoodsAdapter mGoodsAdapter;
+    private BucketAdapter mBucketAdapter;
+    private RefluxBill mBill;
 
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void onMessageEvent(BillUpdatedMessage message) {
-        mRefluxCountTV.setText(String.valueOf(mBill.getRefluxCount()));
-        goodsAdapter.notifyDataSetChanged();
-        productAdapter.notifyDataSetChanged();
+        mRefluxCountTv.setText(String.valueOf(mBill.getRefluxCount()));
+        mGoodsAdapter.notifyDataSetChanged();
+        mBucketAdapter.notifyDataSetChanged();
     }
 
     @Override
@@ -67,16 +75,16 @@ public class RefluxDetailActivity extends BaseActivity {
         ButterKnife.bind(this);
 
         mBill = MyVars.refluxBillToShow;
-        mCardIDTV.setText(mBill.getCardID());
-        mRefluxCountTV.setText(String.valueOf(mBill.getRefluxCount()));
+        mCardIDTv.setText(mBill.getCardID());
+        mRefluxCountTv.setText(String.valueOf(mBill.getRefluxCount()));
 
-        goodsAdapter = new GoodsAdapter(mBill.getGoods());
-        mGoodsRV.setLayoutManager(new LinearLayoutManager(this));
-        mGoodsRV.setAdapter(goodsAdapter);
+        mGoodsAdapter = new GoodsAdapter(mBill.getGoods());
+        mGoodsRv.setLayoutManager(new LinearLayoutManager(this));
+        mGoodsRv.setAdapter(mGoodsAdapter);
 
-        productAdapter = new ProductAdapter(mBill.getBuckets());
-        mBucketsRV.setLayoutManager(new LinearLayoutManager(this));
-        mBucketsRV.setAdapter(productAdapter);
+        mBucketAdapter = new BucketAdapter(mBill.getBuckets());
+        mBucketsRv.setLayoutManager(new LinearLayoutManager(this));
+        mBucketsRv.setAdapter(mBucketAdapter);
 
         if (!MyVars.config.getDealerInfo().isEmpty())
             mDealerSpn.setText(MyVars.config.getDealerInfo().get(0));
@@ -109,7 +117,40 @@ public class RefluxDetailActivity extends BaseActivity {
         overridePendingTransition(0, R.anim.push_bottom_out);
     }
 
-    @OnClick(R.id.btn_reflux_detail_confirm)
+    @Override
+    public boolean dispatchTouchEvent(MotionEvent ev) {
+        int x = (int) ev.getRawX();
+        int y = (int) ev.getRawY();
+        if (!isTouchPointInView(findViewById(R.id.ll_reflux_detail_content), x, y)) {
+            finish();
+        }
+        return super.dispatchTouchEvent(ev);
+    }
+
+    @OnClick(R.id.btn_detail_close)
+    void onDetailButtonClicked() {
+        finish();
+    }
+
+    @OnClick(R.id.btn_detail_view_buckets)
+    void onViewBucketsButtonClicked() {
+        mViewBucketsBtn.setVisibility(View.GONE);
+        mViewBriefBtn.setVisibility(View.VISIBLE);
+        mContentVf.setInAnimation(this, R.anim.push_right_in);
+        mContentVf.setOutAnimation(this, R.anim.push_left_out);
+        mContentVf.showNext();
+    }
+
+    @OnClick(R.id.btn_detail_view_brief)
+    void onViewBriefButtonClicked() {
+        mViewBucketsBtn.setVisibility(View.VISIBLE);
+        mViewBriefBtn.setVisibility(View.GONE);
+        mContentVf.setInAnimation(this, R.anim.push_left_in);
+        mContentVf.setOutAnimation(this, R.anim.push_right_out);
+        mContentVf.showPrevious();
+    }
+
+    @OnClick(R.id.btn_detail_confirm)
     void onConfirmButtonClicked() {
         new MaterialDialog.Builder(this)
                 .title("提示信息")
@@ -137,10 +178,5 @@ public class RefluxDetailActivity extends BaseActivity {
                     }
                 })
                 .show();
-    }
-
-    @OnClick(R.id.btn_reflux_detail_close)
-    void onRootClicked() {
-        finish();
     }
 }

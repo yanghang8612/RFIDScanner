@@ -8,6 +8,7 @@ import com.casc.rfidscanner.fragment.R2Fragment;
 import com.casc.rfidscanner.fragment.R3Fragment;
 import com.casc.rfidscanner.fragment.R4Fragment;
 import com.casc.rfidscanner.fragment.R6Fragment;
+import com.casc.rfidscanner.fragment.RNFragment;
 import com.casc.rfidscanner.helper.ConfigHelper;
 
 public enum LinkType {
@@ -15,8 +16,9 @@ public enum LinkType {
     R1("01", R1Fragment.class, "桶报废"),
     R2("02", R2Fragment.class, "空桶回流"),
     R3("03", R3Fragment.class, "桶筛选"),
-    R4("04", R4Fragment.class, "成品注册"),
-    R6("06", R6Fragment.class, "成品出库"),
+    R4("04", R4Fragment.class, "成品水注册"),
+    R6("06", R6Fragment.class, "成品水出库"),
+    RN("0N", RNFragment.class, "水站库存管理"),
     Card("Card", CardFragment.class, "专用卡注册");
 
     public final String link;

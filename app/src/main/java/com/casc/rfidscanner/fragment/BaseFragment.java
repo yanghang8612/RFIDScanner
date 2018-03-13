@@ -8,6 +8,7 @@ import android.support.annotation.CallSuper;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -25,8 +26,8 @@ import com.casc.rfidscanner.helper.NetHelper;
 import com.casc.rfidscanner.helper.param.MessageAdminLogin;
 import com.casc.rfidscanner.helper.param.Reply;
 import com.casc.rfidscanner.message.BatteryStatusMessage;
-import com.casc.rfidscanner.message.ConfigUpdatedMessage;
 import com.casc.rfidscanner.message.MultiStatusMessage;
+import com.casc.rfidscanner.message.ReaderInitMessage;
 import com.casc.rfidscanner.utils.CommonUtils;
 import com.google.gson.Gson;
 
@@ -139,9 +140,8 @@ public abstract class BaseFragment extends Fragment implements InstructionHandle
         mTimeColonIv.setVisibility(mTimeColonIv.getVisibility() == View.VISIBLE ? View.INVISIBLE : View.VISIBLE);
     }
 
-    @CallSuper
-    @Subscribe
-    public void onMessageEvent(ConfigUpdatedMessage message) {
+    @Subscribe(threadMode = ThreadMode.MAIN)
+    public void onMessageEvent(ReaderInitMessage message) {
         MyVars.getReader().initReader();
     }
 
@@ -149,6 +149,7 @@ public abstract class BaseFragment extends Fragment implements InstructionHandle
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         mSoundID = mSoundPool.load(getContext(), R.raw.timer, 1);
+        EventBus.getDefault().register(this);
         MyVars.usbReader.setHandler(this);
         MyVars.bleReader.setHandler(this);
     }
@@ -170,31 +171,17 @@ public abstract class BaseFragment extends Fragment implements InstructionHandle
     }
 
     @Override
-    public void onStart() {
-        super.onStart();
-        EventBus.getDefault().register(this);
-        //reader.start();
-    }
-
-    @Override
     public void onResume() {
         super.onResume();
         MyVars.getReader().resume();
     }
 
     @Override
-    public void onStop() {
-        super.onStop();
-        EventBus.getDefault().unregister(this);
-    }
-
-    @Override
     public void onDestroy() {
         super.onDestroy();
+        EventBus.getDefault().unregister(this);
         MyVars.fragmentExecutor.shutdown();
         MyVars.cache.clear();
-//        if (reader != MyVars.getReader())
-//            reader.stop();
     }
 
     // 派生类必须重写该abstract方法，以实现自己的Fragment初始化逻辑
@@ -203,8 +190,8 @@ public abstract class BaseFragment extends Fragment implements InstructionHandle
     // 派生类所加载的LayoutID
     protected abstract int getLayout();
 
-    protected void playSound(int loop, float rate) {
-        mSoundPool.play(mSoundID, 1, 1, 10, loop, rate);
+    protected void playSound() {
+        mSoundPool.play(mSoundID, 1, 1, 10, 0, 1.0F);
     }
 
     protected void increaseCount(TextView view) {

@@ -15,12 +15,19 @@ public class DBHelper extends SQLiteOpenHelper {
     public static final String TABLE_NAME_TAG = "tagTable";
     public static final String TABLE_NAME_DELIVERY = "deliveryTable";
     public static final String TABLE_NAME_REFLUX = "refluxTable";
+    public static final String TABLE_NAME_DEALER = "dealerTable";
     public static final String TABLE_NAME_LOGIN = "loginTable";
 
-    private static String CREATE_TBL_TAG = "CREATE TABLE if not exists " + TABLE_NAME_TAG + "(_id integer primary key autoincrement, textarea text)";
-    private static String CREATE_TBL_DELIVERY = "CREATE TABLE if not exists " + TABLE_NAME_DELIVERY + "(_id integer primary key autoincrement, textarea text)";
-    private static String CREATE_TBL_REFLUX = "CREATE TABLE if not exists " + TABLE_NAME_REFLUX + "(_id integer primary key autoincrement, textarea text)";
-    private static String CREATE_TBL_LOGIN = "CREATE TABLE if not exists " + TABLE_NAME_LOGIN + "(_id integer primary key autoincrement, textarea text)";
+    private static String CREATE_TBL_TAG =
+            "CREATE TABLE if not exists " + TABLE_NAME_TAG + "(_id integer primary key autoincrement, content text)";
+    private static String CREATE_TBL_DELIVERY =
+            "CREATE TABLE if not exists " + TABLE_NAME_DELIVERY + "(_id integer primary key autoincrement, content text)";
+    private static String CREATE_TBL_REFLUX =
+            "CREATE TABLE if not exists " + TABLE_NAME_REFLUX + "(_id integer primary key autoincrement, content text)";
+    private static String CREATE_TBL_DEALER =
+            "CREATE TABLE if not exists " + TABLE_NAME_DEALER + "(_id integer primary key autoincrement, content text)";
+    private static String CREATE_TBL_LOGIN =
+            "CREATE TABLE if not exists " + TABLE_NAME_LOGIN + "(_id integer primary key autoincrement, content text)";
 
     private static DBHelper mInstance = null;
 
@@ -46,6 +53,7 @@ public class DBHelper extends SQLiteOpenHelper {
         db.execSQL(CREATE_TBL_TAG);
         db.execSQL(CREATE_TBL_DELIVERY);
         db.execSQL(CREATE_TBL_REFLUX);
+        db.execSQL(CREATE_TBL_DEALER);
         db.execSQL(CREATE_TBL_LOGIN);
     }
 

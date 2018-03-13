@@ -18,7 +18,7 @@ public class ProductAdapter extends BaseQuickAdapter<Product, BaseViewHolder> {
 
     @Override
     protected void convert(BaseViewHolder helper, Product item) {
-        helper.setText(R.id.tv_product_scanned_time, new SimpleDateFormat("MM-dd HH:mm:ss").format(item.getTime()))
+        helper.setText(R.id.tv_product_scanned_time, new SimpleDateFormat("HH:mm:ss").format(item.getTime()))
                 .setText(R.id.tv_product_body_code, item.getBodyCode())
                 .setText(R.id.tv_product_spec, item.getBucketSpec())
                 .setText(R.id.tv_product_name, item.getWaterBrand() + item.getWaterSpec());
