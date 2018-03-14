@@ -92,7 +92,7 @@ public class MessageCommon {
 
         private Bucket(String tid, String epc) {
             this.bucket_TID = tid;
-            this.bucket_time = System.currentTimeMillis() / 1000;
+            this.bucket_time = System.currentTimeMillis() / 1000 - (MyParams.DELAY * (10 - Integer.valueOf(stage)));
             this.bucket_epc = epc;
         }
 

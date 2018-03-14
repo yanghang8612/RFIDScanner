@@ -33,7 +33,7 @@ public class MessageDealer {
         this.longitude = Double.valueOf(ConfigHelper.getParam(MyParams.S_LONGITUDE));
         this.latitude = Double.valueOf(ConfigHelper.getParam(MyParams.S_LATITUDE));
         this.height = Double.valueOf(ConfigHelper.getParam(MyParams.S_HEIGHT));
-        this.time = System.currentTimeMillis() / 1000;
+        this.time = System.currentTimeMillis() / 1000 - (MyParams.DELAY * (14 - Integer.valueOf(stage)));
         this.counterparty = "";
         this.driver = "";
     }
@@ -123,7 +123,7 @@ public class MessageDealer {
 
         private Bucket(long time, String epc) {
             this.bucket_epc = epc;
-            this.bucket_time = time;
+            this.bucket_time = time - (MyParams.DELAY * (14 - Integer.valueOf(stage)));
         }
 
         public long getBucket_time() {

@@ -3,9 +3,7 @@ package com.casc.rfidscanner.adapter;
 import android.bluetooth.BluetoothDevice;
 import android.support.annotation.Nullable;
 
-import com.casc.rfidscanner.MyParams;
 import com.casc.rfidscanner.R;
-import com.casc.rfidscanner.helper.ConfigHelper;
 import com.chad.library.adapter.base.BaseQuickAdapter;
 import com.chad.library.adapter.base.BaseViewHolder;
 
@@ -19,8 +17,8 @@ public class ReaderAdapter extends BaseQuickAdapter<BluetoothDevice, BaseViewHol
 
     @Override
     protected void convert(BaseViewHolder helper, BluetoothDevice item) {
-        if (item.getAddress().equals(ConfigHelper.getParam(MyParams.S_READER_MAC)))
-            helper.setBackgroundRes(R.id.ll_reader_content, R.drawable.bg_reader_selected);
+//        if (item.getAddress().equals(ConfigHelper.getParam(MyParams.S_READER_MAC)))
+//            helper.setBackgroundRes(R.id.ll_reader_content, R.drawable.bg_reader_selected);
         helper.setText(R.id.tv_reader_name, item.getName())
                 .setText(R.id.tv_reader_mac, item.getAddress())
                 .setGone(R.id.tv_reader_bonded, item.getBondState() == BluetoothDevice.BOND_BONDED)

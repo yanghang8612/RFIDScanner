@@ -8,7 +8,6 @@ import android.widget.ArrayAdapter;
 import com.casc.rfidscanner.MyVars;
 import com.casc.rfidscanner.R;
 import com.casc.rfidscanner.message.ConfigChangedMessage;
-import com.casc.rfidscanner.message.ReaderInitMessage;
 import com.weiwangcn.betterspinner.library.BetterSpinner;
 
 import org.greenrobot.eventbus.EventBus;

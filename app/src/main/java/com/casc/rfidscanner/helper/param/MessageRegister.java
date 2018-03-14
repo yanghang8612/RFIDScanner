@@ -146,7 +146,7 @@ public class MessageRegister {
 
         private BucketInfo(String tid, String epc, String code) {
             this.bucket_TID = tid;
-            this.bucket_time = System.currentTimeMillis() / 1000;
+            this.bucket_time = System.currentTimeMillis() / 1000 - (MyParams.DELAY * 8);
             this.bucket_epc = epc;
             this.bodycode = code;
         }

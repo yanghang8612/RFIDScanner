@@ -7,7 +7,6 @@ import com.casc.rfidscanner.bean.Bucket;
 import com.chad.library.adapter.base.BaseQuickAdapter;
 import com.chad.library.adapter.base.BaseViewHolder;
 
-import java.text.SimpleDateFormat;
 import java.util.List;
 
 public class RegisteredBucketAdapter extends BaseQuickAdapter<Bucket, BaseViewHolder> {

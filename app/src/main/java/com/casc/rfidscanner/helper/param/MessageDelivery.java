@@ -33,7 +33,7 @@ public class MessageDelivery {
         this.longitude = Double.valueOf(ConfigHelper.getParam(MyParams.S_LONGITUDE));
         this.latitude = Double.valueOf(ConfigHelper.getParam(MyParams.S_LATITUDE));
         this.height = Double.valueOf(ConfigHelper.getParam(MyParams.S_HEIGHT));
-        this.time = System.currentTimeMillis() / 1000;
+        this.time = System.currentTimeMillis() / 1000 - (MyParams.DELAY * 5);
     }
 
     public String getStage() {
@@ -121,7 +121,7 @@ public class MessageDelivery {
 
         private Bucket(long time, String epc) {
             this.bucket_epc = epc;
-            this.bucket_time = time;
+            this.bucket_time = time - (MyParams.DELAY * 5);
         }
 
         public long getBucket_time() {

@@ -76,8 +76,8 @@ public class MyApplication extends Application {
             MyVars.config = new Gson().fromJson(ConfigHelper.getParam(MyParams.S_API_JSON), Config.class);
         }
         MyVars.executor.scheduleWithFixedDelay(new UpdateConfigTask(), 0 , MyParams.CONFIG_UPDATE_INTERVAL, TimeUnit.SECONDS);
-        // 启动状态检测线程，检测周期1s
-        MyVars.executor.scheduleWithFixedDelay(new CheckStatusTask(), 0, MyParams.CHECK_STATUS_INTERVAL, TimeUnit.MILLISECONDS);
+        MyVars.executor.scheduleWithFixedDelay(new InternetStatusCheckTask(), 0, MyParams.INTERNET_STATUS_CHECK_INTERVAL, TimeUnit.MILLISECONDS);
+        MyVars.executor.scheduleWithFixedDelay(new PlatformStatusCheckTask(), 0, MyParams.PLATFORM_STATUS_CHECK_INTERVAL, TimeUnit.MILLISECONDS);
     }
 
     @Override
@@ -108,39 +108,42 @@ public class MyApplication extends Application {
         }
     }
 
-    private class CheckStatusTask implements Runnable {
+    private class InternetStatusCheckTask implements Runnable {
 
         @Override
         public void run() {
-            try {
-                if (wifiManager.getWifiState() == WifiManager.WIFI_STATE_DISABLED)
-                    wifiManager.setWifiEnabled(true);
-                NetworkCapabilities networkCapabilities = connectivityManager.getNetworkCapabilities(connectivityManager.getActiveNetwork());
-                EventBus.getDefault().post(MyVars.status.setReaderStatus(MyVars.getReader().isConnected())
-                        .setNetworkStatus(networkCapabilities != null &&
-                                networkCapabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_VALIDATED)));
-                NetHelper.getInstance().sendHeartbeat().enqueue(new Callback<Reply>() {
-                    @Override
-                    public void onResponse(@NonNull Call<Reply> call, @NonNull Response<Reply> response) {
-                        if (response.isSuccessful()) {
-                            if (!MyVars.status.platformStatus)
-                                EventBus.getDefault().post(MyVars.status.setPlatformStatus(true));
-                        } else {
-                            if (MyVars.status.platformStatus)
-                                EventBus.getDefault().post(MyVars.status.setPlatformStatus(false));
-                        }
-                    }
+            if (wifiManager.getWifiState() == WifiManager.WIFI_STATE_DISABLED)
+                wifiManager.setWifiEnabled(true);
+            NetworkCapabilities networkCapabilities = connectivityManager.getNetworkCapabilities(connectivityManager.getActiveNetwork());
+            EventBus.getDefault().post(MyVars.status.setReaderStatus(MyVars.getReader().isConnected())
+                    .setNetworkStatus(networkCapabilities != null &&
+                            networkCapabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_VALIDATED)));
+        }
+    }
 
-                    @Override
-                    public void onFailure(@NonNull Call<Reply> call, @NonNull Throwable t) {
-                        if (MyVars.status.platformStatus) {
+    private class PlatformStatusCheckTask implements Runnable {
+
+        @Override
+        public void run() {
+            NetHelper.getInstance().sendHeartbeat().enqueue(new Callback<Reply>() {
+                @Override
+                public void onResponse(@NonNull Call<Reply> call, @NonNull Response<Reply> response) {
+                    if (response.isSuccessful()) {
+                        if (!MyVars.status.platformStatus)
+                            EventBus.getDefault().post(MyVars.status.setPlatformStatus(true));
+                    } else {
+                        if (MyVars.status.platformStatus)
                             EventBus.getDefault().post(MyVars.status.setPlatformStatus(false));
-                        }
                     }
-                });
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
+                }
+
+                @Override
+                public void onFailure(@NonNull Call<Reply> call, @NonNull Throwable t) {
+                    if (MyVars.status.platformStatus) {
+                        EventBus.getDefault().post(MyVars.status.setPlatformStatus(false));
+                    }
+                }
+            });
         }
     }
 }

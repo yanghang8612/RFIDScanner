@@ -9,7 +9,6 @@ import android.view.MotionEvent;
 
 import com.casc.rfidscanner.MyVars;
 import com.casc.rfidscanner.R;
-import com.casc.rfidscanner.adapter.BucketAdapter;
 import com.casc.rfidscanner.adapter.RegisteredBucketAdapter;
 
 import butterknife.BindView;

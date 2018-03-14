@@ -5,39 +5,26 @@ import android.os.Handler;
 import android.os.Message;
 import android.support.annotation.NonNull;
 import android.support.v7.widget.GridLayoutManager;
-import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.helper.ItemTouchHelper;
-import android.text.Editable;
-import android.text.TextWatcher;
 import android.util.Log;
-import android.view.View;
-import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.TextView;
 
 import com.afollestad.materialdialogs.DialogAction;
 import com.afollestad.materialdialogs.MaterialDialog;
-import com.casc.rfidscanner.MyApplication;
 import com.casc.rfidscanner.MyParams;
 import com.casc.rfidscanner.MyVars;
 import com.casc.rfidscanner.R;
 import com.casc.rfidscanner.activity.ConfigActivity;
-import com.casc.rfidscanner.activity.DialogActivity;
-import com.casc.rfidscanner.adapter.BucketAdapter;
 import com.casc.rfidscanner.adapter.RNBucketAdapter;
 import com.casc.rfidscanner.backend.InstructionHandler;
-import com.casc.rfidscanner.bean.Bucket;
 import com.casc.rfidscanner.bean.RNBucket;
-import com.casc.rfidscanner.helper.InsHelper;
 import com.casc.rfidscanner.helper.NetHelper;
 import com.casc.rfidscanner.helper.param.MessageDealer;
 import com.casc.rfidscanner.helper.param.Reply;
-import com.casc.rfidscanner.message.BillFinishedMessage;
 import com.casc.rfidscanner.message.BillStoredMessage;
 import com.casc.rfidscanner.message.BillUploadedMessage;
-import com.casc.rfidscanner.message.TagStoredMessage;
-import com.casc.rfidscanner.message.TagUploadedMessage;
 import com.casc.rfidscanner.utils.CommonUtils;
 import com.chad.library.adapter.base.callback.ItemDragAndSwipeCallback;
 import com.chad.library.adapter.base.listener.OnItemSwipeListener;
@@ -101,8 +88,9 @@ public class RNFragment extends BaseFragment implements InstructionHandler {
 
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void onMessageEvent(BillUploadedMessage message) {
-        if (message.isFromDB)
+        if (message.isFromDB) {
             decreaseCount(mStoredBillCountTv);
+        }
         increaseCount(mUploadedBillCountTv);
     }
 
@@ -177,8 +165,7 @@ public class RNFragment extends BaseFragment implements InstructionHandler {
                                 }
                                 mHandler.sendMessage(Message.obtain(mHandler, MSG_UPDATE_BUCKET_LIST));
                             }
-                        }
-                        else {
+                        } else {
                             if (mReadEPC != null && mBucketsMap.get(mReadEPC) != null) {
                                 mBucketsMap.get(mReadEPC).setHighlight(false);
                                 mHandler.sendMessage(Message.obtain(mHandler, MSG_UPDATE_BUCKET_LIST));
