@@ -31,7 +31,6 @@ import com.casc.rfidscanner.helper.NetHelper;
 import com.casc.rfidscanner.helper.param.MessageCardReg;
 import com.casc.rfidscanner.helper.param.Reply;
 import com.casc.rfidscanner.layout.InputCodeLayout;
-import com.casc.rfidscanner.message.ConfigUpdatedMessage;
 import com.casc.rfidscanner.message.MultiStatusMessage;
 import com.casc.rfidscanner.utils.CommonUtils;
 import com.weiwangcn.betterspinner.library.BetterSpinner;
@@ -110,8 +109,7 @@ public class CardFragment extends BaseFragment implements InstructionHandler {
         if (message.readerStatus && message.networkStatus && message.platformStatus) {
             mIsAllConnectionsReady = true;
             mRegisterBtn.setEnabled(canRegister());
-        }
-        else {
+        } else {
             mIsAllConnectionsReady = false;
             mRegisterBtn.setEnabled(false);
         }
@@ -280,8 +278,7 @@ public class CardFragment extends BaseFragment implements InstructionHandler {
                         // 判定扫到的EPC是否为前一次扫到的
                         if (Arrays.equals(epc, outer.mScannedEPC)) {
                             outer.mReadCount++;
-                        }
-                        else {
+                        } else {
                             outer.mReadCount = 0;
                             outer.mScannedEPC = epc;
                         }
@@ -414,13 +411,11 @@ public class CardFragment extends BaseFragment implements InstructionHandler {
                     writeHint("平台连接失败");
                     writeTaskFailed();
                     return;
-                }
-                else if (responseCardReg.body() != null && responseCardReg.body().getCode() == 210) {
+                } else if (responseCardReg.body() != null && responseCardReg.body().getCode() == 210) {
                     writeHint("TID已注册");
                     writeTaskFailed();
                     return;
-                }
-                else if (responseCardReg.body() != null && responseCardReg.body().getCode() == 211) {
+                } else if (responseCardReg.body() != null && responseCardReg.body().getCode() == 211) {
                     writeHint("可视码已注册");
                     writeTaskFailed();
                     return;

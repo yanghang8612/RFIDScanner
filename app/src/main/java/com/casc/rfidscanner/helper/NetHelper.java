@@ -1,6 +1,5 @@
 package com.casc.rfidscanner.helper;
 
-import android.os.Message;
 import android.support.annotation.NonNull;
 
 import com.casc.rfidscanner.MyParams;
@@ -14,8 +13,10 @@ import com.casc.rfidscanner.helper.param.MessageReflux;
 import com.casc.rfidscanner.helper.param.MessageRegister;
 import com.casc.rfidscanner.helper.param.Reply;
 import com.casc.rfidscanner.utils.CommonUtils;
-import com.google.gson.Gson;
 
+import java.util.concurrent.TimeUnit;
+
+import okhttp3.OkHttpClient;
 import okhttp3.RequestBody;
 import retrofit2.Call;
 import retrofit2.Callback;
@@ -35,6 +36,11 @@ public class NetHelper implements Callback<Reply> {
         this.netInterface = new Retrofit.Builder()
                 .addConverterFactory(GsonConverterFactory.create())
                 .baseUrl(ConfigHelper.getParam(MyParams.S_MAIN_PLATFORM_ADDR))
+                .client(new OkHttpClient.Builder()
+                        .connectTimeout(MyParams.NET_CONNECT_TIMEOUT, TimeUnit.MILLISECONDS)
+                        .writeTimeout(MyParams.NET_RW_TIMEOUT, TimeUnit.MILLISECONDS)
+                        .readTimeout(MyParams.NET_RW_TIMEOUT, TimeUnit.MILLISECONDS)
+                        .build())
                 .build()
                 .create(NetInterface.class);
     }

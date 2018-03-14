@@ -135,8 +135,7 @@ public class R1Fragment extends BaseFragment implements InstructionHandler {
         if (isWorking) {
             isWorking = false;
             ((Button) view).setText("开始报废");
-        }
-        else {
+        } else {
             isWorking = true;
             mBuckets.clear();
             mAdapter.notifyDataSetChanged();

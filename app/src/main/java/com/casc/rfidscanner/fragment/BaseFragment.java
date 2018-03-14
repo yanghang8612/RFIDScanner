@@ -8,7 +8,6 @@ import android.support.annotation.CallSuper;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -17,6 +16,7 @@ import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import com.casc.rfidscanner.MyParams;
 import com.casc.rfidscanner.MyVars;
 import com.casc.rfidscanner.R;
 import com.casc.rfidscanner.activity.BaseActivity;
@@ -83,43 +83,37 @@ public abstract class BaseFragment extends Fragment implements InstructionHandle
 
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void onMessageEvent(BatteryStatusMessage message) {
-        if (mBatteryStatusIv == null) return;
+        if (mBatteryStatusIv == null)
+            return;
         if (message.batteryPct < 0.2) {
             mBatteryStatusIv.setImageResource(message.isCharging ?
                     R.drawable.ic_battery_charging_20 :
                     R.drawable.ic_battery_alert);
-        }
-        else if (message.batteryPct < 0.3) {
+        } else if (message.batteryPct < 0.3) {
             mBatteryStatusIv.setImageResource(message.isCharging ?
                     R.drawable.ic_battery_charging_20 :
                     R.drawable.ic_battery_20);
-        }
-        else if (message.batteryPct < 0.5) {
+        } else if (message.batteryPct < 0.5) {
             mBatteryStatusIv.setImageResource(message.isCharging ?
                     R.drawable.ic_battery_charging_30 :
                     R.drawable.ic_battery_30);
-        }
-        else if (message.batteryPct < 0.6) {
+        } else if (message.batteryPct < 0.6) {
             mBatteryStatusIv.setImageResource(message.isCharging ?
                     R.drawable.ic_battery_charging_50 :
                     R.drawable.ic_battery_50);
-        }
-        else if (message.batteryPct < 0.8) {
+        } else if (message.batteryPct < 0.8) {
             mBatteryStatusIv.setImageResource(message.isCharging ?
                     R.drawable.ic_battery_charging_60 :
                     R.drawable.ic_battery_60);
-        }
-        else if (message.batteryPct < 0.9) {
+        } else if (message.batteryPct < 0.9) {
             mBatteryStatusIv.setImageResource(message.isCharging ?
                     R.drawable.ic_battery_charging_80 :
                     R.drawable.ic_battery_80);
-        }
-        else if (message.batteryPct < 0.95) {
+        } else if (message.batteryPct < 0.95) {
             mBatteryStatusIv.setImageResource(message.isCharging ?
                     R.drawable.ic_battery_charging_90 :
                     R.drawable.ic_battery_90);
-        }
-        else {
+        } else {
             mBatteryStatusIv.setImageResource(message.isCharging ?
                     R.drawable.ic_battery_charging_full :
                     R.drawable.ic_battery_full);
@@ -166,7 +160,9 @@ public abstract class BaseFragment extends Fragment implements InstructionHandle
         super.onActivityCreated(savedInstanceState);
         if (MyVars.batteryStatus != null) onMessageEvent(MyVars.batteryStatus);
         MyVars.fragmentExecutor = Executors.newScheduledThreadPool(5);
-        MyVars.fragmentExecutor.scheduleWithFixedDelay(new BackdoorTask(), 0, 10, TimeUnit.MILLISECONDS);
+        if (MyParams.ENABLE_BACKDOOR) {
+            MyVars.fragmentExecutor.scheduleWithFixedDelay(new BackdoorTask(), 0, 10, TimeUnit.MILLISECONDS);
+        }
         initFragment();
     }
 
@@ -238,8 +234,11 @@ public abstract class BaseFragment extends Fragment implements InstructionHandle
 
         @Override
         public void run() {
-            if (mBackdoorBtn.isPressed()) mBackdoorCount++;
-            else mBackdoorCount = 0;
+            if (mBackdoorBtn.isPressed()) {
+                mBackdoorCount++;
+            } else {
+                mBackdoorCount = 0;
+            }
             if (mBackdoorCount == 10) {
                 MyVars.getReader().pause();
                 ConfigActivity.actionStart(getContext());

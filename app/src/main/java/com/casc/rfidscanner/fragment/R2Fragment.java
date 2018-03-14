@@ -3,7 +3,6 @@ package com.casc.rfidscanner.fragment;
 import android.os.Handler;
 import android.os.Message;
 import android.support.annotation.NonNull;
-import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
@@ -162,8 +161,9 @@ public class R2Fragment extends BaseFragment implements InstructionHandler {
 
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void onMessageEvent(BillUploadedMessage message) {
-        if (message.isFromDB)
+        if (message.isFromDB) {
             decreaseCount(mStoredBillCountTv);
+        }
         increaseCount(mUploadedBillCountTv);
     }
 
@@ -224,8 +224,7 @@ public class R2Fragment extends BaseFragment implements InstructionHandler {
                             if (mCurBill == null) {
                                 if (mBillsMap.containsKey(epcStr)) {
                                     mCurBill = mBillsMap.get(epcStr);
-                                }
-                                else {
+                                } else {
                                     try {
                                         mCurBill = new RefluxBill(epc);
                                     } catch (Exception e) {
@@ -239,8 +238,7 @@ public class R2Fragment extends BaseFragment implements InstructionHandler {
                                 mCurBill.setHighlight(true);
                                 EventBus.getDefault().post(new BillUpdatedMessage());
                                 SpeechSynthesizer.getInstance().speak(mCurBill.getCardNum() + "回收中");
-                            }
-                            else if (!Arrays.equals(epc, mCurBill.getCardEPC()) && !isMultiRefluxMentioned) {
+                            } else if (!Arrays.equals(epc, mCurBill.getCardEPC()) && !isMultiRefluxMentioned) {
                                 isMultiRefluxMentioned = true;
                                 SpeechSynthesizer.getInstance().speak("回收中发现两张以上回流卡");
                             }
@@ -252,8 +250,7 @@ public class R2Fragment extends BaseFragment implements InstructionHandler {
                             if (mStatus == WorkStatus.IS_IDLE) {
                                 sendAdminLoginMessage(CommonUtils.bytesToHex(epc));
                                 ConfigActivity.actionStart(getContext());
-                            }
-                            else {
+                            } else {
                                 mAdminCardScannedCount = 0;
                             }
                         }
@@ -265,19 +262,15 @@ public class R2Fragment extends BaseFragment implements InstructionHandler {
                 if (++mBlankCount == Integer.valueOf(ConfigHelper.getParam(MyParams.S_BLANK_INTERVAL))) { // 达到了空白期间隔设定值
                     if (mReadCount < MyParams.SINGLE_CART_MIN_SCANNED_COUNT) {
                         mReadCount = 0;
-                    }
-                    else if (isCardEPCCodeError) {
+                    } else if (isCardEPCCodeError) {
                         SpeechSynthesizer.getInstance().speak("解析回流卡出错，请重试或联系营销人员");
-                    }
-                    else if (mCurBill == null && !mTempEPCs.isEmpty()) { // 检测到有桶在回收但是没有扫到回流卡，应声音提示
+                    } else if (mCurBill == null && !mTempEPCs.isEmpty()) { // 检测到有桶在回收但是没有扫到回流卡，应声音提示
                         writeHint("未发现回流卡");
                         SpeechSynthesizer.getInstance().speak("未发现回流卡");
-                    }
-                    else if (mCurBill != null && mTempEPCs.size() == 0) { // EPC临时列表为空，空车通过
+                    } else if (mCurBill != null && mTempEPCs.size() == 0) { // EPC临时列表为空，空车通过
                         writeHint(mCurBill.getCardID() + "空车通过");
                         SpeechSynthesizer.getInstance().speak(mCurBill.getCardNum() + "空车通过");
-                    }
-                    else if (mCurBill != null && mTempEPCs.size() != 0) { // EPC临时列表不为空，正常回流
+                    } else if (mCurBill != null && mTempEPCs.size() != 0) { // EPC临时列表不为空，正常回流
                         mHandler.sendMessage(Message.obtain(mHandler, MSG_REFLUX));
                     }
                     mHandler.sendMessage(Message.obtain(mHandler, MSG_IS_NORMAL));
@@ -324,7 +317,9 @@ public class R2Fragment extends BaseFragment implements InstructionHandler {
                     outer.increaseCount(outer.mTempCountTv);
                     break;
                 case MSG_IS_NORMAL:
-                    if (outer.mCurBill != null) outer.mCurBill.setHighlight(false);
+                    if (outer.mCurBill != null) {
+                        outer.mCurBill.setHighlight(false);
+                    }
                     outer.mCurBill = null;
                     outer.mTempEPCs.clear();
                     outer.mStatus = WorkStatus.IS_IDLE;

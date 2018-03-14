@@ -1,7 +1,6 @@
 package com.casc.rfidscanner.bean;
 
 import com.casc.rfidscanner.MyVars;
-import com.casc.rfidscanner.adapter.GoodsAdapter;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;

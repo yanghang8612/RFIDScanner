@@ -59,8 +59,9 @@ public class R4Fragment extends BaseFragment implements InstructionHandler {
 
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void onMessageEvent(TagUploadedMessage message) {
-        if (message.isFromDB)
+        if (message.isFromDB) {
             decreaseCount(mStoredCountTv);
+        }
         increaseCount(mUploadedCountTv);
     }
 
@@ -91,7 +92,9 @@ public class R4Fragment extends BaseFragment implements InstructionHandler {
                         break;
                     case BUCKET:
                         if (MyVars.cache.insert(CommonUtils.bytesToHex(epc))) {
-                            if (mBuckets.size() > MyParams.PRODUCT_LIST_MAX_COUNT) mBuckets.clear();
+                            if (mBuckets.size() > MyParams.PRODUCT_LIST_MAX_COUNT) {
+                                mBuckets.clear();
+                            }
                             mBuckets.add(0, new Bucket(epc));
                             mHandler.sendMessage(Message.obtain(mHandler, MSG_INCREASE_SCANNED_COUNT));
                             // 下发Mash指令

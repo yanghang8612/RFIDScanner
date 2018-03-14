@@ -46,8 +46,11 @@ public class MyParams {
      * Setting Parameters
      */
     // APP参数配置
-    public static final int CONFIG_UPDATE_INTERVAL = 3; // s
-    public static final int CHECK_STATUS_INTERVAL = 990; // ms
+    public static final int NET_CONNECT_TIMEOUT = 3000; // ms
+    public static final int NET_RW_TIMEOUT = 3000; // ms
+    public static final int CONFIG_UPDATE_INTERVAL = 60; // s
+    public static final int INTERNET_STATUS_CHECK_INTERVAL = 990; // ms
+    public static final int PLATFORM_STATUS_CHECK_INTERVAL = 5000; // ms
     // 运维人员配置
     public static final String S_LINK = "link"; // 工位
     public static final String S_TAG_LIFECYCLE = "tag_lifecycle"; // 标签生命周期
@@ -84,6 +87,9 @@ public class MyParams {
      * Parameters for testing
      */
     public static final String TEST_SERVER_ADDR = "http://192.168.1.11:8080/";
+//    public static final int DELAY = 2 * 60 * 60;
+    public static final int DELAY = 0;
+    public static final boolean ENABLE_BACKDOOR = false;
 
     /**
      * EPC各种类型

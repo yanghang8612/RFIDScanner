@@ -38,7 +38,7 @@ public class BLEReaderImpl implements TagReader {
     private InstructionHandler mInstructionHandler;
 
     // 循环发现Timer
-    private CountDownTimer mDiscoveryTimer;
+    private DiscoveryTimer mDiscoveryTimer;
 
     // 读写器的连接状态
     private int mState = STATE_NONE;
@@ -150,8 +150,8 @@ public class BLEReaderImpl implements TagReader {
     @Override
     public void resume() {
         mIsRunning = true;
-        if (mBLESocket != null && !mBLESocket.isConnected() ||
-                mBLEDevice != null && !ConfigHelper.getParam(MyParams.S_READER_MAC).equals(mBLEDevice.getAddress())) {
+        if (mBLESocket != null && !mBLESocket.isConnected() || mBLEDevice == null ||
+                !ConfigHelper.getParam(MyParams.S_READER_MAC).equals(mBLEDevice.getAddress())) {
             if (mState == STATE_CONNECTED) {
                 lostConnection();
             } else {
@@ -219,7 +219,9 @@ public class BLEReaderImpl implements TagReader {
                 Log.i(TAG, "Error when connect to bluetooth reader");
                 e.printStackTrace();
                 mState = STATE_NONE;
-                startDiscovery();
+                if (!mDiscoveryTimer.isRunning) {
+                    startDiscovery();
+                }
             }
         }
     }
@@ -230,11 +232,13 @@ public class BLEReaderImpl implements TagReader {
             if (mBLEAdapter.isDiscovering()) mBLEAdapter.cancelDiscovery();
             mBLEAdapter.startDiscovery();
             mDiscoveryTimer.cancel();
-            mDiscoveryTimer.start();
+            mDiscoveryTimer.startTimer();
         }
     }
 
     private class DiscoveryTimer extends CountDownTimer {
+
+        private boolean isRunning;
 
         /**
          * @param millisInFuture    The number of millis in the future from the call
@@ -254,7 +258,23 @@ public class BLEReaderImpl implements TagReader {
         public void onFinish() {
             Log.i(TAG, "BLE discovery finish");
             mBLEAdapter.cancelDiscovery();
+            isRunning = false;
             startDiscovery();
+        }
+
+
+        public synchronized void cancelTimer() {
+            isRunning = false;
+            cancel();
+        }
+
+        public synchronized void startTimer() {
+            isRunning = true;
+            start();
+        }
+
+        public boolean isRunning() {
+            return isRunning;
         }
     }
 

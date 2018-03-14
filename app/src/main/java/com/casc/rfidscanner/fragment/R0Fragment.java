@@ -104,8 +104,7 @@ public class R0Fragment extends BaseFragment implements InstructionHandler {
         if (message.readerStatus && message.networkStatus && message.platformStatus) {
             mIsAllConnectionsReady = true;
             mRegisterBtn.setEnabled(canRegister());
-        }
-        else {
+        } else {
             mIsAllConnectionsReady = false;
             mRegisterBtn.setEnabled(false);
         }
@@ -328,8 +327,7 @@ public class R0Fragment extends BaseFragment implements InstructionHandler {
                         // 判定扫到的EPC是否为前一次扫到的
                         if (Arrays.equals(epc, outer.mScannedEPC)) {
                             outer.mReadCount++;
-                        }
-                        else {
+                        } else {
                             outer.mReadCount = 0;
                             outer.mScannedEPC = epc;
                         }

@@ -137,9 +137,9 @@ public class R6Fragment extends BaseFragment implements InstructionHandler {
                 if (!response.isSuccessful() || body == null || body.getCode() != 200) {
                     MyVars.cache.storeDeliveryBill(delivery);
                     EventBus.getDefault().post(new BillStoredMessage());
-                }
-                else
+                } else {
                     EventBus.getDefault().post(new BillUploadedMessage(false));
+                }
             }
 
             @Override
@@ -161,15 +161,19 @@ public class R6Fragment extends BaseFragment implements InstructionHandler {
 
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void onMessageEvent(BillUpdatedMessage message) {
-        if (mBills.isEmpty()) mDeliveryBackSbtn.setEnabled(false);
-        else if (mStatus == WorkStatus.IS_IDLE) mDeliveryBackSbtn.setEnabled(true);
+        if (mBills.isEmpty()) {
+            mDeliveryBackSbtn.setEnabled(false);
+        } else if (mStatus == WorkStatus.IS_IDLE) {
+            mDeliveryBackSbtn.setEnabled(true);
+        }
         mBillAdapter.notifyDataSetChanged();
     }
 
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void onMessageEvent(BillUploadedMessage message) {
-        if (message.isFromDB)
+        if (message.isFromDB) {
             decreaseCount(mStoredBillCountTv);
+        }
         increaseCount(mUploadedBillCountTv);
     }
 
@@ -182,8 +186,7 @@ public class R6Fragment extends BaseFragment implements InstructionHandler {
                 if (isChecked) { // 退库开始只能通过手动
                     mHandler.sendMessage(Message.obtain(mHandler, MSG_IS_BACKING));
                     SpeechSynthesizer.getInstance().speak("退库开始");
-                }
-                else if (isFromCancel) {
+                } else if (isFromCancel) {
                     mHandler.sendMessage(Message.obtain(mHandler, MSG_IS_NORMAL));
                     SpeechSynthesizer.getInstance().speak("退库取消");
                 }
@@ -231,14 +234,12 @@ public class R6Fragment extends BaseFragment implements InstructionHandler {
                         // 不管出库或退库，扫到桶则Disable退库Button
                         mReadCount++;
                         mHandler.sendMessage(Message.obtain(mHandler, MSG_DISABLE_BACK_BUTTON));
-                        if (!mTempEPCs.contains(epcStr)) { // 扫到的EPC均判重后加入temp列表里
-                            mTempEPCs.add(epcStr);
-                        }
                         if (mReadCount >= MyParams.SINGLE_CART_MIN_SCANNED_COUNT) {
                             if (mStatus != WorkStatus.IS_BACKING) { // 没有在退库，那表示正常出库，修改工作状态的提示
                                 mHandler.sendMessage(Message.obtain(mHandler, MSG_IS_WORKING));
                             }
-                            if (!mTempEPCs.contains(epcStr)) { // 更新显示的扫描数量
+                            if (!mTempEPCs.contains(epcStr)) { // 扫到的EPC均判重后加入temp列表里并更新显示的扫描数量
+                                mTempEPCs.add(epcStr);
                                 mHandler.sendMessage(Message.obtain(mHandler, MSG_UPDATE_COUNT));
                             }
                         }
@@ -256,8 +257,7 @@ public class R6Fragment extends BaseFragment implements InstructionHandler {
                                     mCurBill = mBillsMap.get(epcStr);
                                     mBills.remove(mCurBill);
                                     mBills.add(0, mCurBill);
-                                }
-                                else {
+                                } else {
                                     if (mStatus == WorkStatus.IS_BACKING) {
                                         isNoneMatchedBillWhenBacking = true;
                                         return;
@@ -276,8 +276,7 @@ public class R6Fragment extends BaseFragment implements InstructionHandler {
                                 mCurBill.setHighlight(true);
                                 EventBus.getDefault().post(new BillUpdatedMessage());
                                 SpeechSynthesizer.getInstance().speak(mCurBill.getCardNum() + (mStatus != WorkStatus.IS_BACKING ? "出库中" : "退库中"));
-                            }
-                            else if (!Arrays.equals(epc, mCurBill.getCardEPC()) && !isMultiDeliveryMentioned) {
+                            } else if (!Arrays.equals(epc, mCurBill.getCardEPC()) && !isMultiDeliveryMentioned) {
                                 isMultiDeliveryMentioned = true;
                                 SpeechSynthesizer.getInstance().speak("出库中发现两张以上出库卡");
                             }
@@ -289,8 +288,7 @@ public class R6Fragment extends BaseFragment implements InstructionHandler {
                             if (mStatus == WorkStatus.IS_IDLE) {
                                 sendAdminLoginMessage(CommonUtils.bytesToHex(epc));
                                 ConfigActivity.actionStart(getContext());
-                            }
-                            else {
+                            } else {
                                 mAdminCardScannedCount = 0;
                             }
                         }
@@ -303,34 +301,27 @@ public class R6Fragment extends BaseFragment implements InstructionHandler {
                     Log.i(TAG, "Read count: " + mReadCount);
                     if (mReadCount < MyParams.SINGLE_CART_MIN_SCANNED_COUNT) {
                         mReadCount = 0;
-                    }
-                    else if (isNoneMatchedBillWhenBacking) {
+                    } else if (isNoneMatchedBillWhenBacking) {
                         SpeechSynthesizer.getInstance().speak("退库前请先出库");
-                    }
-                    else if (isCardEPCCodeError) {
+                    } else if (isCardEPCCodeError) {
                         SpeechSynthesizer.getInstance().speak("解析出库卡出错，请联系营销人员");
-                    }
-                    else if (mCurBill == null && !mTempEPCs.isEmpty()) { // 检测到有桶在出库或退库，但是没有扫到出库卡
+                    } else if (mCurBill == null && !mTempEPCs.isEmpty()) { // 检测到有桶在出库或退库，但是没有扫到出库卡
                         //playSound(2, 0.2f);
                         if (mStatus == WorkStatus.IS_BACKING) {
                             writeHint("未发现出库卡，退库结束");
                             SpeechSynthesizer.getInstance().speak("未发现出库卡，退库结束");
-                        }
-                        else {
+                        } else {
                             SpeechSynthesizer.getInstance().speak("未发现出库卡");
                         }
-                    }
-                    else if (mCurBill != null && mTempEPCs.size() == 0) { // 没有处于回库状态，EPC临时列表为空，空车回库
+                    } else if (mCurBill != null && mTempEPCs.size() == 0) { // 没有处于回库状态，EPC临时列表为空，空车回库
                         if (mStatus == WorkStatus.IS_BACKING) {
                             writeHint(mCurBill.getCardID() + "退库结束(未发现桶标签)");
                             SpeechSynthesizer.getInstance().speak("未发现桶标签，退库结束");
-                        }
-                        else {
+                        } else {
                             writeHint(mCurBill.getCardID() + "空车通过");
                             SpeechSynthesizer.getInstance().speak(mCurBill.getCardNum() + "空车通过");
                         }
-                    }
-                    else if (mCurBill != null && mTempEPCs.size() != 0) { // EPC临时列表不为空，正常出库或退库
+                    } else if (mCurBill != null && mTempEPCs.size() != 0) { // EPC临时列表不为空，正常出库或退库
                         mHandler.sendMessage(Message.obtain(mHandler, MSG_DELIVERY_OR_BACK));
                     }
                     mHandler.sendMessage(Message.obtain(mHandler, MSG_IS_NORMAL));
@@ -373,8 +364,7 @@ public class R6Fragment extends BaseFragment implements InstructionHandler {
                     if (outer.mStatus == WorkStatus.IS_BACKING) {
                         outer.writeHint(outer.mCurBill.getCardID() + "退库成功，数量:" + count);
                         SpeechSynthesizer.getInstance().speak(outer.mCurBill.getCardNum() + "退库" + CommonUtils.numToChinese(count) + "桶");
-                    }
-                    else {
+                    } else {
                         outer.writeHint(outer.mCurBill.getCardID() + "出库成功，数量:" + count);
                         SpeechSynthesizer.getInstance().speak(outer.mCurBill.getCardNum() + "出库" + CommonUtils.numToChinese(count) + "桶");
                     }
