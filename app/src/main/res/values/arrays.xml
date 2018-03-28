@@ -37,6 +37,18 @@
         <item>9</item>
         <item>10</item>
     </string-array>
+    <string-array name="discovery_interval">
+        <item>0.5Sec</item>
+        <item>1.0Sec</item>
+        <item>1.5Sec</item>
+        <item>2.0Sec</item>
+        <item>2.5Sec</item>
+        <item>3.0Sec</item>
+        <item>3.5Sec</item>
+        <item>4.0Sec</item>
+        <item>4.5Sec</item>
+        <item>5.0Sec</item>
+    </string-array>
     <string-array name="reader_power">
         <item>15dBm</item>
         <item>16dBm</item>

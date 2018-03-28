@@ -58,6 +58,7 @@ public class R0Fragment extends BaseFragment implements InstructionHandler {
     private static final int WRITE_MAX_TRY_COUNT = 3;
     private static final int NETWORK_WAIT_COUNT = 4;
     private static final int CAN_REGISTER_READ_COUNT = 10;
+    private static final int MAX_READ_NONE_COUNT = 3;
     // Constant for InnerHandler message.what
     private static final int MSG_SUCCESS = 0;
     private static final int MSG_FAILED = 1;
@@ -124,7 +125,7 @@ public class R0Fragment extends BaseFragment implements InstructionHandler {
         mBucketProducer = message.bucketProducer;
         mBucketOwner = message.bucketOwner;
         mBucketUser = message.bucketUser;
-        mConfigInfoTv.setText(mBucketSpec + mWaterBrand + mWaterSpec);
+        setConfigInfoTv();
     }
 
     @Override
@@ -148,7 +149,6 @@ public class R0Fragment extends BaseFragment implements InstructionHandler {
 
     @Override
     public void deal(byte[] ins) {
-        if(D) Log.i(TAG, CommonUtils.bytesToHex(ins));
         int command = ins[2] & 0xFF;
         switch (command) {
             case 0x39: // 读取TID成功的处理流程
@@ -183,6 +183,7 @@ public class R0Fragment extends BaseFragment implements InstructionHandler {
         mIsRegistering = true;
         mConfigFab.setEnabled(false);
         mRegisterBtn.setEnabled(false);
+        mTagStatusIv.setImageResource(R.drawable.ic_connection_normal);
         mHintContentTv.setText("");
         // EPC组装，并生成Product实例
         byte[] epc = new byte[16];
@@ -228,6 +229,10 @@ public class R0Fragment extends BaseFragment implements InstructionHandler {
         mBodyCodeIcl.deleteCode();
         mIsBodyCodeWritten = false;
         mRegisterBtn.setEnabled(false);
+    }
+
+    private void setConfigInfoTv() {
+        mConfigInfoTv.setText(mBucketSpec + "("+ mBucketType + ")" + mWaterBrand + mWaterSpec);
     }
 
     private void updateConfigViews() {
@@ -282,7 +287,7 @@ public class R0Fragment extends BaseFragment implements InstructionHandler {
                     MyVars.config.getBucketUserInfo().get(0).getSpecify();
         }
 
-        mConfigInfoTv.setText(mBucketSpec + mWaterBrand + mWaterSpec);
+        setConfigInfoTv();
     }
 
     private void writeTaskSuccess() {
@@ -333,6 +338,7 @@ public class R0Fragment extends BaseFragment implements InstructionHandler {
                         }
                         MyParams.EPCType epcType = CommonUtils.validEPC(epc);
                         switch (epcType) {
+                            case CARD_REFLUX:
                             case BUCKET: // 检测到注册桶标签，也允许注册
                             case NONE: // 检测到未注册桶标签，允许注册
                                 outer.mTagStatusIv.setImageResource(R.drawable.ic_connection_normal);
@@ -359,13 +365,14 @@ public class R0Fragment extends BaseFragment implements InstructionHandler {
                         switch (data[5] & 0xFF) {
                             case 0x15: // 轮询失败
                                 outer.mAdminCardScannedCount = 0;
-                                outer.mReadNoneCount += 8;
-                                if (outer.mReadNoneCount > 8) {
+                                outer.mReadNoneCount++;
+                                if (outer.mReadNoneCount > MAX_READ_NONE_COUNT) {
                                     outer.mReadCount = 0;
                                     outer.mIsUnregisteredEPCRead = false;
                                     outer.mRegisterBtn.setEnabled(false);
                                 }
-                                outer.mTagStatusIv.setImageResource(R.drawable.ic_connection_abnormal);
+                                if (!outer.mIsRegistering)
+                                    outer.mTagStatusIv.setImageResource(R.drawable.ic_connection_abnormal);
                                 //outer.mEpcTv.setBackgroundColor(Color.parseColor(CommonUtils.generateGradientRedColor(outer.mReadNoneCount)));
                                 break;
                             case 0x09: // 读时标签不在场区

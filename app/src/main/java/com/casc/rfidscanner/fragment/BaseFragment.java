@@ -53,7 +53,6 @@ public abstract class BaseFragment extends Fragment implements InstructionHandle
 
     private static final String TAG = BaseFragment.class.getSimpleName();
     protected static final int MSG_RECEIVED_FRAME_FROM_READER = 0xBB;
-    protected static final boolean D = false;
 
     @BindView(R.id.iv_reader_status) ImageView mReaderStatusIv;
     @BindView(R.id.iv_network_status ) ImageView mNetworkStatusIv;

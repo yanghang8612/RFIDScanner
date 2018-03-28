@@ -17,8 +17,7 @@ import com.casc.rfidscanner.adapter.BucketAdapter;
 import com.casc.rfidscanner.backend.InstructionHandler;
 import com.casc.rfidscanner.bean.Bucket;
 import com.casc.rfidscanner.helper.InsHelper;
-import com.casc.rfidscanner.message.TagStoredMessage;
-import com.casc.rfidscanner.message.TagUploadedMessage;
+import com.casc.rfidscanner.message.TagCountChangedMessage;
 import com.casc.rfidscanner.utils.CommonUtils;
 
 import org.greenrobot.eventbus.Subscribe;
@@ -59,15 +58,10 @@ public class R1Fragment extends BaseFragment implements InstructionHandler {
     private boolean isWorking;
 
     @Subscribe(threadMode = ThreadMode.MAIN)
-    public void onMessageEvent(TagStoredMessage message) {
-        increaseCount(mStoredCountTv);
-    }
-
-    @Subscribe(threadMode = ThreadMode.MAIN)
-    public void onMessageEvent(TagUploadedMessage message) {
-        if (message.isFromDB)
-            decreaseCount(mStoredCountTv);
-        increaseCount(mUploadedCountTv);
+    public void onMessageEvent(TagCountChangedMessage message) {
+        mScannedCountTv.setText(String.valueOf(message.scannedCount));
+        mUploadedCountTv.setText(String.valueOf(message.uploadedCount));
+        mStoredCountTv.setText(String.valueOf(message.storedCount));
     }
 
     @Override
@@ -85,7 +79,6 @@ public class R1Fragment extends BaseFragment implements InstructionHandler {
 
     @Override
     public void deal(byte[] ins) {
-        if(D) Log.i(TAG, CommonUtils.bytesToHex(ins));
         int command = ins[2] & 0xFF;
         switch (command) {
             case 0x22: // 轮询成功的处理流程

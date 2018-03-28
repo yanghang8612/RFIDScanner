@@ -14,9 +14,7 @@ import com.casc.rfidscanner.activity.ConfigActivity;
 import com.casc.rfidscanner.adapter.BucketAdapter;
 import com.casc.rfidscanner.backend.InstructionHandler;
 import com.casc.rfidscanner.bean.Bucket;
-import com.casc.rfidscanner.helper.InsHelper;
-import com.casc.rfidscanner.message.TagStoredMessage;
-import com.casc.rfidscanner.message.TagUploadedMessage;
+import com.casc.rfidscanner.message.TagCountChangedMessage;
 import com.casc.rfidscanner.utils.CommonUtils;
 
 import org.greenrobot.eventbus.Subscribe;
@@ -54,16 +52,14 @@ public class R3Fragment extends BaseFragment implements InstructionHandler {
     private Handler mHandler = new InnerHandler(this);
 
     @Subscribe(threadMode = ThreadMode.MAIN)
-    public void onMessageEvent(TagStoredMessage message) {
-        increaseCount(mStoredCountTv);
-    }
-
-    @Subscribe(threadMode = ThreadMode.MAIN)
-    public void onMessageEvent(TagUploadedMessage message) {
-        if (message.isFromDB) {
-            decreaseCount(mStoredCountTv);
+    public void onMessageEvent(TagCountChangedMessage message) {
+        if (Integer.valueOf(mScannedCountTv.getText().toString()) < message.scannedCount) {
+            playSound();
         }
-        increaseCount(mUploadedCountTv);
+        mAdapter.notifyDataSetChanged();
+        mScannedCountTv.setText(String.valueOf(message.scannedCount));
+        mUploadedCountTv.setText(String.valueOf(message.uploadedCount));
+        mStoredCountTv.setText(String.valueOf(message.storedCount));
     }
 
     @Override
@@ -81,7 +77,6 @@ public class R3Fragment extends BaseFragment implements InstructionHandler {
 
     @Override
     public void deal(byte[] ins) {
-        if(D) Log.i(TAG, CommonUtils.bytesToHex(ins));
         int command = ins[2] & 0xFF;
         switch (command) {
             case 0x22: // 轮询成功的处理流程
@@ -97,15 +92,14 @@ public class R3Fragment extends BaseFragment implements InstructionHandler {
                                 mBuckets.clear();
                             }
                             mBuckets.add(0, new Bucket(epc));
-                            mHandler.sendMessage(Message.obtain(mHandler, MSG_INCREASE_SCANNED_COUNT));
-                            // 下发Mash指令
-                            MyVars.getReader().sendCommand(InsHelper.getEPCSelectParameter(epc), MyParams.SELECT_MAX_TRY_COUNT);
-                            // 下发TID读取指令
-                            MyVars.getReader().sendCommand(InsHelper.getReadMemBank(
-                                    CommonUtils.hexToBytes("00000000"),
-                                    InsHelper.MemBankType.TID,
-                                    MyParams.TID_START_INDEX,
-                                    MyParams.TID_LENGTH), MyParams.READ_TID_MAX_TRY_COUNT);
+//                            // 下发Mask指令
+//                            MyVars.getReader().sendCommand(InsHelper.getEPCSelectParameter(epc), MyParams.SELECT_MAX_TRY_COUNT);
+//                            // 下发TID读取指令
+//                            MyVars.getReader().sendCommand(InsHelper.getReadMemBank(
+//                                    CommonUtils.hexToBytes("00000000"),
+//                                    InsHelper.MemBankType.TID,
+//                                    MyParams.TID_START_INDEX,
+//                                    MyParams.TID_LENGTH), MyParams.READ_TID_MAX_TRY_COUNT);
                         }
                         break;
                     case CARD_ADMIN:

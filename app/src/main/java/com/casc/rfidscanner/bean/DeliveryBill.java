@@ -1,6 +1,7 @@
 package com.casc.rfidscanner.bean;
 
 import com.casc.rfidscanner.MyVars;
+import com.casc.rfidscanner.utils.CommonUtils;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -41,13 +42,15 @@ public class DeliveryBill {
                         new SimpleDateFormat("yyMMdd").format(calendar.getTime()) +
                         String.format("%03d", billNo);
         for (int i = 0; i < 5; i++) {
-            if (cardEPC[13 + i * 4] != 0) {
+            long part = CommonUtils.getBitsFromBytes(cardEPC, 80 + i * 34, 34);
+            int count = (int) (part & 0x3FF);
+            if (count != 0) {
                 goods.add(new Goods(
-                        MyVars.config.getBucketSpecByCode(cardEPC[10 + i * 4]),
-                        MyVars.config.getWaterBrandByCode(cardEPC[12 + i * 4]),
-                        MyVars.config.getWaterSpecByCode(cardEPC[11 + i * 4]),
-                        cardEPC[13 + i * 4] & 0xFF));
-                totalCount += cardEPC[13 + i * 4] & 0xFF;
+                        MyVars.config.getBucketSpecByCode((byte) ((part >> 26) & 0xFF)),
+                        MyVars.config.getWaterBrandByCode((byte) ((part >> 10) & 0xFF)),
+                        MyVars.config.getWaterSpecByCode((byte) ((part >> 18) & 0xFF)),
+                        count));
+                totalCount += count;
                 if (i == 4) {
                     Goods gift = goods.get(goods.size() - 1);
                     for (int j = 0; j < goods.size() - 1; j++) {

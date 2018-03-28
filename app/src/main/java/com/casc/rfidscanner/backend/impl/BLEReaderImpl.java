@@ -10,6 +10,7 @@ import android.content.IntentFilter;
 import android.os.CountDownTimer;
 import android.util.Log;
 
+import com.baidu.tts.client.SpeechSynthesizer;
 import com.casc.rfidscanner.MyParams;
 import com.casc.rfidscanner.MyVars;
 import com.casc.rfidscanner.backend.InstructionHandler;
@@ -99,6 +100,7 @@ public class BLEReaderImpl implements TagReader {
     private synchronized void lostConnection() {
         if (mState == STATE_CONNECTED) {
             mState = STATE_NONE;
+            SpeechSynthesizer.getInstance().speak("读写器断开连接");
             mBLEDevice = null;
             try {
                 mBLESocket.close();
@@ -212,6 +214,7 @@ public class BLEReaderImpl implements TagReader {
                 mInStream = mBLESocket.getInputStream();
                 mOutStream = mBLESocket.getOutputStream();
                 mState = STATE_CONNECTED;
+                SpeechSynthesizer.getInstance().speak("读写器已连接");
 //                if (mIsRunning)
 //                    EventBus.getDefault().post(MyVars.status.setReaderStatus(true));
                 Log.i(TAG, "BLEConnectTask cost " + (System.currentTimeMillis() - startTime));
@@ -346,8 +349,10 @@ public class BLEReaderImpl implements TagReader {
                             if (totalCount == length + 7) {
                                 if ((data[2] & 0xFF) == 0xB6) mIsPowerSet = true; // 设置功率成功
                                 if ((data[2] & 0xFF) == 0x0E) mIsQValueSet = true; // 设置Q值成功
-                                else if (mInstructionHandler != null)
+                                else if (mInstructionHandler != null) {
+                                    if(MyParams.PRINT_COMMAND) Log.i(TAG, CommonUtils.bytesToHex(data));
                                     mInstructionHandler.deal(Arrays.copyOf(data, totalCount)); // 回调函数
+                                }
                                 totalCount = length = 0;
                                 startFlag = false;
                             }

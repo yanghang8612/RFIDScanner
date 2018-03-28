@@ -1,7 +1,5 @@
 package com.casc.rfidscanner.utils;
 
-import android.text.TextUtils;
-
 import com.casc.rfidscanner.MyParams;
 import com.casc.rfidscanner.MyParams.EPCType;
 import com.casc.rfidscanner.MyVars;
@@ -128,9 +126,9 @@ public class CommonUtils {
     }
 
     public static byte[] hexToBytes(String hex) {
-        if (TextUtils.isEmpty(hex)) {
-            return null;
-        }
+//        if (TextUtils.isEmpty(hex)) {
+//            return null;
+//        }
         if (hex.length() % 2 != 0) {
             hex = "0" + hex;
         }
@@ -142,6 +140,16 @@ public class CommonUtils {
                     .digit(hex.charAt(i + 1), 16));
         }
         return b;
+    }
+
+    public static long getBitsFromBytes(byte[] b, int start, int length) {
+        long result = 0;
+        int index = start / 8, shift = start % 8, count = length / 8;
+        for (int i = 0; i < count; i++) {
+            result += ((long) (b[index + i] & 0xFF) << (length - (8 - shift) - i * 8));
+        }
+        result += ((b[index + count] & 0xFF) >> (8 - shift - length % 8));
+        return result;
     }
 
     public static String generateRandomString(int length) {
@@ -156,6 +164,10 @@ public class CommonUtils {
     }
 
     public static void main(String[] args) {
-        System.out.println(Integer.valueOf("00"));
+        long part = getBitsFromBytes(hexToBytes("0102030400"), 0, 34);
+        System.out.println((part >> 26) & 0xFF);
+        System.out.println((part >> 18) & 0xFF);
+        System.out.println((part >> 10) & 0xFF);
+        System.out.println(part & 0x3FF);
     }
 }

@@ -23,7 +23,7 @@ public class MyParams {
     public static final String API_VERSION = "1.4";
     public static final int SELECT_MAX_TRY_COUNT = 1; // 次数
     public static final int READ_TID_MAX_TRY_COUNT = 3; // 次数
-    public static final int READ_TID_MAX_WAIT_TIME = 3000; // ms
+    public static final int READ_TID_MAX_WAIT_TIME = 300; // ms
     public static final int SINGLE_CART_MIN_SCANNED_COUNT = 10; // 次数
     public static final int ADMIN_CARD_SCANNED_COUNT = 5; // 次数
     public static final int BILL_NO_OPERATION_CHECK_INTERVAL = 5 * 60 * 1000; // ms
@@ -34,13 +34,13 @@ public class MyParams {
     public static final int EPC_TYPE_INDEX = 5; // byte
     public static final int EPC_BUCKET_LENGTH = 16; // byte
     public static final String BUCKET_PC_CONTENT = "4000";
-    public static final int EPC_DELIVERY_CARD_LENGTH = 30; // byte
-    public static final String DELIVERY_PC_CONTENT = "7800";
+    public static final int EPC_DELIVERY_CARD_LENGTH = 32; // byte
+
+    public static final String DELIVERY_PC_CONTENT = "8000";
     public static final int EPC_ADMIN_CARD_LENGTH = 12; // byte
     public static final String ADMIN_PC_CONTENT = "3000";
     public static final int EPC_REFLUX_CARD_LENGTH = 12; // byte
     public static final String REFLUX_PC_CONTENT = "3000";
-
 
     /**
      * Setting Parameters
@@ -55,6 +55,7 @@ public class MyParams {
     public static final String S_LINK = "link"; // 工位
     public static final String S_TAG_LIFECYCLE = "tag_lifecycle"; // 标签生命周期
     public static final String S_BLANK_INTERVAL = "blank_interval"; // 空白期间隔
+    public static final String S_DISCOVERY_INTERVAL = "discovery_interval"; // 最小时间间隔
     public static final String S_MAIN_PLATFORM_ADDR = "main_platform_addr"; // 主平台软件地址
     public static final String S_STANDBY_PLATFORM_ADDR = "standby_platform_addr"; // 备用平台软件地址
     public static final String S_READER_ID = "reader_id"; // 读写器ID
@@ -67,7 +68,9 @@ public class MyParams {
     public static final Map<String, String> CONFIG_DEFAULT_MAP = new HashMap<>();
     static {
         CONFIG_DEFAULT_MAP.put(S_API_JSON, "{}");CONFIG_DEFAULT_MAP.put(S_LINK, "00");
-        CONFIG_DEFAULT_MAP.put(S_TAG_LIFECYCLE, "5Min");CONFIG_DEFAULT_MAP.put(S_BLANK_INTERVAL, "5");
+        CONFIG_DEFAULT_MAP.put(S_TAG_LIFECYCLE, "5Min");
+        CONFIG_DEFAULT_MAP.put(S_BLANK_INTERVAL, "5");
+        CONFIG_DEFAULT_MAP.put(S_DISCOVERY_INTERVAL, "2Sec");
         CONFIG_DEFAULT_MAP.put(S_MAIN_PLATFORM_ADDR, "http://106.37.201.142");
         CONFIG_DEFAULT_MAP.put(S_STANDBY_PLATFORM_ADDR, "http://106.37.201.142:8888");
         CONFIG_DEFAULT_MAP.put(S_READER_ID, "100000000000000000000001");
@@ -89,7 +92,8 @@ public class MyParams {
     public static final String TEST_SERVER_ADDR = "http://192.168.1.11:8080/";
 //    public static final int DELAY = 2 * 60 * 60;
     public static final int DELAY = 0;
-    public static final boolean ENABLE_BACKDOOR = false;
+    public static final boolean ENABLE_BACKDOOR = true;
+    public static final boolean PRINT_COMMAND = false;
 
     /**
      * EPC各种类型

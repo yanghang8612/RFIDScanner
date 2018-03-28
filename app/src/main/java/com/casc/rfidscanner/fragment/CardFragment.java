@@ -170,7 +170,6 @@ public class CardFragment extends BaseFragment implements InstructionHandler {
 
     @Override
     public void deal(byte[] ins) {
-        if(D) Log.i(TAG, CommonUtils.bytesToHex(ins));
         int command = ins[2] & 0xFF;
         switch (command) {
             case 0x39: // 读取TID成功的处理流程

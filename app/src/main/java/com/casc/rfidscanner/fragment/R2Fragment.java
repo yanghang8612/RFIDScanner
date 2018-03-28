@@ -105,6 +105,9 @@ public class R2Fragment extends BaseFragment implements InstructionHandler {
     // 读取到的EPC计数以及检测到的空白期间隔
     private int mReadCount, mBlankCount;
 
+    // 小推车被识别开始时间
+    private long mStartTime;
+
     // 工作状态
     private WorkStatus mStatus;
 
@@ -196,7 +199,6 @@ public class R2Fragment extends BaseFragment implements InstructionHandler {
 
     @Override
     public void deal(byte[] ins) {
-        if(D) Log.i(TAG, CommonUtils.bytesToHex(ins));
         int command = ins[2] & 0xFF;
         switch (command) {
             case 0x22: // 轮询成功的处理流程
@@ -259,7 +261,15 @@ public class R2Fragment extends BaseFragment implements InstructionHandler {
                 break;
             default: // 命令帧执行失败的处理流程，本环节只有轮询失败
                 mAdminCardScannedCount = 0;
-                if (++mBlankCount == Integer.valueOf(ConfigHelper.getParam(MyParams.S_BLANK_INTERVAL))) { // 达到了空白期间隔设定值
+                int discoveryInterval =
+                        (int) (Double.valueOf(
+                                ConfigHelper.getParam(MyParams.S_DISCOVERY_INTERVAL)
+                                        .replace("Sec", ""))
+                                * 1000);
+                // 在工作状态，达到了空白期间隔设定值且发现间隔大于最小时间间隔
+                if (mStatus != WorkStatus.IS_IDLE
+                        && ++mBlankCount >= Integer.valueOf(ConfigHelper.getParam(MyParams.S_BLANK_INTERVAL))
+                        && System.currentTimeMillis() - mStartTime > discoveryInterval) { // 达到了空白期间隔设定值
                     if (mReadCount < MyParams.SINGLE_CART_MIN_SCANNED_COUNT) {
                         mReadCount = 0;
                     } else if (isCardEPCCodeError) {
@@ -307,8 +317,12 @@ public class R2Fragment extends BaseFragment implements InstructionHandler {
                     }
 
                     // 回流成功提示
-                    outer.writeHint(outer.mCurBill.getCardID() + "回收成功，数量:" + count);
-                    SpeechSynthesizer.getInstance().speak(outer.mCurBill.getCardNum() + "回收" + CommonUtils.numToChinese(count) + "桶");
+                    outer.writeHint(
+                            outer.mCurBill.getCardID() + "回收:" +
+                                    outer.mTempEPCs.size() + "桶(重复:" + (outer.mTempEPCs.size() - count) + "桶)");
+                    SpeechSynthesizer.getInstance().speak(
+                            outer.mCurBill.getCardNum() + "回收" +
+                                    CommonUtils.numToChinese(outer.mTempEPCs.size()) + "桶");
                     break;
                 case MSG_UPDATE_HINT:
                     outer.mHintAdapter.notifyDataSetChanged();
@@ -332,6 +346,7 @@ public class R2Fragment extends BaseFragment implements InstructionHandler {
                     break;
                 case MSG_IS_WORKING:
                     outer.mStatus = WorkStatus.IS_WORKING;
+                    outer.mStartTime = System.currentTimeMillis();
                     outer.mWorkStatusTv.setText("回流中");
                     outer.mWorkStatusTv.setBackgroundResource(R.drawable.bg_status_working);
                     break;

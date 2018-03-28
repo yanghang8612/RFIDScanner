@@ -10,6 +10,8 @@ import android.hardware.usb.UsbDevice;
 import android.hardware.usb.UsbManager;
 import android.util.Log;
 
+import com.baidu.tts.client.SpeechSynthesizer;
+import com.casc.rfidscanner.MyParams;
 import com.casc.rfidscanner.MyVars;
 import com.casc.rfidscanner.backend.InstructionHandler;
 import com.casc.rfidscanner.backend.TagReader;
@@ -112,6 +114,8 @@ public class USBReaderImpl implements TagReader {
                 mSerialPort = new Cp21xxSerialDriver(mUsbDevice).getPorts().get(0);
                 mSerialPort.open(mUsbManager.openDevice(mUsbDevice));
                 mSerialPort.setParameters(BAUD_RATE, UsbSerialPort.DATABITS_8, UsbSerialPort.STOPBITS_1, UsbSerialPort.PARITY_NONE);
+                if(mState != STATE_CONNECTED)
+                    SpeechSynthesizer.getInstance().speak("读写器已连接");
                 mState = STATE_CONNECTED;
 //                if (mIsRunning)
 //                    EventBus.getDefault().post(MyVars.status.setReaderStatus(true));
@@ -131,6 +135,7 @@ public class USBReaderImpl implements TagReader {
     private void lostConnection() {
         if (mState == STATE_CONNECTED) {
             mState = STATE_NONE;
+            SpeechSynthesizer.getInstance().speak("读写器断开连接");
             try {
                 mSerialPort.close();
             } catch (Exception e) {
@@ -261,8 +266,12 @@ public class USBReaderImpl implements TagReader {
                             if (totalCount == length + 7) {
                                 if ((data[2] & 0xFF) == 0xB6) mIsPowerSet = true; // 设置功率成功
                                 if ((data[2] & 0xFF) == 0x0E) mIsQValueSet = true; // 设置Q值成功
-                                else if(mInstructionHandler != null)
-                                    mInstructionHandler.deal(Arrays.copyOf(data, totalCount)); // 回调函数
+                                else if(mInstructionHandler != null) {
+                                    byte[] ins = Arrays.copyOf(data, totalCount);
+                                    if(MyParams.PRINT_COMMAND)
+                                        Log.i(TAG, CommonUtils.bytesToHex(ins));
+                                    mInstructionHandler.deal(ins); // 回调函数
+                                }
                                 totalCount = length = 0;
                                 startFlag = false;
                             }

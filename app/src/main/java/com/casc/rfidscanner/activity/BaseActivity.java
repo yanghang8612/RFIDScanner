@@ -57,7 +57,7 @@ public abstract class BaseActivity extends AppCompatActivity implements View.OnS
                 Class<?> statusBarManager = Class.forName("android.app.StatusBarManager");
                 Method collapse = statusBarManager.getMethod("collapsePanels");
                 collapse.setAccessible(true);
-                collapse .invoke(service);
+                collapse.invoke(service);
             } catch (ClassNotFoundException | NoSuchMethodException | IllegalAccessException | InvocationTargetException e) {
                 e.printStackTrace();
             }

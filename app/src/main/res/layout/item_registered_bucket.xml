@@ -19,17 +19,17 @@
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:text="@string/body_code_default_value"
-            android:textSize="16sp"
+            android:textSize="12sp"
             android:textColor="@color/black" />
 
         <TextView
             android:id="@+id/tv_bucket_spec"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_weight="1"
+            android:layout_weight="2"
             android:gravity="end"
             android:text="11L不老泉纯净水"
-            android:textSize="16sp"
+            android:textSize="12sp"
             android:textColor="@color/black" />
 
     </LinearLayout>

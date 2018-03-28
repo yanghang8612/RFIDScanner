@@ -109,6 +109,9 @@ public class R6Fragment extends BaseFragment implements InstructionHandler {
     // 读取到的EPC计数以及检测到的空白期间隔
     private int mReadCount, mBlankCount;
 
+    // 小推车被识别开始时间
+    private long mStartTime;
+
     // 工作状态
     private WorkStatus mStatus;
 
@@ -210,6 +213,7 @@ public class R6Fragment extends BaseFragment implements InstructionHandler {
         mBillView.setAdapter(mBillAdapter);
         mStoredBillCountTv.setText(String.valueOf(MyVars.cache.getStoredDeliveryBillCount()));
         MyVars.fragmentExecutor.scheduleWithFixedDelay(new BillNoOperationCheckTask(), 0, 1, TimeUnit.SECONDS);
+        //mBills.add(new DeliveryBill(CommonUtils.hexToBytes("414C8114A10106288801000400FA0341003E8030400FA00C1007E80000000000".replace(" ", ""))));
     }
 
     @Override
@@ -219,7 +223,6 @@ public class R6Fragment extends BaseFragment implements InstructionHandler {
 
     @Override
     public void deal(byte[] ins) {
-        if(D) Log.i(TAG, CommonUtils.bytesToHex(ins));
         int command = ins[2] & 0xFF;
         switch (command) {
             case 0x22: // 轮询成功的处理流程
@@ -297,14 +300,24 @@ public class R6Fragment extends BaseFragment implements InstructionHandler {
                 break;
             default: // 命令帧执行失败的处理流程，本环节只有轮询失败
                 mAdminCardScannedCount = 0;
-                if (++mBlankCount == Integer.valueOf(ConfigHelper.getParam(MyParams.S_BLANK_INTERVAL))) { // 达到了空白期间隔设定值
+                int discoveryInterval =
+                        (int) (Double.valueOf(
+                                ConfigHelper.getParam(MyParams.S_DISCOVERY_INTERVAL)
+                                        .replace("Sec", ""))
+                        * 1000);
+                // 在工作状态，达到了空白期间隔设定值且发现间隔大于最小时间间隔
+                if (mStatus != WorkStatus.IS_IDLE
+                        && ++mBlankCount >= Integer.valueOf(ConfigHelper.getParam(MyParams.S_BLANK_INTERVAL))
+                        && System.currentTimeMillis() - mStartTime > discoveryInterval) {
                     Log.i(TAG, "Read count: " + mReadCount);
+                    Log.i(TAG, "Read none count: " + mBlankCount);
+                    Log.i(TAG, System.currentTimeMillis() + " " + mStartTime + " " + (System.currentTimeMillis() - mStartTime));
                     if (mReadCount < MyParams.SINGLE_CART_MIN_SCANNED_COUNT) {
                         mReadCount = 0;
                     } else if (isNoneMatchedBillWhenBacking) {
                         SpeechSynthesizer.getInstance().speak("退库前请先出库");
                     } else if (isCardEPCCodeError) {
-                        SpeechSynthesizer.getInstance().speak("解析出库卡出错，请联系营销人员");
+                        SpeechSynthesizer.getInstance().speak("解析出库卡出错");
                     } else if (mCurBill == null && !mTempEPCs.isEmpty()) { // 检测到有桶在出库或退库，但是没有扫到出库卡
                         //playSound(2, 0.2f);
                         if (mStatus == WorkStatus.IS_BACKING) {
@@ -350,11 +363,11 @@ public class R6Fragment extends BaseFragment implements InstructionHandler {
                     // 添加产品到出库单中
                     int count = 0;
                     for (String epc : outer.mTempEPCs) {
-                        if (outer.mStatus == WorkStatus.IS_BACKING && outer.mCurBill.removeProduct(new Bucket(epc))) { // 出库单个产品
+                        if (outer.mStatus == WorkStatus.IS_BACKING && outer.mCurBill.removeProduct(new Bucket(epc))) { // 退库单个产品
                             //outer.mCache.add(epc);
                             count++;
                         }
-                        if (outer.mStatus != WorkStatus.IS_BACKING && outer.mCurBill.addProduct(new Bucket(epc))) { // 退库单个产品
+                        if (outer.mStatus != WorkStatus.IS_BACKING && outer.mCurBill.addProduct(new Bucket(epc))) { // 出库单个产品
                             //outer.mCache.add(epc);
                             count++;
                         }
@@ -362,11 +375,19 @@ public class R6Fragment extends BaseFragment implements InstructionHandler {
 
                     // 出库成功或退库成功提示
                     if (outer.mStatus == WorkStatus.IS_BACKING) {
-                        outer.writeHint(outer.mCurBill.getCardID() + "退库成功，数量:" + count);
-                        SpeechSynthesizer.getInstance().speak(outer.mCurBill.getCardNum() + "退库" + CommonUtils.numToChinese(count) + "桶");
+                        outer.writeHint(
+                                outer.mCurBill.getCardID() + "退库:" +
+                                        outer.mTempEPCs.size() + "桶");
+                        SpeechSynthesizer.getInstance().speak(
+                                outer.mCurBill.getCardNum() + "退库" +
+                                        CommonUtils.numToChinese(outer.mTempEPCs.size()) + "桶");
                     } else {
-                        outer.writeHint(outer.mCurBill.getCardID() + "出库成功，数量:" + count);
-                        SpeechSynthesizer.getInstance().speak(outer.mCurBill.getCardNum() + "出库" + CommonUtils.numToChinese(count) + "桶");
+                        outer.writeHint(
+                                outer.mCurBill.getCardID() + "出库:" +
+                                        outer.mTempEPCs.size() + "桶(重复:" + (outer.mTempEPCs.size() - count) + "桶)");
+                        SpeechSynthesizer.getInstance().speak(
+                                outer.mCurBill.getCardNum() + "出库" +
+                                        CommonUtils.numToChinese(outer.mTempEPCs.size()) + "桶");
                     }
                     break;
                 case MSG_UPDATE_HINT:
@@ -392,12 +413,14 @@ public class R6Fragment extends BaseFragment implements InstructionHandler {
                     break;
                 case MSG_IS_WORKING:
                     outer.mStatus = WorkStatus.IS_WORKING;
+                    outer.mStartTime = System.currentTimeMillis();
                     outer.mWorkStatusTv.setText("出库");
                     outer.mWorkStatusTv.setBackgroundResource(R.drawable.bg_status_working);
                     outer.mDeliveryBackSbtn.setEnabled(false);
                     break;
                 case MSG_IS_BACKING:
                     outer.mStatus = WorkStatus.IS_BACKING;
+                    outer.mStartTime = System.currentTimeMillis();
                     outer.isFromCancel = true;
                     outer.mWorkStatusTv.setText("退库");
                     outer.mWorkStatusTv.setBackgroundResource(R.drawable.bg_status_backing);

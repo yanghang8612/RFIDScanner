@@ -5,6 +5,7 @@ import android.support.annotation.NonNull;
 import android.util.Log;
 import android.util.Pair;
 
+import com.amitshekhar.utils.NetworkUtils;
 import com.casc.rfidscanner.MyParams;
 import com.casc.rfidscanner.MyVars;
 import com.casc.rfidscanner.dao.BaseDao;
@@ -17,8 +18,7 @@ import com.casc.rfidscanner.helper.param.MessageDelivery;
 import com.casc.rfidscanner.helper.param.MessageReflux;
 import com.casc.rfidscanner.helper.param.Reply;
 import com.casc.rfidscanner.message.BillUploadedMessage;
-import com.casc.rfidscanner.message.TagStoredMessage;
-import com.casc.rfidscanner.message.TagUploadedMessage;
+import com.casc.rfidscanner.message.TagCountChangedMessage;
 import com.casc.rfidscanner.utils.CommonUtils;
 import com.google.gson.Gson;
 
@@ -52,6 +52,8 @@ public class TagCache {
 
     private final BaseDao loginDao;
 
+    private int scannedCount = 0, uploadCount = 0, storedCount;
+
     public TagCache(Context context) {
         this.tagDao = new BaseDao(DBHelper.TABLE_NAME_TAG, context);
         this.deliveryDao = new BaseDao(DBHelper.TABLE_NAME_DELIVERY, context);
@@ -60,6 +62,7 @@ public class TagCache {
         this.loginDao = new BaseDao(DBHelper.TABLE_NAME_LOGIN, context);
         MyVars.executor.scheduleWithFixedDelay(new LifecycleCheckTask(), 0, 100, TimeUnit.MILLISECONDS);
         MyVars.executor.scheduleWithFixedDelay(new StoredUploadTask(), 3000, 500, TimeUnit.MILLISECONDS); // 延迟5秒开始，便于界面有时间显示
+        this.storedCount = (int) tagDao.count();
     }
 
     public synchronized long getStoredCount() {
@@ -68,11 +71,14 @@ public class TagCache {
 
     public void clear() {
         cache.clear();
+        scannedCount = uploadCount = 0;
     }
 
     public synchronized boolean insert(String epc) {
         if (!cache.containsKey(epc)) {
             cache.put(epc, new Tag(epc));
+            cache.get(epc).status = TagStatus.NONE;
+            EventBus.getDefault().post(new TagCountChangedMessage(++scannedCount, uploadCount, storedCount));
             return true;
         }
         else
@@ -84,9 +90,8 @@ public class TagCache {
         String epc = CommonUtils.bytesToHex(Arrays.copyOfRange(command, 8, 6 + command[5]));
         Tag tag = cache.get(epc);
         if (tag != null && tag.tid.isEmpty()) {
-            Log.i(TAG, "tid " + tid);
             cache.get(epc).tid = tid;
-            cache.get(epc).isUploaded = true;
+            cache.get(epc).status = TagStatus.UPLOADING;
             upload(tid, epc);
         }
     }
@@ -119,7 +124,7 @@ public class TagCache {
         loginDao.save(login);
     }
 
-    private void upload(String tid, String epc) {
+    private void upload(String tid, final String epc) {
         final MessageCommon common = new MessageCommon();
         common.addBucket(tid, epc);
         NetHelper.getInstance().uploadCommonMessage(common)
@@ -131,10 +136,13 @@ public class TagCache {
                             synchronized (TagCache.this) {
                                 tagDao.save(new Gson().toJson(common));
                             }
-                            EventBus.getDefault().post(new TagStoredMessage());
+                            cache.get(epc).status = TagStatus.STORED;
+                            EventBus.getDefault().post(new TagCountChangedMessage(scannedCount, uploadCount, ++storedCount));
                         }
-                        else
-                            EventBus.getDefault().post(new TagUploadedMessage(false));
+                        else {
+                            cache.get(epc).status = TagStatus.UPLOADED;
+                            EventBus.getDefault().post(new TagCountChangedMessage(scannedCount, ++uploadCount, storedCount));
+                        }
                     }
 
                     @Override
@@ -142,9 +150,14 @@ public class TagCache {
                         synchronized (TagCache.this) {
                             tagDao.save(new Gson().toJson(common));
                         }
-                        EventBus.getDefault().post(new TagStoredMessage());
+                        cache.get(epc).status = TagStatus.STORED;
+                        EventBus.getDefault().post(new TagCountChangedMessage(scannedCount, uploadCount, ++storedCount));
                     }
                 });
+    }
+
+    private enum TagStatus {
+        NONE, UPLOADING, UPLOADED, STORED
     }
 
     private class Tag {
@@ -152,7 +165,7 @@ public class TagCache {
         String tid;
         String epc;
         long time;
-        boolean isUploaded;
+        TagStatus status;
 
         Tag(String epc) {
             this.tid = "";
@@ -173,9 +186,9 @@ public class TagCache {
                 Iterator<Map.Entry<String, Tag>> it = cache.entrySet().iterator();
                 while (it.hasNext()) {
                     Map.Entry<String, Tag> item = it.next();
-                    if (!item.getValue().isUploaded &&
+                    if (item.getValue().status == TagStatus.NONE &&
                             System.currentTimeMillis() - item.getValue().time > MyParams.READ_TID_MAX_WAIT_TIME) {
-                        item.getValue().isUploaded = true;
+                        item.getValue().status = TagStatus.UPLOADING;
                         upload(item.getValue().tid, item.getKey());
                     }
                     if (System.currentTimeMillis() - item.getValue().time > lifecycle) {
@@ -202,7 +215,7 @@ public class TagCache {
                         Reply body = response.body();
                         if (response.isSuccessful() && body != null && body.getCode() == 200) {
                             tagDao.delete(tag.first);
-                            EventBus.getDefault().post(new TagUploadedMessage(true));
+                            EventBus.getDefault().post(new TagCountChangedMessage(scannedCount, ++uploadCount, --storedCount));
                         }
                     } catch (IOException ignored) {}
                 }

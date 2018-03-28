@@ -8,6 +8,7 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.Bundle;
 import android.os.CountDownTimer;
+import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.text.Editable;
@@ -40,7 +41,7 @@ import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
 
-public class ConfigActivity extends BaseActivity {
+public class ConfigActivity extends AppCompatActivity {
 
     private static final String TAG = ConfigActivity.class.getSimpleName();
 
@@ -49,12 +50,19 @@ public class ConfigActivity extends BaseActivity {
         context.startActivity(intent);
     }
 
+    private int mVisibility =
+            View.SYSTEM_UI_FLAG_LAYOUT_STABLE
+                    | View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
+                    | View.SYSTEM_UI_FLAG_FULLSCREEN
+                    | View.SYSTEM_UI_FLAG_IMMERSIVE;
+
     @BindView(R.id.spn_config_link) BetterSpinner mLinkSpn;
     @BindView(R.id.spn_config_reader_power) BetterSpinner mReaderPowerSpn;
     @BindView(R.id.spn_config_reader_q_value) BetterSpinner mReaderQValueSpn;
     @BindView(R.id.spn_config_reader_send_interval) BetterSpinner mReaderSendIntervalSpn;
     @BindView(R.id.spn_config_tag_lifecycle) BetterSpinner mTagLifecycleSpn;
     @BindView(R.id.spn_config_blank_interval) BetterSpinner mBlankIntervalSpn;
+    @BindView(R.id.spn_config_discovery_interval) BetterSpinner mDiscoveryIntervalSpn;
 
     @BindView(R.id.met_config_longitude) MaterialEditText mLongitudeMet;
     @BindView(R.id.met_config_latitude) MaterialEditText mLatitudeMet;
@@ -80,6 +88,7 @@ public class ConfigActivity extends BaseActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        getWindow().getDecorView().setSystemUiVisibility(mVisibility);
         setContentView(R.layout.activity_config);
         ButterKnife.bind(this);
         MyVars.getReader().pause();
@@ -194,6 +203,10 @@ public class ConfigActivity extends BaseActivity {
         mBlankIntervalSpn.setAdapter(new ArrayAdapter<>(this,
                 R.layout.item_config, getResources().getStringArray(R.array.blank_interval)));
 
+        mDiscoveryIntervalSpn.setText(ConfigHelper.getParam(MyParams.S_DISCOVERY_INTERVAL));
+        mDiscoveryIntervalSpn.setAdapter(new ArrayAdapter<>(this,
+                R.layout.item_config, getResources().getStringArray(R.array.discovery_interval)));
+
         mLongitudeMet.setText(ConfigHelper.getParam(MyParams.S_LONGITUDE));
         mLongitudeMet.addValidator(new RegexpValidator("范围或格式错误(2位小数)",
                 "^-?((0|1?[0-7]?[0-9]?)(([.][0-9]{1,2})?)|180(([.][0]{1,2})?))$"));
@@ -232,6 +245,7 @@ public class ConfigActivity extends BaseActivity {
             ConfigHelper.setParam(linkType.sendInterval, mReaderSendIntervalSpn.getText().toString());
             ConfigHelper.setParam(MyParams.S_TAG_LIFECYCLE, mTagLifecycleSpn.getText().toString());
             ConfigHelper.setParam(MyParams.S_BLANK_INTERVAL, mBlankIntervalSpn.getText().toString());
+            ConfigHelper.setParam(MyParams.S_DISCOVERY_INTERVAL, mDiscoveryIntervalSpn.getText().toString());
 
             ConfigHelper.setParam(MyParams.S_LONGITUDE, mLongitudeMet.getText().toString());
             ConfigHelper.setParam(MyParams.S_LATITUDE, mLatitudeMet.getText().toString());
