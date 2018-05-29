@@ -47,8 +47,8 @@ public class RefluxDetailActivity extends BaseActivity {
     @BindView(R.id.tv_reflux_detail_card_id) TextView mCardIDTv;
     @BindView(R.id.tv_reflux_detail_count) TextView mRefluxCountTv;
 
-    @BindView(R.id.spn_dealer) BetterSpinner mDealerSpn;
-    @BindView(R.id.spn_driver) BetterSpinner mDriverSpn;
+    @BindView(R.id.spn_reflux_dealer) BetterSpinner mDealerSpn;
+    @BindView(R.id.spn_reflux_driver) BetterSpinner mDriverSpn;
 
     @BindView(R.id.vf_reflux_detail_content) ViewFlipper mContentVf;
     @BindView(R.id.rv_reflux_detail_goods) RecyclerView mGoodsRv;

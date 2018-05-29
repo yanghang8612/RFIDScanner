@@ -2,6 +2,7 @@ package com.casc.rfidscanner.adapter;
 
 import android.support.annotation.Nullable;
 import android.support.v7.widget.CardView;
+import android.text.TextUtils;
 
 import com.casc.rfidscanner.MyApplication;
 import com.casc.rfidscanner.R;
@@ -28,7 +29,7 @@ public class DeliveryBillAdapter extends BaseQuickAdapter<DeliveryBill, BaseView
                 item.isHighlight() ? R.drawable.bg_bill_card_highlight :
                         R.drawable.bg_bill_card_normal);
         helper.setText(R.id.tv_delivery_bill_card_id, item.getCardID())
-                .setText(R.id.tv_bill_id, item.getBillID())
+                .setText(R.id.tv_bill_id, TextUtils.isEmpty(item.getBillID()) ? "待补单" : item.getBillID())
                 .setText(R.id.tv_total_count, String.valueOf(item.getTotalCount()))
                 .setText(R.id.tv_delivery_count, String.valueOf(item.getDeliveryCount()));
     }

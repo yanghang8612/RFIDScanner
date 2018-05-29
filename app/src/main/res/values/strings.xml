@@ -40,8 +40,8 @@
     <string name="body_code_label">桶身码：</string>
     <string name="register_button_text">注册</string>
     <string name="scanning_status_label">扫描状态：</string>
-    <string name="delivery_count_label">总出库</string>
-    <string name="reflux_count_label">总回收</string>
+    <string name="delivery_count_label">已出库</string>
+    <string name="reflux_count_label">已回收</string>
     <string name="total_count_label">总数量</string>
     <string name="uploaded_bill_count_label">已上传单数：</string>
     <string name="stored_bill_count_label">已转储单数：</string>
@@ -59,11 +59,13 @@
     <string name="close_button_text">关闭</string>
     <string name="back_button_text">返回</string>
     <string name="clear_button_text">清空数据</string>
-    <string name="body_code_default_value">HY123456</string>
+    <string name="body_code_default_value">AHY12345</string>
+    <string name="product_name_default_value">16.5L云峰天然饮用水</string>
     <string name="config_link_label">工位</string>
     <string name="config_tag_lifecycle_label">标签生命周期</string>
     <string name="config_blank_interval_label">空白期间隔</string>
     <string name="config_discovery_interval_label">最小时间间隔</string>
+    <string name="config_sensor_switch">传感器开关</string>
     <string name="config_reader_power_label">读写器发射功率</string>
     <string name="config_reader_q_value_label">读写器Q值</string>
     <string name="config_reader_send_interval_label">读写器发送间隔</string>

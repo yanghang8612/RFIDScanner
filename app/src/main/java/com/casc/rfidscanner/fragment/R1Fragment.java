@@ -2,23 +2,33 @@ package com.casc.rfidscanner.fragment;
 
 import android.os.Handler;
 import android.os.Message;
+import android.support.annotation.NonNull;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
-import android.util.Log;
+import android.text.TextUtils;
 import android.view.View;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
+import android.widget.ImageView;
 import android.widget.TextView;
 
+import com.afollestad.materialdialogs.DialogAction;
+import com.afollestad.materialdialogs.MaterialDialog;
+import com.casc.rfidscanner.MyApplication;
 import com.casc.rfidscanner.MyParams;
 import com.casc.rfidscanner.MyVars;
 import com.casc.rfidscanner.R;
 import com.casc.rfidscanner.activity.ConfigActivity;
 import com.casc.rfidscanner.adapter.BucketAdapter;
-import com.casc.rfidscanner.backend.InstructionHandler;
+import com.casc.rfidscanner.backend.InsHandler;
 import com.casc.rfidscanner.bean.Bucket;
-import com.casc.rfidscanner.helper.InsHelper;
-import com.casc.rfidscanner.message.TagCountChangedMessage;
+import com.casc.rfidscanner.helper.NetHelper;
+import com.casc.rfidscanner.helper.param.MessageScrap;
+import com.casc.rfidscanner.helper.param.Reply;
+import com.casc.rfidscanner.message.ConfigUpdatedMessage;
+import com.casc.rfidscanner.message.MultiStatusMessage;
 import com.casc.rfidscanner.utils.CommonUtils;
+import com.weiwangcn.betterspinner.library.BetterSpinner;
 
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
@@ -26,47 +36,82 @@ import org.greenrobot.eventbus.ThreadMode;
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 
 import butterknife.BindView;
 import butterknife.OnClick;
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
 
 /**
  * 桶报废Fragment
  */
-public class R1Fragment extends BaseFragment implements InstructionHandler {
+public class R1Fragment extends BaseFragment implements InsHandler {
 
     private static final String TAG = R1Fragment.class.getSimpleName();
+    private static final int CAN_SCRAP_READ_COUNT = 5;
+    private static final int MAX_READ_NONE_COUNT = 3;
     // Constant for InnerHandler message.what
-    private static final int MSG_INCREASE_SCANNED_COUNT = 0;
+    private static final int MSG_ENABLE_BUTTON = 0;
+    private static final int MSG_DISABLE_BUTTON = 1;
+    private static final int MSG_READ_BUCKET = 2;
+    private static final int MSG_READ_NO_BUCKET = 3;
 
-    @BindView(R.id.tv_scanned_count) TextView mScannedCountTv;
-    @BindView(R.id.tv_uploaded_count) TextView mUploadedCountTv;
-    @BindView(R.id.tv_stored_count) TextView mStoredCountTv;
+    @BindView(R.id.iv_scrap_tag_status) ImageView mTagStatusIv;
+    @BindView(R.id.tv_scrap_body_code) TextView mBodyCodeTv;
+    @BindView(R.id.tv_scrap_product_name) TextView mProductNameTv;
+    @BindView(R.id.spn_scrap_reason) BetterSpinner mScrapReasonSpn;
+    @BindView(R.id.btn_confirm_scrap) Button mConfirmScrapBtn;
     @BindView(R.id.rv_scrap_products) RecyclerView mScrapProductsRv;
 
     // 已报废桶列表
     private List<Bucket> mBuckets = new ArrayList<>();
 
+    //
+    private Map<String, Bucket> mBucketsMap = new HashMap<>();
+
     // 已报废桶列表适配器
     private BucketAdapter mAdapter;
+
+    // 当前读取的EPC
+    private byte[] mScannedEPC;
+
+    // 读取到和未读取到EPC的计数器
+    private int mReadCount, mReadNoneCount;
+
+    // 报废所必需的相关元素标志位
+    private boolean mIsBucketEPCRead, mIsAllConnectionsReady;
+
+    // 要报废的桶实例
+    private Bucket mBucketToScrap;
 
     // Fragment内部handler
     private Handler mHandler = new InnerHandler(this);
 
-    // 正在进行报废工作的标志位
-    private boolean isWorking;
+    @Subscribe(threadMode = ThreadMode.MAIN)
+    public void onMessageEvent(MultiStatusMessage message) {
+        super.onMessageEvent(message);
+        if (message.readerStatus && message.networkStatus && message.platformStatus) {
+            mIsAllConnectionsReady = true;
+            mConfirmScrapBtn.setEnabled(canScrap());
+        } else {
+            mIsAllConnectionsReady = false;
+            mConfirmScrapBtn.setEnabled(false);
+        }
+    }
 
     @Subscribe(threadMode = ThreadMode.MAIN)
-    public void onMessageEvent(TagCountChangedMessage message) {
-        mScannedCountTv.setText(String.valueOf(message.scannedCount));
-        mUploadedCountTv.setText(String.valueOf(message.uploadedCount));
-        mStoredCountTv.setText(String.valueOf(message.storedCount));
+    public void onMessageEvent(ConfigUpdatedMessage message) {
+        updateConfigViews();
     }
 
     @Override
     protected void initFragment() {
-        mStoredCountTv.setText(String.valueOf(MyVars.cache.getStoredCount()));
+        updateConfigViews();
         mAdapter = new BucketAdapter(mBuckets);
         mScrapProductsRv.setLayoutManager(new LinearLayoutManager(getContext()));
         mScrapProductsRv.setAdapter(mAdapter);
@@ -78,7 +123,12 @@ public class R1Fragment extends BaseFragment implements InstructionHandler {
     }
 
     @Override
-    public void deal(byte[] ins) {
+    public void sensorSignal(boolean isHigh) {
+
+    }
+
+    @Override
+    public void dealIns(byte[] ins) {
         int command = ins[2] & 0xFF;
         switch (command) {
             case 0x22: // 轮询成功的处理流程
@@ -86,20 +136,24 @@ public class R1Fragment extends BaseFragment implements InstructionHandler {
                 byte[] epc = Arrays.copyOfRange(ins, 8, pl + 3);
                 MyParams.EPCType epcType = CommonUtils.validEPC(epc);
                 switch (epcType) {
-                    case NONE: // 检测到未注册标签，是否提示
-                        break;
                     case BUCKET:
-                        if (isWorking && MyVars.cache.insert(CommonUtils.bytesToHex(epc))) {
-                            mBuckets.add(0, new Bucket(epc));
-                            mHandler.sendMessage(Message.obtain(mHandler, MSG_INCREASE_SCANNED_COUNT));
-                            // 下发Mash指令
-                            MyVars.getReader().sendCommand(InsHelper.getEPCSelectParameter(epc), MyParams.SELECT_MAX_TRY_COUNT);
-                            // 下发TID读取指令
-                            MyVars.getReader().sendCommand(InsHelper.getReadMemBank(
-                                    CommonUtils.hexToBytes("00000000"),
-                                    InsHelper.MemBankType.TID,
-                                    MyParams.TID_START_INDEX,
-                                    MyParams.TID_LENGTH), MyParams.READ_TID_MAX_TRY_COUNT);
+                        mReadNoneCount = 0;
+                        if (Arrays.equals(epc, mScannedEPC)) {
+                            mReadCount += 1;
+                        } else {
+                            mReadCount = 0;
+                            mScannedEPC = epc;
+                            String epcStr = CommonUtils.bytesToHex(mScannedEPC);
+                            if (mBucketsMap.containsKey(epcStr)) {
+                                mBucketToScrap = mBucketsMap.get(epcStr);
+                            } else {
+                                mBucketToScrap = new Bucket(mScannedEPC);
+                                mBucketsMap.put(epcStr, mBucketToScrap);
+                            }
+                        }
+                        if (mReadCount > CAN_SCRAP_READ_COUNT) {
+                            mIsBucketEPCRead = true;
+                            mHandler.sendMessage(Message.obtain(mHandler, MSG_READ_BUCKET));
                         }
                         break;
                     case CARD_ADMIN:
@@ -109,30 +163,80 @@ public class R1Fragment extends BaseFragment implements InstructionHandler {
                             ConfigActivity.actionStart(getContext());
                         }
                         break;
+                    default:
+                        mHandler.sendMessage(Message.obtain(mHandler, MSG_READ_NO_BUCKET));
                 }
-                break;
-            case 0x39: // 读TID成功的处理流程
-                MyVars.cache.setTID(ins);
                 break;
             default: // 命令帧执行失败的处理流程
                 switch (ins[5] & 0xFF) {
                     case 0x15: // 轮询失败
-                        mAdminCardScannedCount = 0;
+                        mHandler.sendMessage(Message.obtain(mHandler, MSG_READ_NO_BUCKET));
                         break;
                 }
         }
     }
 
-    @OnClick(R.id.btn_r1)
+    @OnClick(R.id.btn_confirm_scrap)
     public void onButtonClicked(View view) {
-        if (isWorking) {
-            isWorking = false;
-            ((Button) view).setText("开始报废");
-        } else {
-            isWorking = true;
-            mBuckets.clear();
-            mAdapter.notifyDataSetChanged();
-            ((Button) view).setText("停止报废");
+        new MaterialDialog.Builder(Objects.requireNonNull(getContext()))
+                .title("提示信息")
+                .content("桶身码：" + mBodyCodeTv.getText() + "\n" + "报废原因：" + mScrapReasonSpn.getText())
+                .positiveText("确认报废")
+                .positiveColorRes(R.color.white)
+                .btnSelector(R.drawable.md_btn_postive, DialogAction.POSITIVE)
+                .negativeText("取消报废")
+                .negativeColorRes(R.color.gray)
+                .onPositive(new MaterialDialog.SingleButtonCallback() {
+                    @Override
+                    public void onClick(@NonNull final MaterialDialog dialog, @NonNull DialogAction which) {
+                        MessageScrap message = new MessageScrap();
+                        message.addBucket("", mBucketToScrap.getEpcStr(),
+                                MyVars.config.getDisableInfoByWord(mScrapReasonSpn.getText().toString()).getCode());
+                        NetHelper.getInstance().uploadR1Message(message).enqueue(new Callback<Reply>() {
+                            @Override
+                            public void onResponse(@NonNull Call<Reply> call, @NonNull Response<Reply> response) {
+                                if (response.isSuccessful()) {
+                                    mBucketToScrap.setScraped();
+                                    mBuckets.add(mBucketToScrap);
+                                    mAdapter.notifyDataSetChanged();
+                                }
+                                dialog.dismiss();
+                            }
+
+                            @Override
+                            public void onFailure(@NonNull Call<Reply> call, @NonNull Throwable t) {
+
+                            }
+                        });
+
+                    }
+                })
+                .onNegative(new MaterialDialog.SingleButtonCallback() {
+                    @Override
+                    public void onClick(@NonNull MaterialDialog dialog, @NonNull DialogAction which) {
+                        dialog.dismiss();
+                    }
+                })
+                .show();
+    }
+
+    private boolean canScrap() {
+        return MyVars.getReader().isConnected() && mIsBucketEPCRead && mIsAllConnectionsReady
+                && mBucketToScrap != null && !mBucketToScrap.isScraped();
+    }
+
+    private void updateConfigViews() {
+        mScrapReasonSpn.setAdapter(new ArrayAdapter<>(MyApplication.getInstance(),
+                R.layout.item_common, MyVars.config.getDisableInfo()));
+
+        String curScrapReason = mScrapReasonSpn.getText().toString();
+        if (TextUtils.isEmpty(curScrapReason)
+                || MyVars.config.getDisableInfoByWord(curScrapReason) == null) {
+            if (!MyVars.config.getDisableInfo().isEmpty()) {
+                mScrapReasonSpn.setText(MyVars.config.getDisableInfo().get(0).getWord());
+            } else {
+                mScrapReasonSpn.setText("");
+            }
         }
     }
 
@@ -148,10 +252,30 @@ public class R1Fragment extends BaseFragment implements InstructionHandler {
         public void handleMessage(Message msg) {
             R1Fragment outer = mOuter.get();
             switch (msg.what) {
-                case MSG_INCREASE_SCANNED_COUNT:
-                    outer.increaseCount(outer.mScannedCountTv);
-                    outer.mAdapter.notifyDataSetChanged();
-                    outer.playSound();
+                case MSG_ENABLE_BUTTON:
+                    outer.mConfirmScrapBtn.setEnabled(true);
+                    break;
+                case MSG_DISABLE_BUTTON:
+                    outer.mConfirmScrapBtn.setEnabled(false);
+                    break;
+                case MSG_READ_BUCKET:
+                    outer.mTagStatusIv.setImageResource(R.drawable.ic_connection_normal);
+                    outer.mBodyCodeTv.setText(outer.mBucketToScrap.getBodyCode()
+                            + (outer.mBucketToScrap.isScraped() ? "(已报废)" : ""));
+                    outer.mProductNameTv.setText(outer.mBucketToScrap.getName());
+                    outer.mConfirmScrapBtn.setEnabled(outer.canScrap());
+                    break;
+                case MSG_READ_NO_BUCKET:
+                    outer.mAdminCardScannedCount = 0;
+                    if (++outer.mReadNoneCount > MAX_READ_NONE_COUNT) {
+                        outer.mReadCount = 0;
+                        outer.mScannedEPC = null;
+                        outer.mIsBucketEPCRead = false;
+                        outer.mConfirmScrapBtn.setEnabled(false);
+                        outer.mTagStatusIv.setImageResource(R.drawable.ic_connection_abnormal);
+                        outer.mBodyCodeTv.setText("");
+                        outer.mProductNameTv.setText("");
+                    }
                     break;
             }
         }

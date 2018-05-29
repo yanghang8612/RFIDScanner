@@ -87,14 +87,14 @@
             <LinearLayout
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:layout_weight="2"
+                android:layout_weight="3"
                 android:gravity="end">
 
                 <TextView
                     android:theme="@style/AppTheme.BillText"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
-                    android:layout_weight="1"
+                    android:layout_weight="2"
                     android:text="@string/delivery_count_label" />
 
                 <TextView
@@ -102,8 +102,7 @@
                     android:theme="@style/AppTheme.BigNumber"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:layout_marginStart="@dimen/item_delivery_bill_padding"
+                    android:layout_weight="3"
                     android:gravity="end"
                     android:text="@string/number_default_value" />
 
@@ -111,7 +110,7 @@
                     android:theme="@style/AppTheme.BillText"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
-                    android:layout_weight="1"
+                    android:layout_weight="2"
                     android:layout_marginStart="@dimen/item_delivery_bill_margin"
                     android:text="@string/total_count_label" />
 
@@ -120,8 +119,7 @@
                     android:theme="@style/AppTheme.BigNumber"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:layout_marginStart="@dimen/item_delivery_bill_padding"
+                    android:layout_weight="3"
                     android:gravity="end"
                     android:text="@string/number_default_value" />
 

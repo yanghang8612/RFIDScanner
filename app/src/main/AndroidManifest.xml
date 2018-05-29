@@ -20,6 +20,9 @@
     <uses-permission android:name="android.permission.BLUETOOTH_ADMIN" />
     <uses-permission android:name="android.permission.BLUETOOTH" />
 
+    <!-- permission for camera -->
+    <uses-permission android:name="android.permission.CAMERA" />
+
     <!-- permission for status bar -->
     <uses-permission android:name="android.permission.EXPAND_STATUS_BAR" />
     <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
@@ -85,14 +88,6 @@
             android:theme="@style/AppTheme.Transparent" />
         <activity
             android:name=".activity.RefluxDetailActivity"
-            android:screenOrientation="landscape"
-            android:theme="@style/AppTheme.Transparent" />
-        <activity
-            android:name=".activity.R0ListActivity"
-            android:screenOrientation="landscape"
-            android:theme="@style/AppTheme.Transparent" />
-        <activity
-            android:name=".activity.R0ConfigActivity"
             android:screenOrientation="landscape"
             android:theme="@style/AppTheme.Transparent" />
         <activity

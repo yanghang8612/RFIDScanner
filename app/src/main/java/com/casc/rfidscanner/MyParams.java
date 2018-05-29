@@ -21,26 +21,36 @@ public class MyParams {
      * Global Parameters
      */
     public static final String API_VERSION = "1.4";
-    public static final int SELECT_MAX_TRY_COUNT = 1; // 次数
+    public static final int SELECT_MAX_TRY_COUNT = 2; // 次数
     public static final int READ_TID_MAX_TRY_COUNT = 3; // 次数
     public static final int READ_TID_MAX_WAIT_TIME = 300; // ms
+    public static final int READ_USER_MEMORY_MAX_TRY_COUNT = 10; // 次数
     public static final int SINGLE_CART_MIN_SCANNED_COUNT = 10; // 次数
+    public static final int DELIVERY_CARD_SCANNED_COUNT = 10; // 次数
     public static final int ADMIN_CARD_SCANNED_COUNT = 5; // 次数
     public static final int BILL_NO_OPERATION_CHECK_INTERVAL = 5 * 60 * 1000; // ms
     public static final int PRODUCT_LIST_MAX_COUNT = 1000;
 
     public static final int TID_START_INDEX = 0; // word
     public static final int TID_LENGTH = 6; // word
-    public static final int EPC_TYPE_INDEX = 5; // byte
-    public static final int EPC_BUCKET_LENGTH = 16; // byte
-    public static final String BUCKET_PC_CONTENT = "4000";
-    public static final int EPC_DELIVERY_CARD_LENGTH = 32; // byte
+    public static final int USER_MEMORY_START_INDEX = 0; // word
+    public static final int USER_MEMORY_LENGTH = 12; // word
+    public static final int EPC_HEADER_LENGTH = 4; // byte
+    public static final int EPC_TYPE_INDEX = 4; // byte
 
-    public static final String DELIVERY_PC_CONTENT = "8000";
+    public static final int EPC_BUCKET_LENGTH = 12; // byte
+    public static final String BUCKET_PC_CONTENT = "3000";
+
+    public static final int EPC_DELIVERY_CARD_LENGTH = 12; // byte
+    public static final String DELIVERY_PC_CONTENT = "3000";
+
     public static final int EPC_ADMIN_CARD_LENGTH = 12; // byte
     public static final String ADMIN_PC_CONTENT = "3000";
+
     public static final int EPC_REFLUX_CARD_LENGTH = 12; // byte
     public static final String REFLUX_PC_CONTENT = "3000";
+
+    public static final int BODY_CODE_LENGTH = 8;
 
     /**
      * Setting Parameters
@@ -53,6 +63,12 @@ public class MyParams {
     public static final int PLATFORM_STATUS_CHECK_INTERVAL = 5000; // ms
     // 运维人员配置
     public static final String S_LINK = "link"; // 工位
+    public static final String S_SENSOR_SWITCH = "sensor_switch"; // 传感器检测开关
+    public static final String S_POWER = "power"; // 发射功率
+    public static final String S_Q_VALUE = "q_value"; // Q值
+    public static final String S_REST = "rest"; // 占空时间
+    public static final String S_INTERVAL = "interval"; // 轮询指令发送间隔
+    public static final String S_TIME = "time"; // 单次任务轮询指令发送次数
     public static final String S_TAG_LIFECYCLE = "tag_lifecycle"; // 标签生命周期
     public static final String S_BLANK_INTERVAL = "blank_interval"; // 空白期间隔
     public static final String S_DISCOVERY_INTERVAL = "discovery_interval"; // 最小时间间隔
@@ -67,23 +83,24 @@ public class MyParams {
     public static final String S_API_JSON = "api_json";
     public static final Map<String, String> CONFIG_DEFAULT_MAP = new HashMap<>();
     static {
-        CONFIG_DEFAULT_MAP.put(S_API_JSON, "{}");CONFIG_DEFAULT_MAP.put(S_LINK, "00");
+        CONFIG_DEFAULT_MAP.put(S_LINK, "00");
+        CONFIG_DEFAULT_MAP.put(S_SENSOR_SWITCH, "true");
+        CONFIG_DEFAULT_MAP.put(S_POWER, "26dBm");
+        CONFIG_DEFAULT_MAP.put(S_Q_VALUE, "3");
+        CONFIG_DEFAULT_MAP.put(S_REST, "20ms");
+        CONFIG_DEFAULT_MAP.put(S_INTERVAL, "7ms");
+        CONFIG_DEFAULT_MAP.put(S_TIME, "10");
         CONFIG_DEFAULT_MAP.put(S_TAG_LIFECYCLE, "5Min");
         CONFIG_DEFAULT_MAP.put(S_BLANK_INTERVAL, "5");
         CONFIG_DEFAULT_MAP.put(S_DISCOVERY_INTERVAL, "2Sec");
-        CONFIG_DEFAULT_MAP.put(S_MAIN_PLATFORM_ADDR, "http://106.37.201.142");
+        CONFIG_DEFAULT_MAP.put(S_MAIN_PLATFORM_ADDR, "http://192.168.1.9:8080");
         CONFIG_DEFAULT_MAP.put(S_STANDBY_PLATFORM_ADDR, "http://106.37.201.142:8888");
-        CONFIG_DEFAULT_MAP.put(S_READER_ID, "100000000000000000000001");
-        CONFIG_DEFAULT_MAP.put(LinkType.R0.power, "15dBm");CONFIG_DEFAULT_MAP.put(LinkType.R0.qValue, "0");CONFIG_DEFAULT_MAP.put(LinkType.R0.sendInterval, "50ms");
-        CONFIG_DEFAULT_MAP.put(LinkType.R1.power, "15dBm");CONFIG_DEFAULT_MAP.put(LinkType.R1.qValue, "0");CONFIG_DEFAULT_MAP.put(LinkType.R1.sendInterval, "50ms");
-        CONFIG_DEFAULT_MAP.put(LinkType.R2.power, "26dBm");CONFIG_DEFAULT_MAP.put(LinkType.R2.qValue, "8");CONFIG_DEFAULT_MAP.put(LinkType.R2.sendInterval, "50ms");
-        CONFIG_DEFAULT_MAP.put(LinkType.R3.power, "15dBm");CONFIG_DEFAULT_MAP.put(LinkType.R3.qValue, "0");CONFIG_DEFAULT_MAP.put(LinkType.R3.sendInterval, "50ms");
-        CONFIG_DEFAULT_MAP.put(LinkType.R4.power, "15dBm");CONFIG_DEFAULT_MAP.put(LinkType.R4.qValue, "0");CONFIG_DEFAULT_MAP.put(LinkType.R4.sendInterval, "50ms");
-        CONFIG_DEFAULT_MAP.put(LinkType.R6.power, "26dBm");CONFIG_DEFAULT_MAP.put(LinkType.R6.qValue, "8");CONFIG_DEFAULT_MAP.put(LinkType.R6.sendInterval, "50ms");
-        CONFIG_DEFAULT_MAP.put(LinkType.RN.power, "15dBm");CONFIG_DEFAULT_MAP.put(LinkType.RN.qValue, "0");CONFIG_DEFAULT_MAP.put(LinkType.RN.sendInterval, "50ms");
-        CONFIG_DEFAULT_MAP.put(LinkType.Card.power, "15dBm");CONFIG_DEFAULT_MAP.put(LinkType.Card.qValue, "0");CONFIG_DEFAULT_MAP.put(LinkType.Card.sendInterval, "50ms");
-        CONFIG_DEFAULT_MAP.put(S_READER_MAC, "00:00:00:00:00:00");CONFIG_DEFAULT_MAP.put(S_LONGITUDE, "121.39");
-        CONFIG_DEFAULT_MAP.put(S_LATITUDE, "37.52");CONFIG_DEFAULT_MAP.put(S_HEIGHT, "922.88");
+        CONFIG_DEFAULT_MAP.put(S_READER_ID, "100000000000000000000101");
+        CONFIG_DEFAULT_MAP.put(S_READER_MAC, "00:00:00:00:00:00");
+        CONFIG_DEFAULT_MAP.put(S_LONGITUDE, "121.39");
+        CONFIG_DEFAULT_MAP.put(S_LATITUDE, "37.52");
+        CONFIG_DEFAULT_MAP.put(S_HEIGHT, "922.88");
+        CONFIG_DEFAULT_MAP.put(S_API_JSON, "{}");
     }
 
     /**
@@ -93,13 +110,14 @@ public class MyParams {
 //    public static final int DELAY = 2 * 60 * 60;
     public static final int DELAY = 0;
     public static final boolean ENABLE_BACKDOOR = true;
-    public static final boolean PRINT_COMMAND = false;
+    public static final boolean PRINT_COMMAND = true;
+    public static final boolean PRINT_JSON = true;
 
     /**
      * EPC各种类型
      */
     public enum EPCType {
-        NONE((byte) 0xFF, ""),
+        NONE((byte) 0xFF, "(UNKOWN)"),
         BUCKET((byte) 0x00, "(已注册桶)"),
         CARD_DELIVERY((byte) 0x01, "(出库专用卡)"),
         CARD_ADMIN((byte) 0x02, "(运维专用卡)"),

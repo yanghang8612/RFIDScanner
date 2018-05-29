@@ -4,6 +4,7 @@ import com.casc.rfidscanner.helper.param.MessageCardReg;
 import com.casc.rfidscanner.helper.param.MessageConfig;
 import com.casc.rfidscanner.helper.param.MessageQuery;
 import com.casc.rfidscanner.helper.param.MessageRegister;
+import com.casc.rfidscanner.helper.param.MessageScrap;
 import com.casc.rfidscanner.helper.param.Reply;
 
 import java.util.Map;
@@ -21,10 +22,13 @@ import retrofit2.http.Url;
 public interface NetInterface {
 
     @POST
-    Call<Reply> checkBodyCodeAndTID(@Url String url, @QueryMap Map<String, String> header, @Body MessageQuery query);
+    Call<Reply> checkBodyCodeAndTID(@Url String url, @QueryMap Map<String, String> header, @Body RequestBody query);
 
     @POST
-    Call<Reply> uploadR0Message(@Url String url, @QueryMap Map<String, String> header, @Body MessageRegister r0);
+    Call<Reply> uploadR0Message(@Url String url, @QueryMap Map<String, String> header, @Body RequestBody r0);
+
+    @POST
+    Call<Reply> uploadR1Message(@Url String url, @QueryMap Map<String, String> header, @Body RequestBody r1);
 
     @POST
     Call<Reply> uploadCommonMessage(@Url String url, @QueryMap Map<String, String> header, @Body RequestBody common);
@@ -39,13 +43,13 @@ public interface NetInterface {
     Call<Reply> uploadDealerMessage(@Url String url, @QueryMap Map<String, String> header, @Body RequestBody dealer);
 
     @POST
-    Call<Reply> getConfig(@Url String url, @QueryMap Map<String, String> header, @Body MessageConfig config);
+    Call<Reply> getConfig(@Url String url, @QueryMap Map<String, String> header, @Body RequestBody config);
 
     @GET
     Call<Reply> sendHeartbeat(@Url String url, @QueryMap Map<String, String> header);
 
     @POST
-    Call<Reply> uploadCardRegMessage(@Url String url, @QueryMap Map<String, String> header, @Body MessageCardReg card);
+    Call<Reply> uploadCardRegMessage(@Url String url, @QueryMap Map<String, String> header, @Body RequestBody card);
 
     @POST
     Call<Reply> uploadAdminLoginInfo(@Url String url, @QueryMap Map<String, String> header, @Body RequestBody login);

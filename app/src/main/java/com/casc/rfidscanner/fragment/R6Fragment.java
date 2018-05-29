@@ -5,6 +5,7 @@ import android.os.Message;
 import android.support.annotation.NonNull;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.text.TextUtils;
 import android.util.Log;
 import android.view.View;
 import android.widget.TextView;
@@ -18,11 +19,12 @@ import com.casc.rfidscanner.activity.DeliveryDetailActivity;
 import com.casc.rfidscanner.activity.MainActivity;
 import com.casc.rfidscanner.adapter.DeliveryBillAdapter;
 import com.casc.rfidscanner.adapter.HintAdapter;
-import com.casc.rfidscanner.backend.InstructionHandler;
+import com.casc.rfidscanner.backend.InsHandler;
 import com.casc.rfidscanner.bean.Bucket;
 import com.casc.rfidscanner.bean.DeliveryBill;
 import com.casc.rfidscanner.bean.Hint;
 import com.casc.rfidscanner.helper.ConfigHelper;
+import com.casc.rfidscanner.helper.InsHelper;
 import com.casc.rfidscanner.helper.NetHelper;
 import com.casc.rfidscanner.helper.param.MessageDelivery;
 import com.casc.rfidscanner.helper.param.Reply;
@@ -57,10 +59,10 @@ import retrofit2.Response;
 /**
  * 成品水出库Fragment
  */
-public class R6Fragment extends BaseFragment implements InstructionHandler {
+public class R6Fragment extends BaseFragment implements InsHandler {
 
     private enum WorkStatus {
-        IS_IDLE, IS_WORKING, IS_BACKING
+        IS_IDLE, IS_WORKING, READY_BACKING, IS_BACKING, IS_READING
     }
 
     private static final String TAG = R6Fragment.class.getSimpleName();
@@ -70,8 +72,8 @@ public class R6Fragment extends BaseFragment implements InstructionHandler {
     private static final int MSG_UPDATE_COUNT = 2;
     private static final int MSG_IS_NORMAL = 3;
     private static final int MSG_IS_WORKING = 4;
-    private static final int MSG_IS_BACKING = 5;
-    private static final int MSG_DISABLE_BACK_BUTTON = 6;
+    private static final int MSG_READY_BACKING = 5;
+    private static final int MSG_IS_BACKING = 6;
 
     @BindView(R.id.sbtn_delivery_back) SwitchButton mDeliveryBackSbtn;
     @BindView(R.id.tv_r6_work_status) TextView mWorkStatusTv;
@@ -107,16 +109,17 @@ public class R6Fragment extends BaseFragment implements InstructionHandler {
     private Set<String> mCache = new HashSet<>();
 
     // 读取到的EPC计数以及检测到的空白期间隔
-    private int mReadCount, mBlankCount;
+    private int mBucketReadCount, mCardReadCount, mBlankCount;
 
     // 小推车被识别开始时间
     private long mStartTime;
 
     // 工作状态
-    private WorkStatus mStatus;
+    private WorkStatus mStatus = WorkStatus.IS_IDLE;
 
     // 退库取消标识符，同时出库提示标识符，卡EPC编码解析错误标识符
-    private boolean isFromCancel, isMultiDeliveryMentioned, isNoneMatchedBillWhenBacking, isCardEPCCodeError;
+    private boolean isFromCancel, isMultiDeliveryMentioned, isNoneMatchedBillWhenBacking,
+            isCardEPCCodeError, isCardNotReadUserMemory;
 
     // Fragment内部handler
     private Handler mHandler = new InnerHandler(this);
@@ -127,9 +130,12 @@ public class R6Fragment extends BaseFragment implements InstructionHandler {
         writeHint(bill.getCardID() + "出库完成");
         // 异步上传平台
         writeHint(bill.getCardID() + "上报平台");
-        final MessageDelivery delivery = new MessageDelivery();
-        delivery.setFormnumber(bill.getBillID());
-        delivery.setAccordance(bill.checkBill() ? "0" : "1");
+        final MessageDelivery delivery =
+                new MessageDelivery(
+                        TextUtils.isEmpty(bill.getBillID()) ? "0000000000" : bill.getBillID(),
+                        (char) (TextUtils.isEmpty(bill.getBillID()) ? 2 : bill.checkBill() ?  0 : 1),
+                        message.dealer,
+                        message.driver);
         for (Bucket bucket : bill.getBuckets()) {
             delivery.addBucket(bucket.getTime() / 1000, CommonUtils.bytesToHex(bucket.getEpc()));
         }
@@ -152,8 +158,11 @@ public class R6Fragment extends BaseFragment implements InstructionHandler {
             }
         });
         mBills.remove(bill);
-        mBillsMap.remove(CommonUtils.bytesToHex(bill.getCardEPC()));
+        mBillsMap.remove(CommonUtils.bytesToHex(bill.getCard()));
         mBillAdapter.notifyDataSetChanged();
+        if (mBills.isEmpty()) {
+            mDeliveryBackSbtn.setEnabled(false);
+        }
     }
 
     @Subscribe(threadMode = ThreadMode.MAIN)
@@ -165,6 +174,7 @@ public class R6Fragment extends BaseFragment implements InstructionHandler {
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void onMessageEvent(BillUpdatedMessage message) {
         if (mBills.isEmpty()) {
+            Log.i(TAG, "BILL_UPDATED");
             mDeliveryBackSbtn.setEnabled(false);
         } else if (mStatus == WorkStatus.IS_IDLE) {
             mDeliveryBackSbtn.setEnabled(true);
@@ -187,7 +197,7 @@ public class R6Fragment extends BaseFragment implements InstructionHandler {
             @Override
             public void onCheckedChanged(SwitchButton view, boolean isChecked) {
                 if (isChecked) { // 退库开始只能通过手动
-                    mHandler.sendMessage(Message.obtain(mHandler, MSG_IS_BACKING));
+                    mHandler.sendMessage(Message.obtain(mHandler, MSG_READY_BACKING));
                     SpeechSynthesizer.getInstance().speak("退库开始");
                 } else if (isFromCancel) {
                     mHandler.sendMessage(Message.obtain(mHandler, MSG_IS_NORMAL));
@@ -213,7 +223,7 @@ public class R6Fragment extends BaseFragment implements InstructionHandler {
         mBillView.setAdapter(mBillAdapter);
         mStoredBillCountTv.setText(String.valueOf(MyVars.cache.getStoredDeliveryBillCount()));
         MyVars.fragmentExecutor.scheduleWithFixedDelay(new BillNoOperationCheckTask(), 0, 1, TimeUnit.SECONDS);
-        //mBills.add(new DeliveryBill(CommonUtils.hexToBytes("414C8114A10106288801000400FA0341003E8030400FA00C1007E80000000000".replace(" ", ""))));
+        //mBills.add(new DeliveryBill(CommonUtils.hexToBytes("314159510100030000000000"), CommonUtils.hexToBytes("3A0202A800FA000FA000FA000FA000FA0000000000000000")));
     }
 
     @Override
@@ -222,10 +232,16 @@ public class R6Fragment extends BaseFragment implements InstructionHandler {
     }
 
     @Override
-    public void deal(byte[] ins) {
+    public void sensorSignal(boolean isHigh) {
+        
+    }
+
+    @Override
+    public void dealIns(byte[] ins) {
+        long enterTime = System.nanoTime();
         int command = ins[2] & 0xFF;
         switch (command) {
-            case 0x22: // 轮询成功的处理流程
+            case 0x22: { // 轮询成功的处理流程
                 mBlankCount = 0;
                 int pl = ((ins[3] & 0xFF) << 8) + (ins[4] & 0xFF);
                 byte[] epc = Arrays.copyOfRange(ins, 8, pl + 3);
@@ -235,11 +251,13 @@ public class R6Fragment extends BaseFragment implements InstructionHandler {
                         break;
                     case BUCKET:
                         // 不管出库或退库，扫到桶则Disable退库Button
-                        mReadCount++;
-                        mHandler.sendMessage(Message.obtain(mHandler, MSG_DISABLE_BACK_BUTTON));
-                        if (mReadCount >= MyParams.SINGLE_CART_MIN_SCANNED_COUNT) {
-                            if (mStatus != WorkStatus.IS_BACKING) { // 没有在退库，那表示正常出库，修改工作状态的提示
+                        mBucketReadCount++;
+                        if (mBucketReadCount + mCardReadCount >= MyParams.SINGLE_CART_MIN_SCANNED_COUNT) {
+                            if (mStatus == WorkStatus.IS_IDLE) { // 正常出库，修改工作状态的提示
                                 mHandler.sendMessage(Message.obtain(mHandler, MSG_IS_WORKING));
+                            }
+                            if (mStatus == WorkStatus.READY_BACKING) { // 准备退库，修改工作状态的提示
+                                mHandler.sendMessage(Message.obtain(mHandler, MSG_IS_BACKING));
                             }
                             if (!mTempEPCs.contains(epcStr)) { // 扫到的EPC均判重后加入temp列表里并更新显示的扫描数量
                                 mTempEPCs.add(epcStr);
@@ -249,37 +267,55 @@ public class R6Fragment extends BaseFragment implements InstructionHandler {
                         break;
                     case CARD_DELIVERY:
                         // 不管出库或退库，扫到卡则Disable退库Button
-                        mReadCount++;
-                        mHandler.sendMessage(Message.obtain(mHandler, MSG_DISABLE_BACK_BUTTON));
-                        if (mReadCount >= MyParams.SINGLE_CART_MIN_SCANNED_COUNT) {
-                            if (mStatus != WorkStatus.IS_BACKING) { // 没有在退库，那表示正常出库，修改工作状态的提示
+                        mCardReadCount++;
+                        if (mStatus == WorkStatus.IS_IDLE
+                                && epc[7] == 0x00
+                                && !mBillsMap.containsKey(epcStr)
+                                && mCardReadCount >= MyParams.DELIVERY_CARD_SCANNED_COUNT
+                                && mBucketReadCount == 0) {
+                            // 尝试读取User Memory
+                            // 下发Mask指令
+                            MyVars.getReader().sendCommand(InsHelper.getEPCSelectParameter(epc), MyParams.SELECT_MAX_TRY_COUNT);
+                            // 下发TID读取指令
+                            MyVars.getReader().sendCommand(InsHelper.getReadMemBank(
+                                    CommonUtils.hexToBytes("00000000"),
+                                    InsHelper.MemBankType.UserMem,
+                                    MyParams.USER_MEMORY_START_INDEX,
+                                    MyParams.USER_MEMORY_LENGTH), MyParams.READ_USER_MEMORY_MAX_TRY_COUNT);
+                            mCardReadCount = 0;
+                        }
+                        else if (mBucketReadCount + mCardReadCount >= MyParams.SINGLE_CART_MIN_SCANNED_COUNT) {
+                            if (mStatus == WorkStatus.IS_IDLE) { // 正常出库，修改工作状态的提示
                                 mHandler.sendMessage(Message.obtain(mHandler, MSG_IS_WORKING));
                             }
-                            if (mCurBill == null) { // 当前的Bill为空则查找或生成该单
+                            if (mStatus == WorkStatus.READY_BACKING) { // 准备退库，修改工作状态的提示
+                                mHandler.sendMessage(Message.obtain(mHandler, MSG_IS_BACKING));
+                            }
+                            if (mCurBill == null || !mCurBill.isHighlight()) { // 当前的Bill为空则查找或生成该单
                                 if (mBillsMap.containsKey(epcStr)) {
                                     mCurBill = mBillsMap.get(epcStr);
                                     mBills.remove(mCurBill);
                                     mBills.add(0, mCurBill);
+                                    SpeechSynthesizer.getInstance().speak(mCurBill.getCardNum() + (mStatus != WorkStatus.IS_BACKING ? "出库中" : "退库中"));
                                 } else {
                                     if (mStatus == WorkStatus.IS_BACKING) {
                                         isNoneMatchedBillWhenBacking = true;
-                                        return;
-                                    }
-                                    try {
+                                    } else if (epc[7] == 0x01) {
                                         mCurBill = new DeliveryBill(epc);
-                                    } catch (Exception ignored) {
-                                        ignored.printStackTrace();
-                                        isCardEPCCodeError = true;
-                                        return;
+                                        mBills.add(0, mCurBill);
+                                        mBillsMap.put(CommonUtils.bytesToHex(epc), mCurBill);
+                                        SpeechSynthesizer.getInstance().speak(mCurBill.getCardNum() + (mStatus != WorkStatus.IS_BACKING ? "出库中" : "退库中"));
+                                    } else if (isCardNotReadUserMemory) {
+                                        isCardNotReadUserMemory = true;
+                                        SpeechSynthesizer.getInstance().speak("出库中发现未刷出库卡");
                                     }
-                                    mBills.add(0, mCurBill);
-                                    mBillsMap.put(epcStr, mCurBill);
                                 }
-                                mCurBill.setUpdatedTime(System.currentTimeMillis());
-                                mCurBill.setHighlight(true);
-                                EventBus.getDefault().post(new BillUpdatedMessage());
-                                SpeechSynthesizer.getInstance().speak(mCurBill.getCardNum() + (mStatus != WorkStatus.IS_BACKING ? "出库中" : "退库中"));
-                            } else if (!Arrays.equals(epc, mCurBill.getCardEPC()) && !isMultiDeliveryMentioned) {
+                                if (mCurBill != null) {
+                                    mCurBill.setUpdatedTime(System.currentTimeMillis());
+                                    mCurBill.setHighlight(true);
+                                    EventBus.getDefault().post(new BillUpdatedMessage());
+                                }
+                            } else if (!Arrays.equals(epc, mCurBill.getCard()) && !isMultiDeliveryMentioned) {
                                 isMultiDeliveryMentioned = true;
                                 SpeechSynthesizer.getInstance().speak("出库中发现两张以上出库卡");
                             }
@@ -298,48 +334,75 @@ public class R6Fragment extends BaseFragment implements InstructionHandler {
                         break;
                 }
                 break;
-            default: // 命令帧执行失败的处理流程，本环节只有轮询失败
+            }
+            case 0x39: { // 读取User Memory成功
+                byte[] epc = Arrays.copyOfRange(ins, 8, 6 + ins[5]);
+                byte[] data = Arrays.copyOfRange(ins, 6 + ins[5], ins.length - 2);
+                Log.i(TAG, "EPC: " + CommonUtils.bytesToHex(epc));
+                Log.i(TAG, "DATA: " + CommonUtils.bytesToHex(data));
+                if (!mBillsMap.containsKey(CommonUtils.bytesToHex(epc))) {
+                    try {
+                        mBills.add(0, new DeliveryBill(epc, data));
+                        mBillsMap.put(CommonUtils.bytesToHex(epc), mBills.get(0));
+                        SpeechSynthesizer.getInstance().speak("刷卡成功");
+                        EventBus.getDefault().post(new BillUpdatedMessage());
+                    } catch (Exception ignored) {
+                        ignored.printStackTrace();
+                        isCardEPCCodeError = true;
+                    }
+                    break;
+                }
+            }
+            default: { // 命令帧执行失败的处理流程
                 mAdminCardScannedCount = 0;
                 int discoveryInterval =
                         (int) (Double.valueOf(
                                 ConfigHelper.getParam(MyParams.S_DISCOVERY_INTERVAL)
                                         .replace("Sec", ""))
-                        * 1000);
+                                * 1000);
                 // 在工作状态，达到了空白期间隔设定值且发现间隔大于最小时间间隔
-                if (mStatus != WorkStatus.IS_IDLE
+                if ((mStatus == WorkStatus.IS_WORKING || mStatus == WorkStatus.IS_BACKING)
                         && ++mBlankCount >= Integer.valueOf(ConfigHelper.getParam(MyParams.S_BLANK_INTERVAL))
                         && System.currentTimeMillis() - mStartTime > discoveryInterval) {
-                    Log.i(TAG, "Read count: " + mReadCount);
-                    Log.i(TAG, "Read none count: " + mBlankCount);
-                    Log.i(TAG, System.currentTimeMillis() + " " + mStartTime + " " + (System.currentTimeMillis() - mStartTime));
-                    if (mReadCount < MyParams.SINGLE_CART_MIN_SCANNED_COUNT) {
-                        mReadCount = 0;
-                    } else if (isNoneMatchedBillWhenBacking) {
+
+                    mBlankCount = 0;
+
+                    // 首先处理相关结果的展示信息
+                    if (isNoneMatchedBillWhenBacking) {
                         SpeechSynthesizer.getInstance().speak("退库前请先出库");
                     } else if (isCardEPCCodeError) {
                         SpeechSynthesizer.getInstance().speak("解析出库卡出错");
-                    } else if (mCurBill == null && !mTempEPCs.isEmpty()) { // 检测到有桶在出库或退库，但是没有扫到出库卡
-                        //playSound(2, 0.2f);
-                        if (mStatus == WorkStatus.IS_BACKING) {
-                            writeHint("未发现出库卡，退库结束");
-                            SpeechSynthesizer.getInstance().speak("未发现出库卡，退库结束");
-                        } else {
-                            SpeechSynthesizer.getInstance().speak("未发现出库卡");
+                    } else if (mCurBill == null || !mCurBill.isHighlight()) { // 检测到有桶在出库或退库，但是没有扫到出库卡
+                        if (!mTempEPCs.isEmpty()) {
+                            if (mStatus == WorkStatus.IS_BACKING) {
+                                writeHint("未发现出库卡，退库结束");
+                                SpeechSynthesizer.getInstance().speak("未发现出库卡，退库结束");
+                            } else {
+                                SpeechSynthesizer.getInstance().speak("未发现出库卡");
+                            }
                         }
-                    } else if (mCurBill != null && mTempEPCs.size() == 0) { // 没有处于回库状态，EPC临时列表为空，空车回库
-                        if (mStatus == WorkStatus.IS_BACKING) {
-                            writeHint(mCurBill.getCardID() + "退库结束(未发现桶标签)");
-                            SpeechSynthesizer.getInstance().speak("未发现桶标签，退库结束");
+                    } else { // 检测到出库卡，看是否扫描到桶标签
+                        if (mTempEPCs.isEmpty()) {
+                            if (mStatus == WorkStatus.IS_BACKING) {
+                                writeHint(mCurBill.getCardID() + "退库结束(未发现桶标签)");
+                                SpeechSynthesizer.getInstance().speak("未发现桶标签，退库结束");
+                            } else {
+                                writeHint(mCurBill.getCardID() + "空车通过");
+                                SpeechSynthesizer.getInstance().speak(mCurBill.getCardNum() + "空车通过");
+                            }
                         } else {
-                            writeHint(mCurBill.getCardID() + "空车通过");
-                            SpeechSynthesizer.getInstance().speak(mCurBill.getCardNum() + "空车通过");
+                            mHandler.sendMessage(Message.obtain(mHandler, MSG_DELIVERY_OR_BACK));
                         }
-                    } else if (mCurBill != null && mTempEPCs.size() != 0) { // EPC临时列表不为空，正常出库或退库
-                        mHandler.sendMessage(Message.obtain(mHandler, MSG_DELIVERY_OR_BACK));
                     }
+
+                    // 其次发送NORMAL消息
                     mHandler.sendMessage(Message.obtain(mHandler, MSG_IS_NORMAL));
                 }
+            }
         }
+        long costTime = System.nanoTime() - enterTime;
+        if (costTime > 1000000)
+            Log.i(TAG, "Cost: " + costTime);
     }
 
     private void writeHint(String content) {
@@ -374,6 +437,7 @@ public class R6Fragment extends BaseFragment implements InstructionHandler {
                     }
 
                     // 出库成功或退库成功提示
+                    Log.i(TAG, outer.mStatus.name());
                     if (outer.mStatus == WorkStatus.IS_BACKING) {
                         outer.writeHint(
                                 outer.mCurBill.getCardID() + "退库:" +
@@ -397,35 +461,44 @@ public class R6Fragment extends BaseFragment implements InstructionHandler {
                     outer.mTempCountTv.setText(String.valueOf(outer.mTempEPCs.size()));
                     break;
                 case MSG_IS_NORMAL:
-                    if (outer.mCurBill != null) outer.mCurBill.setHighlight(false);
-                    outer.mCurBill = null;
+                    if (outer.mCurBill != null) {
+                        outer.mCurBill.setHighlight(false);
+                    }
+                    //outer.mCurBill = null;
                     outer.mTempEPCs.clear();
+                    Log.i(TAG, "MSG_NORMAL");
                     outer.mDeliveryBackSbtn.setEnabled(true);
                     outer.mDeliveryBackSbtn.setChecked(false);
                     outer.mStatus = WorkStatus.IS_IDLE;
                     outer.isMultiDeliveryMentioned = false;
                     outer.isNoneMatchedBillWhenBacking = false;
                     outer.isCardEPCCodeError = false;
+                    outer.isCardNotReadUserMemory = false;
                     outer.mWorkStatusTv.setText("空闲");
                     outer.mWorkStatusTv.setBackgroundResource(R.drawable.bg_status_normal);
                     outer.mTempCountTv.setText("0");
+                    outer.mBucketReadCount = outer.mCardReadCount = 0;
                     EventBus.getDefault().post(new BillUpdatedMessage());
                     break;
                 case MSG_IS_WORKING:
                     outer.mStatus = WorkStatus.IS_WORKING;
                     outer.mStartTime = System.currentTimeMillis();
+                    outer.isFromCancel = false;
+                    outer.mDeliveryBackSbtn.setEnabled(false);
                     outer.mWorkStatusTv.setText("出库");
                     outer.mWorkStatusTv.setBackgroundResource(R.drawable.bg_status_working);
+                    Log.i(TAG, "MSG_WORKING");
                     outer.mDeliveryBackSbtn.setEnabled(false);
                     break;
-                case MSG_IS_BACKING:
-                    outer.mStatus = WorkStatus.IS_BACKING;
-                    outer.mStartTime = System.currentTimeMillis();
+                case MSG_READY_BACKING:
+                    outer.mStatus = WorkStatus.READY_BACKING;
                     outer.isFromCancel = true;
                     outer.mWorkStatusTv.setText("退库");
                     outer.mWorkStatusTv.setBackgroundResource(R.drawable.bg_status_backing);
                     break;
-                case MSG_DISABLE_BACK_BUTTON:
+                case MSG_IS_BACKING:
+                    outer.mStatus = WorkStatus.IS_BACKING;
+                    outer.mStartTime = System.currentTimeMillis();
                     outer.isFromCancel = false;
                     outer.mDeliveryBackSbtn.setEnabled(false);
                     break;

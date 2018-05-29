@@ -5,7 +5,6 @@ import android.os.Message;
 import android.support.annotation.NonNull;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
-import android.util.Log;
 import android.view.View;
 import android.widget.TextView;
 
@@ -18,7 +17,7 @@ import com.casc.rfidscanner.activity.MainActivity;
 import com.casc.rfidscanner.activity.RefluxDetailActivity;
 import com.casc.rfidscanner.adapter.HintAdapter;
 import com.casc.rfidscanner.adapter.RefluxBillAdapter;
-import com.casc.rfidscanner.backend.InstructionHandler;
+import com.casc.rfidscanner.backend.InsHandler;
 import com.casc.rfidscanner.bean.Bucket;
 import com.casc.rfidscanner.bean.Hint;
 import com.casc.rfidscanner.bean.RefluxBill;
@@ -56,7 +55,7 @@ import retrofit2.Response;
 /**
  * 空桶回流Fragment
  */
-public class R2Fragment extends BaseFragment implements InstructionHandler {
+public class R2Fragment extends BaseFragment implements InsHandler {
 
     private enum WorkStatus {
         IS_IDLE, IS_WORKING
@@ -122,9 +121,7 @@ public class R2Fragment extends BaseFragment implements InstructionHandler {
         RefluxBill bill = MyVars.refluxBillToShow;
         writeHint(bill.getCardID() + "回流完成");
         writeHint(bill.getCardID() + "上报平台");
-        final MessageReflux reflux = new MessageReflux();
-        reflux.setDealer(message.dealer);
-        reflux.setDriver(message.driver);
+        final MessageReflux reflux = new MessageReflux(message.dealer, message.driver);
         for (Bucket bucket : bill.getBuckets()) {
             reflux.addBucket(bucket.getTime() / 1000, CommonUtils.bytesToHex(bucket.getEpc()));
         }
@@ -198,7 +195,12 @@ public class R2Fragment extends BaseFragment implements InstructionHandler {
     }
 
     @Override
-    public void deal(byte[] ins) {
+    public void sensorSignal(boolean isHigh) {
+
+    }
+
+    @Override
+    public void dealIns(byte[] ins) {
         int command = ins[2] & 0xFF;
         switch (command) {
             case 0x22: // 轮询成功的处理流程
@@ -223,23 +225,26 @@ public class R2Fragment extends BaseFragment implements InstructionHandler {
                         mReadCount++;
                         if (mReadCount >= MyParams.SINGLE_CART_MIN_SCANNED_COUNT) {
                             mHandler.sendMessage(Message.obtain(mHandler, MSG_IS_WORKING));
-                            if (mCurBill == null) {
+                            if (mCurBill == null || !mCurBill.isHighlight()) {
                                 if (mBillsMap.containsKey(epcStr)) {
                                     mCurBill = mBillsMap.get(epcStr);
                                 } else {
                                     try {
                                         mCurBill = new RefluxBill(epc);
                                     } catch (Exception e) {
+                                        mCurBill = null;
                                         isCardEPCCodeError = true;
                                         return;
                                     }
                                     mBills.add(0, mCurBill);
                                     mBillsMap.put(epcStr, mCurBill);
                                 }
-                                mCurBill.setUpdatedTime(System.currentTimeMillis());
-                                mCurBill.setHighlight(true);
-                                EventBus.getDefault().post(new BillUpdatedMessage());
-                                SpeechSynthesizer.getInstance().speak(mCurBill.getCardNum() + "回收中");
+                                if (mCurBill != null) {
+                                    mCurBill.setUpdatedTime(System.currentTimeMillis());
+                                    mCurBill.setHighlight(true);
+                                    EventBus.getDefault().post(new BillUpdatedMessage());
+                                    SpeechSynthesizer.getInstance().speak(mCurBill.getCardNum() + "回收中");
+                                }
                             } else if (!Arrays.equals(epc, mCurBill.getCardEPC()) && !isMultiRefluxMentioned) {
                                 isMultiRefluxMentioned = true;
                                 SpeechSynthesizer.getInstance().speak("回收中发现两张以上回流卡");
@@ -270,6 +275,9 @@ public class R2Fragment extends BaseFragment implements InstructionHandler {
                 if (mStatus != WorkStatus.IS_IDLE
                         && ++mBlankCount >= Integer.valueOf(ConfigHelper.getParam(MyParams.S_BLANK_INTERVAL))
                         && System.currentTimeMillis() - mStartTime > discoveryInterval) { // 达到了空白期间隔设定值
+
+                    mBlankCount = 0;
+
                     if (mReadCount < MyParams.SINGLE_CART_MIN_SCANNED_COUNT) {
                         mReadCount = 0;
                     } else if (isCardEPCCodeError) {
@@ -334,7 +342,7 @@ public class R2Fragment extends BaseFragment implements InstructionHandler {
                     if (outer.mCurBill != null) {
                         outer.mCurBill.setHighlight(false);
                     }
-                    outer.mCurBill = null;
+                    //outer.mCurBill = null;
                     outer.mTempEPCs.clear();
                     outer.mStatus = WorkStatus.IS_IDLE;
                     outer.isMultiRefluxMentioned = false;

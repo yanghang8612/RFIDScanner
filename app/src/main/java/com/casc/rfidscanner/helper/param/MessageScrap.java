@@ -6,9 +6,9 @@ import com.casc.rfidscanner.helper.ConfigHelper;
 import java.util.ArrayList;
 import java.util.List;
 
-public class MessageRegister {
+public class MessageScrap {
 
-    private String stage = "00";
+    private String stage;
 
     private String reader_TID;
 
@@ -18,25 +18,23 @@ public class MessageRegister {
 
     private double height;
 
-    private String productname;
+    // R1、R3、R4消息中包含的所有桶RFID及桶身码相关扫描信息
+    private List<Bucket> bucket_info = new ArrayList<>();
 
-    // R0注册消息中包含的所有桶RFID及桶身码相关扫描信息
-    private List<BucketInfo> bucket_info = new ArrayList<>();
-
-    public MessageRegister(String productname) {
+    public MessageScrap() {
+        this.stage = "01";
         this.reader_TID = ConfigHelper.getParam(MyParams.S_READER_ID);
         this.longitude = Double.valueOf(ConfigHelper.getParam(MyParams.S_LONGITUDE));
         this.latitude = Double.valueOf(ConfigHelper.getParam(MyParams.S_LATITUDE));
         this.height = Double.valueOf(ConfigHelper.getParam(MyParams.S_HEIGHT));
-        this.productname = productname;
     }
 
-    public void addBucket(String tid, String epc, String code) {
-        bucket_info.add(new BucketInfo(tid, epc, code));
+    public void addBucket(String tid, String epc, int code) {
+        bucket_info.add(new Bucket(tid, epc, code));
     }
 
     // 桶信息的内部类
-    private class BucketInfo {
+    private class Bucket {
 
         private String bucket_TID;
 
@@ -44,13 +42,13 @@ public class MessageRegister {
 
         private String bucket_epc;
 
-        private String bodycode;
+        private int disablecode;
 
-        private BucketInfo(String tid, String epc, String code) {
+        private Bucket(String tid, String epc, int code) {
             this.bucket_TID = tid;
-            this.bucket_time = System.currentTimeMillis() / 1000 - (MyParams.DELAY * 8);
+            this.bucket_time = System.currentTimeMillis() / 1000 - (MyParams.DELAY * (10 - Integer.valueOf(stage)));
             this.bucket_epc = epc;
-            this.bodycode = code;
+            this.disablecode = code;
         }
     }
 }

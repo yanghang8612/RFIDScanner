@@ -6,14 +6,17 @@ import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.text.TextUtils;
 import android.view.MotionEvent;
 import android.view.View;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.TextView;
 import android.widget.ViewFlipper;
 
 import com.afollestad.materialdialogs.DialogAction;
 import com.afollestad.materialdialogs.MaterialDialog;
+import com.casc.rfidscanner.MyApplication;
 import com.casc.rfidscanner.MyVars;
 import com.casc.rfidscanner.R;
 import com.casc.rfidscanner.adapter.BucketAdapter;
@@ -21,6 +24,7 @@ import com.casc.rfidscanner.adapter.GoodsAdapter;
 import com.casc.rfidscanner.bean.DeliveryBill;
 import com.casc.rfidscanner.message.BillFinishedMessage;
 import com.casc.rfidscanner.message.BillUpdatedMessage;
+import com.weiwangcn.betterspinner.library.BetterSpinner;
 
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
@@ -46,12 +50,16 @@ public class DeliveryDetailActivity extends BaseActivity {
     @BindView(R.id.tv_delivery_detail_delivery_count) TextView mDeliveryCountTv;
     @BindView(R.id.tv_delivery_detail_total_count) TextView mTotalCountTv;
 
+    @BindView(R.id.spn_delivery_dealer) BetterSpinner mDealerSpn;
+    @BindView(R.id.spn_delivery_driver) BetterSpinner mDriverSpn;
+
     @BindView(R.id.vf_delivery_detail_content) ViewFlipper mContentVf;
     @BindView(R.id.rv_delivery_detail_goods) RecyclerView mGoodsRv;
     @BindView(R.id.rv_delivery_detail_buckets) RecyclerView mBucketsRv;
 
     @BindView(R.id.btn_detail_view_buckets) Button mViewBucketsBtn;
     @BindView(R.id.btn_detail_view_brief) Button mViewBriefBtn;
+    @BindView(R.id.btn_detail_confirm) Button mDetailConfirmBtn;
 
     private GoodsAdapter mGoodsAdapter;
     private BucketAdapter mBucketAdapter;
@@ -59,6 +67,7 @@ public class DeliveryDetailActivity extends BaseActivity {
 
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void onMessageEvent(BillUpdatedMessage message) {
+        mDetailConfirmBtn.setEnabled(!mBill.isHighlight());
         mDeliveryCountTv.setText(String.valueOf(mBill.getDeliveryCount()));
         mGoodsAdapter.notifyDataSetChanged();
         mBucketAdapter.notifyDataSetChanged();
@@ -71,8 +80,9 @@ public class DeliveryDetailActivity extends BaseActivity {
         ButterKnife.bind(this);
 
         mBill = MyVars.deliveryBillToShow;
+        mDetailConfirmBtn.setEnabled(!mBill.isHighlight());
         mCardIDTv.setText(mBill.getCardID());
-        mBillIDTv.setText(mBill.getBillID());
+        mBillIDTv.setText(TextUtils.isEmpty(mBill.getBillID()) ? "待补单" : mBill.getBillID());
         mDeliveryCountTv.setText(String.valueOf(mBill.getDeliveryCount()));
         mTotalCountTv.setText(String.valueOf(mBill.getTotalCount()));
 
@@ -83,6 +93,18 @@ public class DeliveryDetailActivity extends BaseActivity {
         mBucketAdapter = new BucketAdapter(mBill.getBuckets());
         mBucketsRv.setLayoutManager(new LinearLayoutManager(this));
         mBucketsRv.setAdapter(mBucketAdapter);
+
+        if (!MyVars.config.getDealerInfo().isEmpty())
+            mDealerSpn.setText(MyVars.config.getDealerInfo().get(0));
+
+        mDealerSpn.setAdapter(new ArrayAdapter<>(MyApplication.getInstance(),
+                R.layout.item_specify, MyVars.config.getDealerInfo()));
+
+        if (!MyVars.config.getDriverInfo().isEmpty())
+            mDriverSpn.setText(MyVars.config.getDriverInfo().get(0));
+
+        mDriverSpn.setAdapter(new ArrayAdapter<>(MyApplication.getInstance(),
+                R.layout.item_specify, MyVars.config.getDriverInfo()));
     }
 
     @Override
@@ -156,7 +178,10 @@ public class DeliveryDetailActivity extends BaseActivity {
                 .onPositive(new MaterialDialog.SingleButtonCallback() {
                     @Override
                     public void onClick(@NonNull MaterialDialog dialog, @NonNull DialogAction which) {
-                        EventBus.getDefault().post(new BillFinishedMessage());
+                        BillFinishedMessage message = new BillFinishedMessage();
+                        message.dealer = mDealerSpn.getText().toString();
+                        message.driver = mDriverSpn.getText().toString();
+                        EventBus.getDefault().post(message);
                         dialog.dismiss();
                         finish();
                     }

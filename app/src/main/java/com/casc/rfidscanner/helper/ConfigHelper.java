@@ -24,6 +24,14 @@ public class ConfigHelper {
         return SP.getString(key, defaultValue);
     }
 
+    public static int getIntegerParam(String key) {
+        return Integer.valueOf(getParam(key).replaceAll("[a-zA-Z]", ""));
+    }
+
+    public static boolean getBooleanParam(String key) {
+        return Boolean.valueOf(getParam(key));
+    }
+
     /**
      * 保存配置信息
      *

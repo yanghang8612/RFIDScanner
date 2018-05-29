@@ -22,10 +22,9 @@ import com.casc.rfidscanner.R;
 import com.casc.rfidscanner.activity.ConfigActivity;
 import com.casc.rfidscanner.adapter.CardAdapter;
 import com.casc.rfidscanner.adapter.HintAdapter;
-import com.casc.rfidscanner.backend.InstructionHandler;
+import com.casc.rfidscanner.backend.InsHandler;
 import com.casc.rfidscanner.bean.Card;
 import com.casc.rfidscanner.bean.Hint;
-import com.casc.rfidscanner.bean.LinkType;
 import com.casc.rfidscanner.helper.InsHelper;
 import com.casc.rfidscanner.helper.NetHelper;
 import com.casc.rfidscanner.helper.param.MessageCardReg;
@@ -47,7 +46,7 @@ import butterknife.BindView;
 import butterknife.OnClick;
 import retrofit2.Response;
 
-public class CardFragment extends BaseFragment implements InstructionHandler {
+public class CardFragment extends BaseFragment implements InsHandler {
 
     private static final String TAG = CardFragment.class.getSimpleName();
     private static final int READ_MAX_TRY_COUNT = 5;
@@ -121,6 +120,7 @@ public class CardFragment extends BaseFragment implements InstructionHandler {
         mHintAdapter = new HintAdapter(mHints);
         mVibrator = (Vibrator) getActivity().getSystemService(Context.VIBRATOR_SERVICE);
 
+        mBodyCodeIcl.setHeader(MyVars.config.getCompanySymbol() + "C");
         mCardTypeSpn.setText(getResources().getStringArray(R.array.card_type)[0]);
         mCardTypeSpn.setAdapter(new ArrayAdapter<>(MyApplication.getInstance(),
                 R.layout.item_specify, getResources().getStringArray(R.array.card_type)));
@@ -169,7 +169,12 @@ public class CardFragment extends BaseFragment implements InstructionHandler {
     }
 
     @Override
-    public void deal(byte[] ins) {
+    public void sensorSignal(boolean isHigh) {
+
+    }
+
+    @Override
+    public void dealIns(byte[] ins) {
         int command = ins[2] & 0xFF;
         switch (command) {
             case 0x39: // 读取TID成功的处理流程
@@ -358,7 +363,7 @@ public class CardFragment extends BaseFragment implements InstructionHandler {
                 MyVars.getReader().sendCommand(InsHelper.getReadMemBank(
                         CommonUtils.hexToBytes("00000000"), InsHelper.MemBankType.TID,
                         MyParams.TID_START_INDEX, MyParams.TID_LENGTH), READ_MAX_TRY_COUNT);
-                Thread.sleep((READ_MAX_TRY_COUNT + 1) * LinkType.getSendInterval());
+                //Thread.sleep((READ_MAX_TRY_COUNT + 1) * LinkType.getSendInterval());
                 if (mDataRead == null) {
                     writeHint("读取TID失败");
                     writeTaskFailed();
@@ -377,7 +382,7 @@ public class CardFragment extends BaseFragment implements InstructionHandler {
                         CommonUtils.hexToBytes("00000000"),
                         InsHelper.MemBankType.EPC,
                         1, 1), READ_MAX_TRY_COUNT);
-                Thread.sleep((WRITE_MAX_TRY_COUNT + READ_MAX_TRY_COUNT + 1) * LinkType.getSendInterval());
+                //Thread.sleep((WRITE_MAX_TRY_COUNT + READ_MAX_TRY_COUNT + 1) * LinkType.getSendInterval());
                 if (mDataRead == null || ((mDataRead[0] & 0xFF) >> 3) != mCardToRegister.getEpc().length / 2) {
                     writeHint("写入PC失败");
                     writeTaskFailed();
@@ -395,7 +400,7 @@ public class CardFragment extends BaseFragment implements InstructionHandler {
                 MyVars.getReader().sendCommand(InsHelper.getReadMemBank(
                         CommonUtils.hexToBytes("00000000"), InsHelper.MemBankType.EPC,
                         2, mCardToRegister.getEpc().length / 2), READ_MAX_TRY_COUNT);
-                Thread.sleep((WRITE_MAX_TRY_COUNT + READ_MAX_TRY_COUNT + 3) * LinkType.getSendInterval());
+                //Thread.sleep((WRITE_MAX_TRY_COUNT + READ_MAX_TRY_COUNT + 3) * LinkType.getSendInterval());
                 if (!Arrays.equals(mDataRead, mCardToRegister.getEpc())) {
                     writeHint("写入EPC失败");
                     writeTaskFailed();

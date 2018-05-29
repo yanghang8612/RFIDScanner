@@ -22,7 +22,9 @@ public class RefluxBill {
 
     public RefluxBill(byte[] cardEPC) {
         this.cardEPC = cardEPC;
-        this.cardID = MyVars.config.getCompanySymbol() + "R" + String.format("%03d", ((cardEPC[6] & 0xFF) << 8) + (cardEPC[7] & 0xFF));
+        this.cardID =
+                MyVars.config.getCompanySymbol() + "R"
+                        + String.format("%03d", ((cardEPC[5] & 0xFF) << 8) + (cardEPC[6] & 0xFF));
     }
 
     public boolean isHighlight() {
@@ -71,11 +73,7 @@ public class RefluxBill {
             buckets.add(0, bucket);
             Goods matchedGoods = findMatchedGoods(bucket);
             if (matchedGoods == null) {
-                matchedGoods = new Goods(
-                        bucket.getBucketSpec(),
-                        bucket.getWaterBrand(),
-                        bucket.getWaterSpec(),
-                        -1);
+                matchedGoods = new Goods(bucket.getProductInfo(), -1);
                 goods.add(matchedGoods);
             }
             matchedGoods.addCurCount();

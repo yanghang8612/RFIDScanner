@@ -75,16 +75,12 @@
         <item>8</item>
     </string-array>
     <string-array name="reader_send_interval">
+        <item>5ms</item>
+        <item>10ms</item>
+        <item>20ms</item>
+        <item>30ms</item>
+        <item>40ms</item>
         <item>50ms</item>
-        <item>100ms</item>
-        <item>150ms</item>
-        <item>200ms</item>
-        <item>250ms</item>
-        <item>300ms</item>
-        <item>350ms</item>
-        <item>400ms</item>
-        <item>450ms</item>
-        <item>500ms</item>
     </string-array>
     <string-array name="card_type">
         <item>出库专用卡</item>
@@ -99,5 +95,9 @@
         <item>6个月</item>
         <item>12个月</item>
         <item>永久</item>
+    </string-array>
+    <string-array name="sensor_switch">
+        <item>true</item>
+        <item>false</item>
     </string-array>
 </resources>

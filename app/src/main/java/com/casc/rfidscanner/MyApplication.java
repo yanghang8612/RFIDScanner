@@ -11,6 +11,7 @@ import android.util.Log;
 import com.baidu.tts.client.SpeechSynthesizer;
 import com.baidu.tts.client.TtsMode;
 import com.casc.rfidscanner.backend.TagCache;
+import com.casc.rfidscanner.backend.TagReader;
 import com.casc.rfidscanner.backend.impl.BLEReaderImpl;
 import com.casc.rfidscanner.backend.impl.USBReaderImpl;
 import com.casc.rfidscanner.bean.Config;
@@ -91,20 +92,23 @@ public class MyApplication extends Application {
 
         @Override
         public void run() {
-            NetHelper.getInstance().getConfig(new MessageConfig()).enqueue(new Callback<Reply>() {
-                @Override
-                public void onResponse(@NonNull Call<Reply> call, @NonNull Response<Reply> response) {
-                    Reply reply = response.body();
-                    if (response.isSuccessful() && reply != null && reply.getCode() == 200) {
-                        ConfigHelper.setParam(MyParams.S_API_JSON, reply.getContent().toString());
-                        MyVars.config = new Gson().fromJson(reply.getContent().toString(), Config.class);
-                        EventBus.getDefault().post(new ConfigUpdatedMessage());
+            if (MyVars.getReader().getState() != TagReader.STATE_CONNECTING) {
+                NetHelper.getInstance().getConfig(new MessageConfig()).enqueue(new Callback<Reply>() {
+                    @Override
+                    public void onResponse(@NonNull Call<Reply> call, @NonNull Response<Reply> response) {
+                        Reply reply = response.body();
+                        //Log.i(TAG, reply.toString());
+                        if (response.isSuccessful() && reply != null && reply.getCode() == 200) {
+                            ConfigHelper.setParam(MyParams.S_API_JSON, reply.getContent().toString());
+                            MyVars.config = new Gson().fromJson(reply.getContent().toString(), Config.class);
+                            EventBus.getDefault().post(new ConfigUpdatedMessage());
+                        }
                     }
-                }
 
-                @Override
-                public void onFailure(@NonNull Call<Reply> call, @NonNull Throwable t) {}
-            });
+                    @Override
+                    public void onFailure(@NonNull Call<Reply> call, @NonNull Throwable t) {}
+                });
+            }
         }
     }
 
@@ -125,25 +129,27 @@ public class MyApplication extends Application {
 
         @Override
         public void run() {
-            NetHelper.getInstance().sendHeartbeat().enqueue(new Callback<Reply>() {
-                @Override
-                public void onResponse(@NonNull Call<Reply> call, @NonNull Response<Reply> response) {
-                    if (response.isSuccessful()) {
-                        if (!MyVars.status.platformStatus)
-                            EventBus.getDefault().post(MyVars.status.setPlatformStatus(true));
-                    } else {
-                        if (MyVars.status.platformStatus)
-                            EventBus.getDefault().post(MyVars.status.setPlatformStatus(false));
+            if (MyVars.getReader().getState() != TagReader.STATE_CONNECTING) {
+                NetHelper.getInstance().sendHeartbeat().enqueue(new Callback<Reply>() {
+                    @Override
+                    public void onResponse(@NonNull Call<Reply> call, @NonNull Response<Reply> response) {
+                        if (response.isSuccessful()) {
+                            if (!MyVars.status.platformStatus)
+                                EventBus.getDefault().post(MyVars.status.setPlatformStatus(true));
+                        } else {
+                            if (MyVars.status.platformStatus)
+                                EventBus.getDefault().post(MyVars.status.setPlatformStatus(false));
+                        }
                     }
-                }
 
-                @Override
-                public void onFailure(@NonNull Call<Reply> call, @NonNull Throwable t) {
-                    if (MyVars.status.platformStatus) {
-                        EventBus.getDefault().post(MyVars.status.setPlatformStatus(false));
+                    @Override
+                    public void onFailure(@NonNull Call<Reply> call, @NonNull Throwable t) {
+                        if (MyVars.status.platformStatus) {
+                            EventBus.getDefault().post(MyVars.status.setPlatformStatus(false));
+                        }
                     }
-                }
-            });
+                });
+            }
         }
     }
 }

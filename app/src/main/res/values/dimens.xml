@@ -47,7 +47,8 @@
 
     <dimen name="item_specify_text_size">16sp</dimen>
     <dimen name="item_specify_padding">8dp</dimen>
-    <dimen name="item_specify_height">64dp</dimen>
+
+    <dimen name="item_common_padding">8dp</dimen>
 
     <dimen name="item_config_text_size">12sp</dimen>
     <dimen name="item_config_padding">8dp</dimen>

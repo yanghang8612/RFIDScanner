@@ -31,8 +31,7 @@ public class GoodsAdapter extends BaseQuickAdapter<Goods, BaseViewHolder> {
 //            helper.setBackgroundRes(R.id.tv_goods_cur_count, item.getCurCount() > item.getTotalCount() ?
 //                    R.drawable.bg_count_over : R.drawable.bg_count_normal);
         }
-        helper.setText(R.id.tv_goods_spec, item.getBucketSpec())
-                .setText(R.id.tv_goods_name, item.getWaterBrand() + item.getWaterSpec())
+        helper.setText(R.id.tv_goods_name, item.getName())
                 .setText(R.id.tv_goods_cur_count, String.valueOf(item.getCurCount()))
                 .setText(R.id.tv_goods_total_count, String.valueOf(item.getTotalCount()));
     }

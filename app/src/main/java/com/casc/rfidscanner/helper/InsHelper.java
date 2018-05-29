@@ -400,6 +400,44 @@ public class InsHelper {
 
     private static final byte[] SET_TRANSMIT_POWER = new byte[]{INS_HEADER, INS_TYPE[0], (byte) 0xB6, (byte) 0x00, (byte) 0x02, (byte) 0x07, (byte) 0xD0, (byte) 0x8F, INS_END};
 
+    public static byte[] getSensorIOPort() {
+        return controlIOPort((byte) 0x02, (byte) 0x00, (byte) 0x00);
+    }
+
+    public static byte[] setSensorIOPort() {
+        return controlIOPort((byte) 0x00, (byte) 0x00, (byte) 0x00);
+    }
+
+    public static byte[] controlIOPort(byte p1, byte p2, byte p3) {
+        byte[] controlIOPort = CONTROL_IO_PORT.clone();
+
+        controlIOPort[5] = p1;
+        controlIOPort[6] = p2;
+        controlIOPort[7] = p3;
+
+        controlIOPort[8] = getChecksum(controlIOPort, 1, 8);
+
+        return controlIOPort;
+    }
+
+    private static final byte[] CONTROL_IO_PORT = new byte[]{INS_HEADER, INS_TYPE[0], (byte) 0x1A, (byte) 0x00, (byte) 0x03, (byte) 0x00, (byte) 0x04, (byte) 0x00, (byte) 0x22, INS_END};
+
+    public static boolean checkIns(byte[] data, int start, int end) {
+        int pl = ((data[start + 3] & 0xFF) << 8) + (data[start + 4] & 0xFF);
+        return (data[start + 1] == 0x01 || data[start + 1] == 0x02) // 检查Type字段
+                && pl + 6 == end - start // 检查指令长度
+                && data[end - 1] == getChecksum(data, start + 1, end - 1); // 检查Checksum
+    }
+
+    public static byte[] getReadContent(byte[] data) {
+        return Arrays.copyOfRange(data, 6 + data[5], data.length - 2);
+    }
+
+    public static byte[] getWriteContent(byte[] data) {
+        return Arrays.copyOfRange(data, 8, data.length - 3);
+    }
+
+
     /**
      * 计算cmd命令的第 beginIndex 位至第 rightIndex-1 位对应的校验和，instruction[beginIndex, rightIndex-1]。
      * <p>

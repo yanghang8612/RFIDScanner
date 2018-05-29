@@ -11,6 +11,7 @@ import com.casc.rfidscanner.helper.param.MessageDelivery;
 import com.casc.rfidscanner.helper.param.MessageQuery;
 import com.casc.rfidscanner.helper.param.MessageReflux;
 import com.casc.rfidscanner.helper.param.MessageRegister;
+import com.casc.rfidscanner.helper.param.MessageScrap;
 import com.casc.rfidscanner.helper.param.Reply;
 import com.casc.rfidscanner.utils.CommonUtils;
 
@@ -53,14 +54,21 @@ public class NetHelper implements Callback<Reply> {
         return netInterface.checkBodyCodeAndTID(
                 ConfigHelper.getParam(MyParams.S_MAIN_PLATFORM_ADDR) + "/api/message/bucket/query",
                 CommonUtils.generateRequestHeader("02"),
-                query);
+                CommonUtils.generateRequestBody(query));
     }
 
     public Call<Reply> uploadR0Message(MessageRegister r0) {
         return netInterface.uploadR0Message(
                 ConfigHelper.getParam(MyParams.S_MAIN_PLATFORM_ADDR) + "/api/message/bucket/register",
                 CommonUtils.generateRequestHeader("02"),
-                r0);
+                CommonUtils.generateRequestBody(r0));
+    }
+
+    public Call<Reply> uploadR1Message(MessageScrap r1) {
+        return netInterface.uploadR1Message(
+                ConfigHelper.getParam(MyParams.S_MAIN_PLATFORM_ADDR) + "/api/message/bucket/scrap",
+                CommonUtils.generateRequestHeader("02"),
+                CommonUtils.generateRequestBody(r1));
     }
 
     public Call<Reply> uploadCommonMessage(MessageCommon common) {
@@ -110,7 +118,7 @@ public class NetHelper implements Callback<Reply> {
         return netInterface.getConfig(
                 ConfigHelper.getParam(MyParams.S_MAIN_PLATFORM_ADDR) + "/api/device/parameter",
                 CommonUtils.generateRequestHeader("02"),
-                config);
+                CommonUtils.generateRequestBody(config));
     }
 
     public Call<Reply> sendHeartbeat() {
@@ -122,7 +130,8 @@ public class NetHelper implements Callback<Reply> {
     public Call<Reply> uploadCardRegMessage(MessageCardReg card) {
         return netInterface.uploadCardRegMessage(
                 ConfigHelper.getParam(MyParams.S_MAIN_PLATFORM_ADDR) + "/api/device/card/register",
-                CommonUtils.generateRequestHeader("02"), card);
+                CommonUtils.generateRequestHeader("02"),
+                CommonUtils.generateRequestBody(card));
     }
 
     public Call<Reply> uploadAdminLoginInfo(RequestBody login) {

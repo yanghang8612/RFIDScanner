@@ -11,28 +11,23 @@ import android.os.CountDownTimer;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
-import android.text.Editable;
-import android.text.TextWatcher;
 import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
+import android.widget.Switch;
 import android.widget.TextView;
 
 import com.casc.rfidscanner.MyParams;
 import com.casc.rfidscanner.MyVars;
 import com.casc.rfidscanner.R;
 import com.casc.rfidscanner.adapter.ReaderAdapter;
-import com.casc.rfidscanner.backend.impl.BLEReaderImpl;
 import com.casc.rfidscanner.bean.LinkType;
 import com.casc.rfidscanner.helper.ConfigHelper;
-import com.casc.rfidscanner.message.ReaderInitMessage;
 import com.casc.rfidscanner.utils.ClsUtils;
 import com.chad.library.adapter.base.BaseQuickAdapter;
 import com.rengwuxian.materialedittext.MaterialEditText;
 import com.rengwuxian.materialedittext.validation.RegexpValidator;
 import com.weiwangcn.betterspinner.library.BetterSpinner;
-
-import org.greenrobot.eventbus.EventBus;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -41,7 +36,7 @@ import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
 
-public class ConfigActivity extends AppCompatActivity {
+public class ConfigActivity extends BaseActivity {
 
     private static final String TAG = ConfigActivity.class.getSimpleName();
 
@@ -50,16 +45,10 @@ public class ConfigActivity extends AppCompatActivity {
         context.startActivity(intent);
     }
 
-    private int mVisibility =
-            View.SYSTEM_UI_FLAG_LAYOUT_STABLE
-                    | View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
-                    | View.SYSTEM_UI_FLAG_FULLSCREEN
-                    | View.SYSTEM_UI_FLAG_IMMERSIVE;
-
     @BindView(R.id.spn_config_link) BetterSpinner mLinkSpn;
+    @BindView(R.id.sw_config_sensor_switch) Switch mSensorSw;
     @BindView(R.id.spn_config_reader_power) BetterSpinner mReaderPowerSpn;
     @BindView(R.id.spn_config_reader_q_value) BetterSpinner mReaderQValueSpn;
-    @BindView(R.id.spn_config_reader_send_interval) BetterSpinner mReaderSendIntervalSpn;
     @BindView(R.id.spn_config_tag_lifecycle) BetterSpinner mTagLifecycleSpn;
     @BindView(R.id.spn_config_blank_interval) BetterSpinner mBlankIntervalSpn;
     @BindView(R.id.spn_config_discovery_interval) BetterSpinner mDiscoveryIntervalSpn;
@@ -88,10 +77,8 @@ public class ConfigActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        getWindow().getDecorView().setSystemUiVisibility(mVisibility);
         setContentView(R.layout.activity_config);
         ButterKnife.bind(this);
-        MyVars.getReader().pause();
         initViews();
 
         // 注册蓝牙广播监听器
@@ -118,8 +105,8 @@ public class ConfigActivity extends AppCompatActivity {
         };
         registerReceiver(mReceiver, filter);
 
-        BluetoothDevice connectedDevice = ((BLEReaderImpl) MyVars.bleReader).getConnectedDevice();
-        if (connectedDevice != null) mReaders.add(connectedDevice);
+//        BluetoothDevice connectedDevice = ((BLEReaderImpl) MyVars.bleReader).getConnectedDevice();
+//        if (connectedDevice != null) mReaders.add(connectedDevice);
         mReaderAdapter = new ReaderAdapter(mReaders);
         mReaderAdapter.bindToRecyclerView(mReaderRv);
         mReaderAdapter.setOnItemClickListener(new BaseQuickAdapter.OnItemClickListener() {
@@ -150,22 +137,6 @@ public class ConfigActivity extends AppCompatActivity {
         mReaderRv.setLayoutManager(new LinearLayoutManager(this));
         mReaderRv.setAdapter(mReaderAdapter);
 
-        mLinkSpn.addTextChangedListener(new TextWatcher() {
-            @Override
-            public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
-
-            @Override
-            public void onTextChanged(CharSequence s, int start, int before, int count) {}
-
-            @Override
-            public void afterTextChanged(Editable s) {
-                LinkType linkType = LinkType.getTypeByComment(s.toString());
-                mReaderPowerSpn.setText(ConfigHelper.getParam(linkType.power));
-                mReaderQValueSpn.setText(ConfigHelper.getParam(linkType.qValue));
-                mReaderSendIntervalSpn.setText(ConfigHelper.getParam(linkType.sendInterval));
-            }
-        });
-
         mDiscoveryTimer = new DiscoveryTimer(5 * 1000, 1000);
         mDiscoveryTimer.start();
     }
@@ -183,17 +154,15 @@ public class ConfigActivity extends AppCompatActivity {
         mLinkSpn.setAdapter(new ArrayAdapter<>(this,
                 R.layout.item_config, getResources().getStringArray(R.array.link)));
 
-        mReaderPowerSpn.setText(ConfigHelper.getParam(linkType.power));
+        mSensorSw.setChecked(ConfigHelper.getBooleanParam(MyParams.S_SENSOR_SWITCH));
+
+        mReaderPowerSpn.setText(ConfigHelper.getParam(MyParams.S_POWER));
         mReaderPowerSpn.setAdapter(new ArrayAdapter<>(this,
                 R.layout.item_config, getResources().getStringArray(R.array.reader_power)));
 
-        mReaderQValueSpn.setText(ConfigHelper.getParam(linkType.qValue));
+        mReaderQValueSpn.setText(ConfigHelper.getParam(MyParams.S_Q_VALUE));
         mReaderQValueSpn.setAdapter(new ArrayAdapter<>(this,
                 R.layout.item_config, getResources().getStringArray(R.array.reader_q_value)));
-
-        mReaderSendIntervalSpn.setText(ConfigHelper.getParam(linkType.sendInterval));
-        mReaderSendIntervalSpn.setAdapter(new ArrayAdapter<>(this,
-                R.layout.item_config, getResources().getStringArray(R.array.reader_send_interval)));
 
         mTagLifecycleSpn.setText(ConfigHelper.getParam(MyParams.S_TAG_LIFECYCLE));
         mTagLifecycleSpn.setAdapter(new ArrayAdapter<>(this,
@@ -240,9 +209,9 @@ public class ConfigActivity extends AppCompatActivity {
                 mReaderIDMet.validate() && mMainPlatformAddrMet.validate() && mStandbyPlatformAddrMet.validate()) {
             LinkType linkType = LinkType.getTypeByComment(mLinkSpn.getText().toString());
             ConfigHelper.setParam(MyParams.S_LINK, linkType.link);
-            ConfigHelper.setParam(linkType.power, mReaderPowerSpn.getText().toString());
-            ConfigHelper.setParam(linkType.qValue, mReaderQValueSpn.getText().toString());
-            ConfigHelper.setParam(linkType.sendInterval, mReaderSendIntervalSpn.getText().toString());
+            ConfigHelper.setParam(MyParams.S_SENSOR_SWITCH, String.valueOf(mSensorSw.isChecked()));
+            ConfigHelper.setParam(MyParams.S_POWER, mReaderPowerSpn.getText().toString());
+            ConfigHelper.setParam(MyParams.S_Q_VALUE, mReaderQValueSpn.getText().toString());
             ConfigHelper.setParam(MyParams.S_TAG_LIFECYCLE, mTagLifecycleSpn.getText().toString());
             ConfigHelper.setParam(MyParams.S_BLANK_INTERVAL, mBlankIntervalSpn.getText().toString());
             ConfigHelper.setParam(MyParams.S_DISCOVERY_INTERVAL, mDiscoveryIntervalSpn.getText().toString());
@@ -256,7 +225,6 @@ public class ConfigActivity extends AppCompatActivity {
             ConfigHelper.setParam(MyParams.S_STANDBY_PLATFORM_ADDR, mStandbyPlatformAddrMet.getText().toString());
             ConfigHelper.setParam(MyParams.S_READER_MAC, mReaderMacTv.getText().toString());
 
-            EventBus.getDefault().post(new ReaderInitMessage());
             finish();
         }
     }

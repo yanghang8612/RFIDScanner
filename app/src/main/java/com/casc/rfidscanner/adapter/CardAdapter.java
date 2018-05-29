@@ -4,6 +4,7 @@ import android.support.annotation.Nullable;
 
 import com.casc.rfidscanner.R;
 import com.casc.rfidscanner.bean.Card;
+import com.casc.rfidscanner.utils.CommonUtils;
 import com.chad.library.adapter.base.BaseQuickAdapter;
 import com.chad.library.adapter.base.BaseViewHolder;
 
@@ -18,7 +19,7 @@ public class CardAdapter extends BaseQuickAdapter<Card, BaseViewHolder> {
 
     @Override
     protected void convert(BaseViewHolder helper, Card item) {
-        helper.setText(R.id.tv_card_reg_time, new SimpleDateFormat("MM-dd HH:mm:ss").format(item.getTime()))
+        helper.setText(R.id.tv_card_reg_time, CommonUtils.convertTime(item.getTime()))
                 .setText(R.id.tv_card_body_code, item.getBodyCode())
                 .setText(R.id.tv_card_validity, item.getValidity())
                 .setText(R.id.tv_card_type, item.getComment());

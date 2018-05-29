@@ -6,33 +6,20 @@ package com.casc.rfidscanner.backend;
 public interface TagReader {
 
     /**
-     * Constants that indicate the current connection state for inner class function use
+     * Reader状态常量
      */
-    int STATE_NONE = 0;       // we're doing nothing
-    int STATE_CONNECTING = 1;       // we're doing nothing
-    int STATE_CONNECTED = 2;  // now connected to a remote device
-
-    /**
-     * 初始化读写器参数
-     *
-     */
-    void initReader();
+    int STATE_NONE = 0;
+    int STATE_CONNECTING = 1;
+    int STATE_CONNECTED = 2;
 
     /**
      * 设置读写器返回帧的解析Handler
      *
      */
-    void setHandler(InstructionHandler handler);
+    void setHandler(InsHandler handler);
 
     /**
-     * 向读写器下发指令（仅发送指令，并不对指令进行校验）
-     *
-     * @param cmd 指令byte数组
-     */
-    void sendCommand(byte[] cmd);
-
-    /**
-     * 向读写器下发指定次数的指令（仅发送指令，并不对指令进行校验）
+     * 向读写器下发指定次数的指令，非阻塞
      *
      * @param cmd 指令byte数组
      * @param times 指令执行次数
@@ -40,33 +27,47 @@ public interface TagReader {
     void sendCommand(byte[] cmd, int times);
 
     /**
+     * 向读写器下发指定次数的指令，阻塞
+     *
+     * @param cmd 指令byte数组
+     * @param maxTryCount 指令最大尝试次数
+     * @return 执行完毕后读写器返回的结果，若无正确结果则返回null
+     */
+    byte[] sendCommandSync(byte[] cmd, int maxTryCount);
+
+    /**
+     * 设置读写器的MASK
+     *
+     * @param mask 要设置的MASK值
+     */
+    void setMask(byte[] mask);
+
+    /**
      * 检测读写器连接状态
      *
-     * @return true：读写器连接正常；false：读写器连接异常
+     * @return true：读写器已连接；false：读写器未连接
      */
     boolean isConnected();
 
     /**
-     * 开始读写器工作
+     * 获取读写器的当前状态
      *
+     * @return Reader状态常量
+     */
+    int getState();
+
+    /**
+     * 开始读写器工作
      */
     void start();
 
     /**
-     * 恢复读写器工作
-     *
-     */
-    void resume();
-
-    /**
      * 暂停读写器工作
-     *
      */
     void pause();
 
     /**
      * 停止读写器工作
-     *
      */
     void stop();
 }

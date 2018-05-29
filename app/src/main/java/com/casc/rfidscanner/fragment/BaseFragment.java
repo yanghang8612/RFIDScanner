@@ -21,13 +21,12 @@ import com.casc.rfidscanner.MyVars;
 import com.casc.rfidscanner.R;
 import com.casc.rfidscanner.activity.BaseActivity;
 import com.casc.rfidscanner.activity.ConfigActivity;
-import com.casc.rfidscanner.backend.InstructionHandler;
+import com.casc.rfidscanner.backend.InsHandler;
 import com.casc.rfidscanner.helper.NetHelper;
 import com.casc.rfidscanner.helper.param.MessageAdminLogin;
 import com.casc.rfidscanner.helper.param.Reply;
 import com.casc.rfidscanner.message.BatteryStatusMessage;
 import com.casc.rfidscanner.message.MultiStatusMessage;
-import com.casc.rfidscanner.message.ReaderInitMessage;
 import com.casc.rfidscanner.utils.CommonUtils;
 import com.google.gson.Gson;
 
@@ -49,7 +48,7 @@ import retrofit2.Response;
 /**
  * 各阶段Fragment的基类
  */
-public abstract class BaseFragment extends Fragment implements InstructionHandler {
+public abstract class BaseFragment extends Fragment implements InsHandler {
 
     private static final String TAG = BaseFragment.class.getSimpleName();
     protected static final int MSG_RECEIVED_FRAME_FROM_READER = 0xBB;
@@ -133,11 +132,6 @@ public abstract class BaseFragment extends Fragment implements InstructionHandle
         mTimeColonIv.setVisibility(mTimeColonIv.getVisibility() == View.VISIBLE ? View.INVISIBLE : View.VISIBLE);
     }
 
-    @Subscribe(threadMode = ThreadMode.MAIN)
-    public void onMessageEvent(ReaderInitMessage message) {
-        MyVars.getReader().initReader();
-    }
-
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -166,9 +160,15 @@ public abstract class BaseFragment extends Fragment implements InstructionHandle
     }
 
     @Override
-    public void onResume() {
-        super.onResume();
-        MyVars.getReader().resume();
+    public void onStart() {
+        super.onStart();
+        MyVars.getReader().start();
+    }
+
+    @Override
+    public void onPause() {
+        super.onPause();
+        MyVars.getReader().pause();
     }
 
     @Override

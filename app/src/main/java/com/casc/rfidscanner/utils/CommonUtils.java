@@ -1,5 +1,7 @@
 package com.casc.rfidscanner.utils;
 
+import android.util.Log;
+
 import com.casc.rfidscanner.MyParams;
 import com.casc.rfidscanner.MyParams.EPCType;
 import com.casc.rfidscanner.MyVars;
@@ -8,6 +10,7 @@ import com.google.gson.Gson;
 import java.math.BigInteger;
 import java.text.SimpleDateFormat;
 import java.util.Arrays;
+import java.util.BitSet;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Locale;
@@ -19,6 +22,8 @@ import okhttp3.MediaType;
 import okhttp3.RequestBody;
 
 public class CommonUtils {
+
+    private static final String TAG = CommonUtils.class.getSimpleName();
 
     private CommonUtils(){}
 
@@ -46,16 +51,17 @@ public class CommonUtils {
     }
 
     public static EPCType getEPCType(byte[] epc) {
-        if (epc.length == MyParams.EPC_BUCKET_LENGTH && epc[MyParams.EPC_TYPE_INDEX] == EPCType.BUCKET.getCode())
-        return EPCType.BUCKET;
-        else if (epc.length == MyParams.EPC_DELIVERY_CARD_LENGTH && epc[MyParams.EPC_TYPE_INDEX] == EPCType.CARD_DELIVERY.getCode())
+        if (epc.length == MyParams.EPC_BUCKET_LENGTH && epc[MyParams.EPC_TYPE_INDEX] == EPCType.BUCKET.getCode()) {
+            return EPCType.BUCKET;
+        } else if (epc.length == MyParams.EPC_DELIVERY_CARD_LENGTH && epc[MyParams.EPC_TYPE_INDEX] == EPCType.CARD_DELIVERY.getCode()) {
             return EPCType.CARD_DELIVERY;
-        else if (epc.length == MyParams.EPC_ADMIN_CARD_LENGTH && epc[MyParams.EPC_TYPE_INDEX] == EPCType.CARD_ADMIN.getCode())
+        } else if (epc.length == MyParams.EPC_ADMIN_CARD_LENGTH && epc[MyParams.EPC_TYPE_INDEX] == EPCType.CARD_ADMIN.getCode()) {
             return EPCType.CARD_ADMIN;
-        else if (epc.length == MyParams.EPC_REFLUX_CARD_LENGTH && epc[MyParams.EPC_TYPE_INDEX] == EPCType.CARD_REFLUX.getCode())
+        } else if (epc.length == MyParams.EPC_REFLUX_CARD_LENGTH && epc[MyParams.EPC_TYPE_INDEX] == EPCType.CARD_REFLUX.getCode()) {
             return EPCType.CARD_REFLUX;
-        else
+        } else {
             return EPCType.NONE;
+        }
     }
 
     public static EPCType validEPC(byte[] epc) {
@@ -71,17 +77,20 @@ public class CommonUtils {
 
     private static final char[] headerArray = "0123456789ABCDEFGHJKLMNPQRTUWXY".toCharArray();
     public static byte[] generateEPCHeader() {
-        String code = MyVars.config.getCompanyCode();
-        long header = 0;
-        for (int i = 0; i < 8; i++) {
-            header += (((long) Arrays.binarySearch(headerArray, code.charAt(15 - i))) << (i * 5));
+        String headerStr = MyVars.config.getVersionNumber() + MyVars.config.getHeader();
+        byte[] header = new byte[MyParams.EPC_HEADER_LENGTH];
+        for (int i = 0; i < header.length; i++) {
+            header[i] = (byte) headerStr.toCharArray()[i];
         }
-        return BigInteger.valueOf(header).toByteArray();
+        return header;
     }
 
-    public static String convertEPCHeader(byte[] header) {
-        String code = "";
-        return code;
+    public static String convertEPCHeader(byte[] epc) {
+        String header = "";
+        header += epc[1];
+        header += epc[2];
+        header += epc[3];
+        return header;
     }
 
     public static String generateGradientRedColor(int level) {
@@ -106,11 +115,16 @@ public class CommonUtils {
     }
 
     public static RequestBody generateRequestBody(Object body) {
-        return RequestBody.create(MediaType.parse("application/json"), new Gson().toJson(body));
+        String jsonStr = new Gson().toJson(body);
+        if (MyParams.PRINT_JSON) {
+            Log.i(TAG, jsonStr);
+        }
+        return RequestBody.create(MediaType.parse("application/json"), jsonStr);
     }
 
     private static final char[] hexArray = "0123456789ABCDEF".toCharArray();
     public static String bytesToHex(byte[] bytes) {
+        if (bytes == null) return "";
         return bytesToHex(bytes, 0, bytes.length);
     }
 
@@ -142,13 +156,14 @@ public class CommonUtils {
         return b;
     }
 
+    private static final int[] maskArray = {0x80, 0x40, 0x20, 0x10, 0x08, 0x04, 0x02, 0x01};
     public static long getBitsFromBytes(byte[] b, int start, int length) {
         long result = 0;
-        int index = start / 8, shift = start % 8, count = length / 8;
-        for (int i = 0; i < count; i++) {
-            result += ((long) (b[index + i] & 0xFF) << (length - (8 - shift) - i * 8));
+        for (int i = 0; i < length; i++) {
+            if ((b[(start + i) / 8] & maskArray[(start + i) % 8]) != 0) {
+                result += 1L << (length - 1 - i);
+            }
         }
-        result += ((b[index + count] & 0xFF) >> (8 - shift - length % 8));
         return result;
     }
 
@@ -157,6 +172,14 @@ public class CommonUtils {
         String str = uuid.toString();
         String temp = str.substring(0, 8) + str.substring(9, 13) + str.substring(14, 18) + str.substring(19, 23) + str.substring(24);
         return temp.substring(0, length);
+    }
+
+    public static String convertTime(long time) {
+        return new SimpleDateFormat("HH:mm:ss", Locale.CHINA).format(time);
+    }
+
+    public static String convertDateTime(long time) {
+        return new SimpleDateFormat("MM-dd HH:mm:ss", Locale.CHINA).format(time);
     }
 
     static class Test {

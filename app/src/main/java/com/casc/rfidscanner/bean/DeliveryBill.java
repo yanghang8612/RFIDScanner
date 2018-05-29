@@ -11,11 +11,28 @@ import java.util.List;
 
 public class DeliveryBill {
 
+    private static final int DAYOFYEAR_LENGTH = 9;
+    private static final int DAYOFYEAR_INDEX = 0;
+
+    private static final int COMPUTERNO_LENGTH = 6;
+    private static final int COMPUTERNO_INDEX = 9;
+
+    private static final int BILLNO_LENGTH = 10;
+    private static final int BILLNO_INDEX = 9 + 6;
+
+    private static final int SPECCOUNT_LENGTH = 4;
+    private static final int SPECCOUNT_INDEX = 9 + 6 + 10;
+
+    private static final int SPEC_LENGTH = 20;
+    private static final int SPEC_INDEX = 9 + 6 + 10 + 4;
+
     private boolean isHighlight;
 
-    private long updatedTime;
+    private long updatedTime = System.currentTimeMillis();
 
-    private byte[] cardEPC;
+    private byte[] card;
+
+    private byte[] bill;
 
     private int dayOfYear, computerNo, billNo;
 
@@ -29,38 +46,47 @@ public class DeliveryBill {
 
     private List<Bucket> buckets = new ArrayList<>();
 
-    public DeliveryBill(byte[] cardEPC) {
-        this.cardEPC = cardEPC;
-        this.cardID = MyVars.config.getCompanySymbol() + "C" + String.format("%03d", cardEPC[6] & 0xFF);
-        this.dayOfYear = ((cardEPC[7] & 0xFF) << 1) + ((cardEPC[8] & 0xFF) >> 7);
-        this.computerNo = (cardEPC[8] & 0x7F) >> 1;
-        this.billNo = ((cardEPC[8] & 0x01) << 7) + ((cardEPC[9] & 0xFF) >> 1);
+    public DeliveryBill(byte[] card) {
+        // 解析出库专用卡EPC
+        this.card = card;
+        int cardNo = 0;
+        cardNo += (card[5] & 0xFF) << 8;
+        cardNo += (card[6] & 0xFF);
+        this.cardID = MyVars.config.getCompanySymbol() + "C" + String.format("%03d", cardNo);
+    }
+
+    public DeliveryBill(byte[] card, byte[] bill) {
+        this(card);
+        // 解析出库专用卡User Memory中的电子提货单
+        // 首先解析 年积日 电脑序号 票据序号
+        this.bill = bill;
+        this.dayOfYear = (int) CommonUtils.getBitsFromBytes(bill, DAYOFYEAR_INDEX, DAYOFYEAR_LENGTH);
+        this.computerNo = (int) CommonUtils.getBitsFromBytes(bill, COMPUTERNO_INDEX, COMPUTERNO_LENGTH);
+        this.billNo = (int) CommonUtils.getBitsFromBytes(bill, BILLNO_INDEX, BILLNO_LENGTH);
         Calendar calendar = Calendar.getInstance();
         calendar.set(Calendar.DAY_OF_YEAR, dayOfYear);
         this.billID = MyVars.config.getCompanySymbol() +
                         String.format("%02d", computerNo) + "1" +
                         new SimpleDateFormat("yyMMdd").format(calendar.getTime()) +
                         String.format("%03d", billNo);
-        for (int i = 0; i < 5; i++) {
-            long part = CommonUtils.getBitsFromBytes(cardEPC, 80 + i * 34, 34);
-            int count = (int) (part & 0x3FF);
-            if (count != 0) {
-                goods.add(new Goods(
-                        MyVars.config.getBucketSpecByCode((byte) ((part >> 26) & 0xFF)),
-                        MyVars.config.getWaterBrandByCode((byte) ((part >> 10) & 0xFF)),
-                        MyVars.config.getWaterSpecByCode((byte) ((part >> 18) & 0xFF)),
-                        count));
-                totalCount += count;
-                if (i == 4) {
-                    Goods gift = goods.get(goods.size() - 1);
-                    for (int j = 0; j < goods.size() - 1; j++) {
-                        if (goods.get(j).equals(gift)) {
-                            goods.remove(goods.size() - 1);
-                            break;
-                        }
-                    }
+
+        // 再解析 总规格数量 各规格详情
+        int specCount = (int) CommonUtils.getBitsFromBytes(bill, SPECCOUNT_INDEX, SPECCOUNT_LENGTH);
+        for (int i = 0; i < specCount; i++) {
+            int part = (int) CommonUtils.getBitsFromBytes(bill, SPEC_INDEX + i * SPEC_LENGTH, SPEC_LENGTH);
+            int code = part >> 12;
+            int count = part & 0xFFF;
+            for (int j = 0; j <= goods.size(); j++) {
+                if (j == goods.size()) {
+                    goods.add(new Goods(MyVars.config.getProductInfoByCode(part >> 12), count));
+                    break;
+                }
+                else if (code == goods.get(j).getCode()) {
+                    goods.get(j).addTotalCount(count);
+                    break;
                 }
             }
+            totalCount += count;
         }
     }
 
@@ -80,8 +106,12 @@ public class DeliveryBill {
         this.updatedTime = updatedTime;
     }
 
-    public byte[] getCardEPC() {
-        return cardEPC;
+    public byte[] getCard() {
+        return card;
+    }
+
+    public byte[] getBill() {
+        return bill;
     }
 
     public int getDayOfYear() {
@@ -130,11 +160,7 @@ public class DeliveryBill {
             buckets.add(0, bucket);
             Goods matchedGoods = findMatchedGoods(bucket);
             if (matchedGoods == null) {
-                matchedGoods = new Goods(
-                        bucket.getBucketSpec(),
-                        bucket.getWaterBrand(),
-                        bucket.getWaterSpec(),
-                        0);
+                matchedGoods = new Goods(bucket.getProductInfo(), 0);
                 goods.add(matchedGoods);
             }
             matchedGoods.addCurCount();

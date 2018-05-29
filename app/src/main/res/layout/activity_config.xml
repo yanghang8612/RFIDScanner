@@ -82,6 +82,34 @@
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
                         android:gravity="end"
+                        android:text="@string/config_sensor_switch" />
+
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="2"
+                        android:layout_marginStart="@dimen/config_item_margin">
+
+                        <Switch
+                            android:id="@+id/sw_config_sensor_switch"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content" />
+
+                    </LinearLayout>
+
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="@dimen/config_item_height"
+                    android:gravity="center_vertical">
+
+                    <TextView
+                        android:theme="@style/AppTheme.CommonText"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:gravity="end"
                         android:text="@string/config_reader_power_label" />
 
                     <com.weiwangcn.betterspinner.library.BetterSpinner
@@ -128,29 +156,6 @@
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
                         android:gravity="end"
-                        android:text="@string/config_reader_send_interval_label" />
-
-                    <com.weiwangcn.betterspinner.library.BetterSpinner
-                        android:id="@+id/spn_config_reader_send_interval"
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="2"
-                        android:layout_marginStart="@dimen/config_item_margin"
-                        android:textSize="12sp" />
-
-                </LinearLayout>
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="@dimen/config_item_height"
-                    android:gravity="center_vertical">
-
-                    <TextView
-                        android:theme="@style/AppTheme.CommonText"
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:gravity="end"
                         android:text="@string/config_tag_lifecycle_label" />
 
                     <com.weiwangcn.betterspinner.library.BetterSpinner
@@ -164,6 +169,7 @@
                 </LinearLayout>
 
                 <LinearLayout
+                    android:visibility="gone"
                     android:layout_width="match_parent"
                     android:layout_height="@dimen/config_item_height"
                     android:gravity="center_vertical">
@@ -187,6 +193,7 @@
                 </LinearLayout>
 
                 <LinearLayout
+                    android:visibility="gone"
                     android:layout_width="match_parent"
                     android:layout_height="@dimen/config_item_height"
                     android:gravity="center_vertical">

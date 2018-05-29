@@ -68,21 +68,19 @@
                     android:orientation="horizontal"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="8dp"
-                    android:layout_marginBottom="8dp"
                     android:background="@drawable/bg_header">
 
                     <TextView
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
-                        android:layout_weight="2"
+                        android:layout_weight="1"
                         android:gravity="center"
                         android:text="筛选时间" />
 
                     <TextView
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
-                        android:layout_weight="2"
+                        android:layout_weight="1"
                         android:gravity="center"
                         android:text="桶身码" />
 
@@ -90,13 +88,6 @@
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_weight="2"
-                        android:gravity="center"
-                        android:text="桶规格" />
-
-                    <TextView
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="3"
                         android:gravity="center"
                         android:text="产品名称" />
 
@@ -106,7 +97,8 @@
                     android:id="@+id/rv_filtrate_products"
                     android:layout_width="match_parent"
                     android:layout_height="0dp"
-                    android:layout_weight="1" />
+                    android:layout_weight="1"
+                    android:layout_marginTop="8dp" />
 
             </LinearLayout>
 

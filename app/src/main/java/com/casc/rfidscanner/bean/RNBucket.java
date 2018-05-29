@@ -19,7 +19,7 @@ public class RNBucket {
         code += ((epc[13] & 0xFF) << 16);
         code += ((epc[14] & 0xFF) << 8);
         code += (epc[15] & 0xFF);
-        this.bodyCode = "HT" + String.format("%06d", code);
+        this.bodyCode = "YQ" + String.format("%06d", code);
         this.isHighlight = true;
     }
 

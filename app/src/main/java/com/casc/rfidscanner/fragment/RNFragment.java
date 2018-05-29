@@ -18,7 +18,7 @@ import com.casc.rfidscanner.MyVars;
 import com.casc.rfidscanner.R;
 import com.casc.rfidscanner.activity.ConfigActivity;
 import com.casc.rfidscanner.adapter.RNBucketAdapter;
-import com.casc.rfidscanner.backend.InstructionHandler;
+import com.casc.rfidscanner.backend.InsHandler;
 import com.casc.rfidscanner.bean.RNBucket;
 import com.casc.rfidscanner.helper.NetHelper;
 import com.casc.rfidscanner.helper.param.MessageDealer;
@@ -51,7 +51,7 @@ import retrofit2.Response;
  * 水站库存管理Fragment
  */
 
-public class RNFragment extends BaseFragment implements InstructionHandler {
+public class RNFragment extends BaseFragment implements InsHandler {
 
     private static final String TAG = RNFragment.class.getSimpleName();
     private static final int BUCKET_FOUND_READ_COUNT = 5;
@@ -140,7 +140,12 @@ public class RNFragment extends BaseFragment implements InstructionHandler {
     }
 
     @Override
-    public void deal(byte[] ins) {
+    public void sensorSignal(boolean isHigh) {
+
+    }
+
+    @Override
+    public void dealIns(byte[] ins) {
         int command = ins[2] & 0xFF;
         switch (command) {
             case 0x22: // 轮询成功的处理流程

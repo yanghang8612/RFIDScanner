@@ -93,16 +93,9 @@
                     <TextView
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:gravity="center"
-                        android:text="桶规格" />
-
-                    <TextView
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
                         android:layout_weight="2"
                         android:gravity="center"
-                        android:text="产品类型" />
+                        android:text="产品名称" />
 
                     <TextView
                         android:layout_width="0dp"
@@ -141,7 +134,7 @@
                             android:text="@string/driver_label" />
 
                         <com.weiwangcn.betterspinner.library.BetterSpinner
-                            android:id="@+id/spn_driver"
+                            android:id="@+id/spn_reflux_driver"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content" />
 
@@ -161,7 +154,7 @@
                             android:text="@string/dealer_label" />
 
                         <com.weiwangcn.betterspinner.library.BetterSpinner
-                            android:id="@+id/spn_dealer"
+                            android:id="@+id/spn_reflux_dealer"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content" />
 
@@ -194,14 +187,14 @@
                     <TextView
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
-                        android:layout_weight="2"
+                        android:layout_weight="1"
                         android:gravity="center"
                         android:text="回收时间" />
 
                     <TextView
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
-                        android:layout_weight="2"
+                        android:layout_weight="1"
                         android:gravity="center"
                         android:text="桶身码" />
 
@@ -209,13 +202,6 @@
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_weight="2"
-                        android:gravity="center"
-                        android:text="桶规格" />
-
-                    <TextView
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="3"
                         android:gravity="center"
                         android:text="产品名称" />
 

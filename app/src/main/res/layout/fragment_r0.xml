@@ -35,131 +35,83 @@
 
     </android.support.design.widget.AppBarLayout>
 
-    <android.support.design.widget.CoordinatorLayout
+    <LinearLayout
+        android:id="@+id/ll_r0_content"
+        android:orientation="vertical"
         android:layout_width="match_parent"
-        android:layout_height="match_parent">
+        android:layout_height="match_parent"
+        android:layout_margin="@dimen/r0_content_margin">
 
         <LinearLayout
-            android:id="@+id/ll_r0_content"
-            android:orientation="vertical"
+            android:orientation="horizontal"
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:layout_margin="@dimen/r0_content_margin">
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/activity_vertical_margin">
 
             <LinearLayout
-                android:orientation="horizontal"
-                android:layout_width="match_parent"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="@dimen/activity_vertical_margin">
+                android:layout_weight="5"
+                android:layout_gravity="center"
+                android:layout_marginStart="@dimen/r0_content_margin"
+                android:gravity="center">
 
-                <LinearLayout
-                    android:layout_width="0dp"
+                <com.casc.rfidscanner.layout.InputCodeLayout
+                    android:id="@+id/icl_body_code"
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_weight="5"
-                    android:layout_gravity="center"
-                    android:layout_marginStart="@dimen/r0_content_margin"
-                    android:gravity="center">
-
-                    <com.casc.rfidscanner.layout.InputCodeLayout
-                        android:id="@+id/icl_body_code"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        app:icl_header="HY"
-                        app:icl_number="6"
-                        app:icl_width="@dimen/r0_body_code_size"
-                        app:icl_height="@dimen/r0_body_code_size"
-                        app:icl_divideWidth="10dp"
-                        app:icl_showMode="normal"
-                        app:icl_textColor="@color/black"
-                        app:icl_textSize="@dimen/r0_body_code_text_size"
-                        app:icl_focusBackground="@drawable/bg_edit_focus"
-                        app:icl_unFocusBackground="@drawable/bg_edit_un_focus" />
-
-                </LinearLayout>
-
-                <Button
-                    android:id="@+id/btn_register"
-                    android:layout_width="276dp"
-                    android:layout_height="80dp"
-                    android:theme="@style/ButtonPrimary"
-                    android:text="@string/register_button_text"
-                    android:textSize="@dimen/r0_button_text_size"/>
+                    app:icl_header="AHY"
+                    app:icl_number="5"
+                    app:icl_width="@dimen/r0_body_code_size"
+                    app:icl_height="@dimen/r0_body_code_size"
+                    app:icl_divideWidth="10dp"
+                    app:icl_showMode="normal"
+                    app:icl_textColor="@color/black"
+                    app:icl_textSize="@dimen/r0_body_code_text_size"
+                    app:icl_focusBackground="@drawable/bg_edit_focus"
+                    app:icl_unFocusBackground="@drawable/bg_edit_un_focus" />
 
             </LinearLayout>
 
+            <Button
+                android:id="@+id/btn_register"
+                android:layout_width="276dp"
+                android:layout_height="80dp"
+                android:theme="@style/ButtonPrimary"
+                android:text="@string/register_button_text"
+                android:textSize="@dimen/r0_button_text_size"/>
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:orientation="vertical"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:layout_marginTop="@dimen/activity_vertical_margin">
+
             <LinearLayout
                 android:orientation="horizontal"
                 android:layout_width="match_parent"
-                android:layout_height="0dp"
-                android:layout_weight="1"
-                android:layout_marginTop="@dimen/activity_vertical_margin"
-                android:layout_marginStart="@dimen/activity_horizontal_margin">
+                android:layout_height="300dp">
+
+                <com.dlazaro66.qrcodereaderview.QRCodeReaderView
+                    android:id="@+id/qrv_body_code_reader"
+                    android:layout_width="300dp"
+                    android:layout_height="match_parent"
+                    android:layout_margin="10dp" />
 
                 <LinearLayout
                     android:orientation="vertical"
                     android:layout_width="0dp"
                     android:layout_height="match_parent"
-                    android:layout_weight="1">
+                    android:layout_weight="1"
+                    android:layout_marginStart="@dimen/activity_horizontal_margin">
 
                     <LinearLayout
                         android:orientation="horizontal"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content">
-
-                        <LinearLayout
-                            android:orientation="horizontal"
-                            android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:layout_weight="1">
-
-                            <TextView
-                                android:theme="@style/AppTheme.BigText"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:layout_gravity="center"
-                                android:text="标签读取状态：" />
-
-                            <ImageView
-                                android:id="@+id/iv_tag_status"
-                                android:layout_width="36dp"
-                                android:layout_height="36dp"
-                                android:layout_gravity="center"
-                                android:src="@drawable/ic_connection_abnormal" />
-
-                        </LinearLayout>
-
-                        <LinearLayout
-                            android:orientation="horizontal"
-                            android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:layout_weight="1">
-
-                            <TextView
-                                android:theme="@style/AppTheme.BigText"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:layout_gravity="center"
-                                android:text="已注册桶数量：" />
-
-                            <TextView
-                                android:id="@+id/tv_registered_count"
-                                android:theme="@style/AppTheme.BigText"
-                                android:layout_width="wrap_content"
-                                android:minWidth="72dp"
-                                android:layout_height="wrap_content"
-                                android:gravity="end"
-                                android:background="@drawable/bg_count"
-                                android:text="@string/number_default_value" />
-
-                        </LinearLayout>
-
-                    </LinearLayout>
-
-                    <LinearLayout
-                        android:orientation="horizontal"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="@dimen/r0_content_margin">
 
                         <TextView
                             android:theme="@style/AppTheme.BigText"
@@ -168,328 +120,80 @@
                             android:layout_gravity="center"
                             android:text="规格配置信息：" />
 
-                        <TextView
-                            android:id="@+id/tv_config_info"
+                        <com.weiwangcn.betterspinner.library.BetterSpinner
+                            android:id="@+id/spn_product_name"
                             android:theme="@style/AppTheme.BigText"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="18.9L不老泉纯净水" />
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content" />
 
                     </LinearLayout>
 
                     <LinearLayout
                         android:layout_width="match_parent"
-                        android:layout_height="match_parent">
+                        android:layout_height="match_parent"
+                        android:background="@drawable/bg_r0_list"
+                        android:padding="8dp">
 
-                        <LinearLayout
+                        <android.support.v7.widget.RecyclerView
+                            android:id="@+id/rv_registered_count_list"
                             android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:layout_gravity="center"
-                            android:layout_marginEnd="56dp"
-                            android:padding="16dp"
-                            android:background="@drawable/bg_r0_hint">
-
-                            <TextView
-                                android:id="@+id/tv_r0_hint"
-                                android:layout_width="wrap_content"
-                                android:layout_height="match_parent"
-                                android:textSize="46sp" />
-
-                        </LinearLayout>
+                            android:layout_height="match_parent" />
 
                     </LinearLayout>
 
                 </LinearLayout>
 
-                <GridLayout
-                    android:layout_width="wrap_content"
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_marginTop="@dimen/activity_vertical_margin"
+                android:gravity="center">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_gravity="end"
-                    android:columnCount="3"
-                    android:rowCount="4">
+                    android:padding="8dp"
+                    android:background="@drawable/bg_r0_hint">
 
-                    <android.support.v7.widget.CardView
-                        android:id="@+id/cv_keyboard_one"
-                        android:layout_width="@dimen/r0_keyboard_size"
-                        android:layout_height="@dimen/r0_keyboard_size"
-                        android:layout_margin="@dimen/r0_keyboard_padding"
-                        android:layout_columnWeight="1"
-                        android:layout_rowWeight="1"
-                        android:stateListAnimator="@animator/lift_on_touch"
-                        android:clickable="true"
-                        android:foreground="?android:attr/selectableItemBackground"
-                        app:cardBackgroundColor="@color/keyboard"
-                        app:cardCornerRadius="@dimen/r0_keyboard_radius">
-
-                        <TextView
-                            android:theme="@style/AppTheme.KeyboardText"
-                            android:layout_width="match_parent"
-                            android:layout_height="match_parent"
-                            android:gravity="center"
-                            android:text="1" />
-
-                    </android.support.v7.widget.CardView>
-
-                    <android.support.v7.widget.CardView
-                        android:id="@+id/cv_keyboard_two"
-                        android:layout_width="@dimen/r0_keyboard_size"
-                        android:layout_height="@dimen/r0_keyboard_size"
-                        android:layout_margin="@dimen/r0_keyboard_padding"
-                        android:layout_columnWeight="1"
-                        android:layout_rowWeight="1"
-                        android:stateListAnimator="@animator/lift_on_touch"
-                        android:clickable="true"
-                        android:focusable="true"
-                        android:foreground="?android:attr/selectableItemBackground"
-                        app:cardBackgroundColor="@color/keyboard"
-                        app:cardCornerRadius="@dimen/r0_keyboard_radius">
-
-                        <TextView
-                            android:theme="@style/AppTheme.KeyboardText"
-                            android:layout_width="match_parent"
-                            android:layout_height="match_parent"
-                            android:gravity="center"
-                            android:text="2" />
-
-                    </android.support.v7.widget.CardView>
-
-                    <android.support.v7.widget.CardView
-                        android:id="@+id/cv_keyboard_three"
-                        android:layout_width="@dimen/r0_keyboard_size"
-                        android:layout_height="@dimen/r0_keyboard_size"
-                        android:layout_margin="@dimen/r0_keyboard_padding"
-                        android:layout_columnWeight="1"
-                        android:layout_rowWeight="1"
-                        android:stateListAnimator="@animator/lift_on_touch"
-                        android:clickable="true"
-                        android:foreground="?android:attr/selectableItemBackground"
-                        app:cardBackgroundColor="@color/keyboard"
-                        app:cardCornerRadius="@dimen/r0_keyboard_radius">
-
-                        <TextView
-                            android:theme="@style/AppTheme.KeyboardText"
-                            android:layout_width="match_parent"
-                            android:layout_height="match_parent"
-                            android:gravity="center"
-                            android:text="3" />
-
-                    </android.support.v7.widget.CardView>
-
-                    <android.support.v7.widget.CardView
-                        android:id="@+id/cv_keyboard_four"
-                        android:layout_width="@dimen/r0_keyboard_size"
-                        android:layout_height="@dimen/r0_keyboard_size"
-                        android:layout_margin="@dimen/r0_keyboard_padding"
-                        android:layout_columnWeight="1"
-                        android:layout_rowWeight="1"
-                        android:stateListAnimator="@animator/lift_on_touch"
-                        android:clickable="true"
-                        android:foreground="?android:attr/selectableItemBackground"
-                        app:cardBackgroundColor="@color/keyboard"
-                        app:cardCornerRadius="@dimen/r0_keyboard_radius">
-
-                        <TextView
-                            android:theme="@style/AppTheme.KeyboardText"
-                            android:layout_width="match_parent"
-                            android:layout_height="match_parent"
-                            android:gravity="center"
-                            android:text="4" />
-
-                    </android.support.v7.widget.CardView>
-
-                    <android.support.v7.widget.CardView
-                        android:id="@+id/cv_keyboard_five"
-                        android:layout_width="@dimen/r0_keyboard_size"
-                        android:layout_height="@dimen/r0_keyboard_size"
-                        android:layout_margin="@dimen/r0_keyboard_padding"
-                        android:layout_columnWeight="1"
-                        android:layout_rowWeight="1"
-                        android:stateListAnimator="@animator/lift_on_touch"
-                        android:clickable="true"
-                        android:foreground="?android:attr/selectableItemBackground"
-                        app:cardBackgroundColor="@color/keyboard"
-                        app:cardCornerRadius="@dimen/r0_keyboard_radius">
-
-                        <TextView
-                            android:theme="@style/AppTheme.KeyboardText"
-                            android:layout_width="match_parent"
-                            android:layout_height="match_parent"
-                            android:gravity="center"
-                            android:text="5" />
-
-                    </android.support.v7.widget.CardView>
-
-                    <android.support.v7.widget.CardView
-                        android:id="@+id/cv_keyboard_six"
-                        android:layout_width="@dimen/r0_keyboard_size"
-                        android:layout_height="@dimen/r0_keyboard_size"
-                        android:layout_margin="@dimen/r0_keyboard_padding"
-                        android:layout_columnWeight="1"
-                        android:layout_rowWeight="1"
-                        android:stateListAnimator="@animator/lift_on_touch"
-                        android:clickable="true"
-                        android:foreground="?android:attr/selectableItemBackground"
-                        app:cardBackgroundColor="@color/keyboard"
-                        app:cardCornerRadius="@dimen/r0_keyboard_radius">
-
-                        <TextView
-                            android:theme="@style/AppTheme.KeyboardText"
-                            android:layout_width="match_parent"
-                            android:layout_height="match_parent"
-                            android:gravity="center"
-                            android:text="6" />
-
-                    </android.support.v7.widget.CardView>
-
-                    <android.support.v7.widget.CardView
-                        android:id="@+id/cv_keyboard_seven"
-                        android:layout_width="@dimen/r0_keyboard_size"
-                        android:layout_height="@dimen/r0_keyboard_size"
-                        android:layout_margin="@dimen/r0_keyboard_padding"
-                        android:layout_columnWeight="1"
-                        android:layout_rowWeight="1"
-                        android:stateListAnimator="@animator/lift_on_touch"
-                        android:clickable="true"
-                        android:foreground="?android:attr/selectableItemBackground"
-                        app:cardBackgroundColor="@color/keyboard"
-                        app:cardCornerRadius="@dimen/r0_keyboard_radius">
-
-                        <TextView
-                            android:theme="@style/AppTheme.KeyboardText"
-                            android:layout_width="match_parent"
-                            android:layout_height="match_parent"
-                            android:gravity="center"
-                            android:text="7" />
-
-                    </android.support.v7.widget.CardView>
-
-                    <android.support.v7.widget.CardView
-                        android:id="@+id/cv_keyboard_eight"
-                        android:layout_width="@dimen/r0_keyboard_size"
-                        android:layout_height="@dimen/r0_keyboard_size"
-                        android:layout_margin="@dimen/r0_keyboard_padding"
-                        android:layout_columnWeight="1"
-                        android:layout_rowWeight="1"
-                        android:stateListAnimator="@animator/lift_on_touch"
-                        android:clickable="true"
-                        android:foreground="?android:attr/selectableItemBackground"
-                        app:cardBackgroundColor="@color/keyboard"
-                        app:cardCornerRadius="@dimen/r0_keyboard_radius">
-
-                        <TextView
-                            android:theme="@style/AppTheme.KeyboardText"
-                            android:layout_width="match_parent"
-                            android:layout_height="match_parent"
-                            android:gravity="center"
-                            android:text="8" />
-
-                    </android.support.v7.widget.CardView>
-
-                    <android.support.v7.widget.CardView
-                        android:id="@+id/cv_keyboard_nine"
-                        android:layout_width="@dimen/r0_keyboard_size"
-                        android:layout_height="@dimen/r0_keyboard_size"
-                        android:layout_margin="@dimen/r0_keyboard_padding"
-                        android:layout_columnWeight="1"
-                        android:layout_rowWeight="1"
-                        android:stateListAnimator="@animator/lift_on_touch"
-                        android:clickable="true"
-                        android:foreground="?android:attr/selectableItemBackground"
-                        app:cardBackgroundColor="@color/keyboard"
-                        app:cardCornerRadius="@dimen/r0_keyboard_radius">
-
-                        <TextView
-                            android:theme="@style/AppTheme.KeyboardText"
-                            android:layout_width="match_parent"
-                            android:layout_height="match_parent"
-                            android:gravity="center"
-                            android:text="9" />
-
-                    </android.support.v7.widget.CardView>
-
-                    <android.support.v7.widget.CardView
-                        android:id="@+id/cv_keyboard_clear"
-                        android:layout_width="@dimen/r0_keyboard_size"
-                        android:layout_height="@dimen/r0_keyboard_size"
-                        android:layout_margin="@dimen/r0_keyboard_padding"
-                        android:layout_columnWeight="1"
-                        android:layout_rowWeight="1"
-                        android:stateListAnimator="@animator/lift_on_touch"
-                        android:clickable="true"
-                        android:foreground="?android:attr/selectableItemBackground"
-                        app:cardBackgroundColor="@color/keyboard"
-                        app:cardCornerRadius="@dimen/r0_keyboard_radius">
-
-                        <TextView
-                            android:theme="@style/AppTheme.KeyboardText"
-                            android:layout_width="match_parent"
-                            android:layout_height="match_parent"
-                            android:gravity="center"
-                            android:text="C" />
-
-                    </android.support.v7.widget.CardView>
-
-                    <android.support.v7.widget.CardView
-                        android:id="@+id/cv_keyboard_zero"
-                        android:layout_width="@dimen/r0_keyboard_size"
-                        android:layout_height="@dimen/r0_keyboard_size"
-                        android:layout_margin="@dimen/r0_keyboard_padding"
-                        android:layout_columnWeight="1"
-                        android:layout_rowWeight="1"
-                        android:stateListAnimator="@animator/lift_on_touch"
-                        android:clickable="true"
-                        android:foreground="?android:attr/selectableItemBackground"
-                        app:cardBackgroundColor="@color/keyboard"
-                        app:cardCornerRadius="@dimen/r0_keyboard_radius">
-
-                        <TextView
-                            android:theme="@style/AppTheme.KeyboardText"
-                            android:layout_width="match_parent"
-                            android:layout_height="match_parent"
-                            android:gravity="center"
-                            android:text="0" />
-
-                    </android.support.v7.widget.CardView>
-
-                    <android.support.v7.widget.CardView
-                        android:id="@+id/cv_keyboard_back"
-                        android:layout_width="@dimen/r0_keyboard_size"
-                        android:layout_height="@dimen/r0_keyboard_size"
-                        android:layout_margin="@dimen/r0_keyboard_padding"
-                        android:layout_columnWeight="1"
-                        android:layout_rowWeight="1"
-                        android:stateListAnimator="@animator/lift_on_touch"
-                        android:clickable="true"
-                        android:foreground="?android:attr/selectableItemBackground"
-                        app:cardBackgroundColor="@color/keyboard"
-                        app:cardCornerRadius="@dimen/r0_keyboard_radius">
+                    <LinearLayout
+                        android:orientation="horizontal"
+                        android:layout_width="300dp"
+                        android:layout_height="match_parent"
+                        android:gravity="center">
 
                         <ImageView
+                            android:id="@+id/iv_tag_status"
+                            android:layout_width="48dp"
+                            android:layout_height="48dp"
+                            android:layout_gravity="center"
+                            android:src="@drawable/ic_connection_abnormal" />
+
+                        <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_gravity="center"
-                            android:src="@drawable/ic_action_back" />
+                            android:text="桶标签"
+                            android:textSize="46sp"
+                            android:textColor="@color/black" />
 
-                    </android.support.v7.widget.CardView>
+                    </LinearLayout>
 
-                </GridLayout>
+                    <TextView
+                        android:id="@+id/tv_r0_hint"
+                        android:layout_width="0dp"
+                        android:layout_height="match_parent"
+                        android:layout_weight="1"
+                        android:gravity="center"
+                        android:textSize="46sp" />
+
+            </LinearLayout>
 
             </LinearLayout>
 
         </LinearLayout>
 
-        <android.support.design.widget.FloatingActionButton
-            android:id="@+id/fab_r0_config"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_margin="16dp"
-            android:clickable="true"
-            android:src="@drawable/ic_action_config"
-            app:backgroundTint="@color/colorPrimary"
-            app:layout_anchor="@+id/ll_r0_content"
-            app:layout_anchorGravity="bottom|left"
-            app:elevation="8dp" />
-
-    </android.support.design.widget.CoordinatorLayout>
+    </LinearLayout>
 
 </LinearLayout>

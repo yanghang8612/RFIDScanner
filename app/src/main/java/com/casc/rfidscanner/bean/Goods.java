@@ -2,14 +2,8 @@ package com.casc.rfidscanner.bean;
 
 public class Goods {
 
-    // 桶规格
-    private String bucketSpec;
-
-    // 水品牌
-    private String waterBrand;
-
-    // 水规格
-    private String waterSpec;
+    // 产品名称
+    private ProductInfo info;
 
     // 总数量
     private int totalCount;
@@ -17,27 +11,25 @@ public class Goods {
     // 出库数量
     private int curCount;
 
-    public Goods(String bucketSpec, String waterBrand, String waterSpec, int totalCount) {
-        this.bucketSpec = bucketSpec;
-        this.waterBrand = waterBrand;
-        this.waterSpec = waterSpec;
+    public Goods(ProductInfo info, int totalCount) {
+        this.info = info;
         this.totalCount = totalCount;
     }
 
-    public String getBucketSpec() {
-        return bucketSpec;
+    public int getCode() {
+        return info.getCode();
     }
 
-    public String getWaterBrand() {
-        return waterBrand;
-    }
-
-    public String getWaterSpec() {
-        return waterSpec;
+    public String getName() {
+        return info.getName();
     }
 
     public int getTotalCount() {
         return totalCount;
+    }
+
+    public void addTotalCount(int count) {
+        totalCount += count;
     }
 
     public int getCurCount() {
@@ -53,22 +45,16 @@ public class Goods {
     }
 
     public boolean isBucketMatched(Bucket bucket) {
-        return bucketSpec.equals(bucket.getBucketSpec()) &&
-                waterBrand.equals(bucket.getWaterBrand()) &&
-                waterSpec.equals(bucket.getWaterSpec());
+        return bucket.getProductInfo().getCode() == info.getCode();
     }
 
     @Override
     public boolean equals(Object obj) {
         if (this == obj) return true;
-        boolean isEqual = false;
         if (obj instanceof Goods) {
             Goods other = (Goods) obj;
-            isEqual = this.bucketSpec.equals(other.bucketSpec) &&
-                    this.waterBrand.equals(other.waterBrand) &&
-                    this.waterSpec.equals(other.waterSpec);
-            if (isEqual) this.totalCount += other.totalCount;
+            return this.info.getCode() == other.info.getCode();
         }
-        return isEqual;
+        return false;
     }
 }

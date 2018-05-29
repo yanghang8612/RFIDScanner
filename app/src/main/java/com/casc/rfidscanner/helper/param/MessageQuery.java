@@ -10,20 +10,4 @@ public class MessageQuery {
         this.bucket_TID = bucket_TID;
         this.bodycode = bodycode;
     }
-
-    public String getBucket_TID() {
-        return bucket_TID;
-    }
-
-    public void setBucket_TID(String bucket_TID) {
-        this.bucket_TID = bucket_TID;
-    }
-
-    public String getBodycode() {
-        return bodycode;
-    }
-
-    public void setBodycode(String bodycode) {
-        this.bodycode = bodycode;
-    }
 }

@@ -3,34 +3,31 @@
     android:orientation="vertical"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
+    android:paddingStart="8dp"
+    android:paddingEnd="8dp"
     android:gravity="center">
 
     <LinearLayout
         android:orientation="horizontal"
+        android:theme="@style/AppTheme.CountText"
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="1"
-        android:layout_margin="6dp"
-        android:gravity="center">
+        android:layout_marginStart="6dp"
+        android:layout_marginEnd="6dp">
 
         <TextView
-            android:id="@+id/tv_bucket_body_code"
+            android:id="@+id/tv_product_name"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:text="@string/body_code_default_value"
-            android:textSize="12sp"
-            android:textColor="@color/black" />
+            android:text="@string/product_name_default_value" />
 
         <TextView
-            android:id="@+id/tv_bucket_spec"
-            android:layout_width="0dp"
+            android:id="@+id/tv_registered_count"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_weight="2"
-            android:gravity="end"
-            android:text="11L不老泉纯净水"
-            android:textSize="12sp"
-            android:textColor="@color/black" />
+            android:text="123桶" />
 
     </LinearLayout>
 

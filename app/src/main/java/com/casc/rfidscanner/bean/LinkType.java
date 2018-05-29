@@ -22,17 +22,11 @@ public enum LinkType {
     Card("Card", CardFragment.class, "专用卡注册");
 
     public final String link;
-    public final String power;
-    public final String qValue;
-    public final String sendInterval;
     public final Class fragmentClass;
     public final String comment;
 
     LinkType(String link, Class fragmentClass, String comment) {
         this.link = link;
-        this.power = link + "_power";
-        this.qValue = link + "_q_value";
-        this.sendInterval = link + "_send_interval";
         this.fragmentClass = fragmentClass;
         this.comment = comment;
     }
@@ -55,13 +49,5 @@ public enum LinkType {
                 return type;
         }
         throw new IllegalArgumentException("No matched link type by comment");
-    }
-
-    public static int getPower() {
-        return Integer.valueOf(ConfigHelper.getParam(getType().power).replace("dBm", ""));
-    }
-
-    public static int getSendInterval() {
-        return Integer.valueOf(ConfigHelper.getParam(getType().sendInterval).replace("ms", ""));
     }
 }

@@ -4,7 +4,6 @@ import android.os.Handler;
 import android.os.Message;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
-import android.util.Log;
 import android.widget.TextView;
 
 import com.casc.rfidscanner.MyParams;
@@ -12,7 +11,7 @@ import com.casc.rfidscanner.MyVars;
 import com.casc.rfidscanner.R;
 import com.casc.rfidscanner.activity.ConfigActivity;
 import com.casc.rfidscanner.adapter.BucketAdapter;
-import com.casc.rfidscanner.backend.InstructionHandler;
+import com.casc.rfidscanner.backend.InsHandler;
 import com.casc.rfidscanner.bean.Bucket;
 import com.casc.rfidscanner.message.TagCountChangedMessage;
 import com.casc.rfidscanner.utils.CommonUtils;
@@ -30,7 +29,7 @@ import butterknife.BindView;
 /**
  * 成品注册Fragment
  */
-public class R4Fragment extends BaseFragment implements InstructionHandler {
+public class R4Fragment extends BaseFragment implements InsHandler {
 
     private static final String TAG = R4Fragment.class.getSimpleName();
     // Constant for InnerHandler message.what
@@ -75,7 +74,12 @@ public class R4Fragment extends BaseFragment implements InstructionHandler {
     }
 
     @Override
-    public void deal(byte[] ins) {
+    public void sensorSignal(boolean isHigh) {
+
+    }
+
+    @Override
+    public void dealIns(byte[] ins) {
         int command = ins[2] & 0xFF;
         switch (command) {
             case 0x22: // 轮询成功的处理流程
