@@ -363,55 +363,43 @@ public class R0Fragment extends BaseFragment implements InsHandler, QRCodeReader
                     mBucketToRegister.setTid(InsHelper.getReadContent(data));
                 }
 
-                // 通过向平台发送TID与桶身码的参数，根据返回结果判定是否重复注册
-                MessageQuery messageQuery = new MessageQuery(CommonUtils.bytesToHex(mBucketToRegister.getTid()),
-                        mBucketToRegister.getBodyCode());
-                Response<Reply> queryResponse = NetHelper.getInstance().checkBodyCodeAndTID(messageQuery).execute();
-                //Thread.sleep(NETWORK_WAIT_COUNT * LinkType.getSendInterval());
-                if (!queryResponse.isSuccessful()) {
-                    writeHint(new R0Hint(false, "注册失败,平台连接失败"));
-                    writeTaskFailed();
-                    return;
-                } else if (queryResponse.body() != null && queryResponse.body().getCode() == 210) {
-                    writeHint(new R0Hint(false, "注册失败,桶标签已注册"));
-                    writeTaskFailed();
-                    return;
-                } else if (queryResponse.body() != null && queryResponse.body().getCode() == 211) {
-                    writeHint(new R0Hint(false, "注册失败," + mBucketToRegister.getBodyCode() + "已注册"));
-                    writeTaskFailed();
-                    return;
-                } else {
-                    writeHint(new R0Hint(true, "检验重复注册成功"));
-                }
+//                // 通过向平台发送TID与桶身码的参数，根据返回结果判定是否重复注册
+//                MessageQuery messageQuery = new MessageQuery(CommonUtils.bytesToHex(mBucketToRegister.getTid()),
+//                        mBucketToRegister.getBodyCode());
+//                Response<Reply> queryResponse = NetHelper.getInstance().checkBodyCodeAndTID(messageQuery).execute();
+//                if (!queryResponse.isSuccessful()) {
+//                    writeHint(new R0Hint(false, "注册失败,平台连接失败"));
+//                    writeTaskFailed();
+//                    return;
+//                } else if (queryResponse.body() != null && queryResponse.body().getCode() == 210) {
+//                    writeHint(new R0Hint(false, "注册失败,标签TID已注册"));
+//                    writeTaskFailed();
+//                    return;
+//                } else if (queryResponse.body() != null && queryResponse.body().getCode() == 211) {
+//                    writeHint(new R0Hint(false, "注册失败," + mBucketToRegister.getBodyCode() + "已注册"));
+//                    writeTaskFailed();
+//                    return;
+//                } else {
+//                    writeHint(new R0Hint(true, "检验重复注册成功"));
+//                }
 
                 // 写入PC
                 data = MyVars.getReader().sendCommandSync(InsHelper.getWriteMemBank(
                         CommonUtils.hexToBytes("00000000"), InsHelper.MemBankType.EPC,
                         1, CommonUtils.hexToBytes(MyParams.BUCKET_PC_CONTENT)), WRITE_PC_MAX_TRY_COUNT);
-//                MyVars.getReader().sendCommand(InsHelper.getReadMemBank(
-//                        CommonUtils.hexToBytes("00000000"),
-//                        InsHelper.MemBankType.EPC,
-//                        1, 1), READ_MAX_TRY_COUNT);
-                //Thread.sleep((WRITE_PC_MAX_TRY_COUNT + 1) * LinkType.getSendInterval());
-                if (data == null || InsHelper.getWriteContent(data).length != mBucketToRegister.getEpc().length) {
-                    Log.i(TAG, CommonUtils.bytesToHex(data));
+                // 这里不能检查epc的长度，因为修改PC后返回的EPC是修改之前的长度，而实际长度可能会发生变化
+                if (data != null && data[2] == 0x49) {
+                    writeHint(new R0Hint(true, "写入PC成功"));
+                } else {
                     writeHint(new R0Hint(false, "注册失败,写入PC失败"));
                     writeTaskFailed();
                     return;
-                } else {
-                    writeHint(new R0Hint(true, "写入PC成功"));
                 }
 
                 // 写入EPC
                 data = MyVars.getReader().sendCommandSync(InsHelper.getWriteMemBank(
                         CommonUtils.hexToBytes("00000000"), InsHelper.MemBankType.EPC,
                         2, mBucketToRegister.getEpc()), WRITE_EPC_MAX_TRY_COUNT);
-//                MyVars.getReader().sendCommand(
-//                        InsHelper.getEPCSelectParameter(mBucketToRegister.getEpc()), MyParams.SELECT_MAX_TRY_COUNT);
-//                MyVars.getReader().sendCommand(InsHelper.getReadMemBank(
-//                        CommonUtils.hexToBytes("00000000"), InsHelper.MemBankType.EPC,
-//                        2, MyParams.EPC_BUCKET_LENGTH / 2), READ_MAX_TRY_COUNT);
-                //Thread.sleep((WRITE_EPC_MAX_TRY_COUNT + 1) * LinkType.getSendInterval());
                 if (data == null) {
                     writeHint(new R0Hint(false, "注册失败,写入EPC失败"));
                     writeTaskFailed();
@@ -427,10 +415,12 @@ public class R0Fragment extends BaseFragment implements InsHandler, QRCodeReader
                         CommonUtils.bytesToHex(mBucketToRegister.getEpc()),
                         mBucketToRegister.getBodyCode());
                 Response<Reply> responseR0 = NetHelper.getInstance().uploadR0Message(message).execute();
-                //Thread.sleep(NETWORK_WAIT_COUNT * LinkType.getSendInterval());
                 if (!responseR0.isSuccessful()) {
-                    Log.i(TAG, responseR0.errorBody().string());
                     writeHint(new R0Hint(false, "注册失败,平台连接失败"));
+                    writeTaskFailed();
+                    return;
+                } else if (responseR0.body() == null || responseR0.body().getCode() != 200) {
+                    writeHint(new R0Hint(false, "注册失败,桶身码已使用"));
                     writeTaskFailed();
                     return;
                 } else {

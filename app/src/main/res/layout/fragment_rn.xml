@@ -59,7 +59,7 @@
                     android:layout_height="match_parent"
                     android:layout_weight="1"
                     android:gravity="center"
-                    android:text="@string/temp_count_label" />
+                    android:text="@string/scanned_count_label" />
 
                 <TextView
                     android:id="@+id/tv_rn_bucket_count"

@@ -35,15 +35,15 @@ public class MyApplication extends Application {
 
     private static final String TAG = MyApplication.class.getSimpleName();
 
-    private static MyApplication instance;
+    private static MyApplication mInstance;
 
     public static MyApplication getInstance() {
-        return instance;
+        return mInstance;
     }
 
-    private WifiManager wifiManager;
+    private WifiManager mWifiManager;
 
-    private ConnectivityManager connectivityManager;
+    private ConnectivityManager mConnectivityManager;
 
     @Override
     public void onCreate() {
@@ -53,9 +53,9 @@ public class MyApplication extends Application {
         Thread.setDefaultUncaughtExceptionHandler(new CrashHandler());
 
         // 初始化相关字段
-        instance = this;
-        wifiManager = (WifiManager) getSystemService(Context.WIFI_SERVICE);
-        connectivityManager = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
+        mInstance = this;
+        mWifiManager = (WifiManager) getSystemService(Context.WIFI_SERVICE);
+        mConnectivityManager = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
 
         // 初始化读写器实例（USB、蓝牙）和标签缓存
         MyVars.executor = Executors.newScheduledThreadPool(10);
@@ -116,9 +116,9 @@ public class MyApplication extends Application {
 
         @Override
         public void run() {
-            if (wifiManager.getWifiState() == WifiManager.WIFI_STATE_DISABLED)
-                wifiManager.setWifiEnabled(true);
-            NetworkCapabilities networkCapabilities = connectivityManager.getNetworkCapabilities(connectivityManager.getActiveNetwork());
+            if (mWifiManager.getWifiState() == WifiManager.WIFI_STATE_DISABLED)
+                mWifiManager.setWifiEnabled(true);
+            NetworkCapabilities networkCapabilities = mConnectivityManager.getNetworkCapabilities(mConnectivityManager.getActiveNetwork());
             EventBus.getDefault().post(MyVars.status.setReaderStatus(MyVars.getReader().isConnected())
                     .setNetworkStatus(networkCapabilities != null &&
                             networkCapabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_VALIDATED)));

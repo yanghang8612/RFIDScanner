@@ -57,7 +57,7 @@
                     android:layout_height="match_parent"
                     android:layout_weight="1"
                     android:gravity="center"
-                    android:text="@string/work_status_label" />
+                    android:text="@string/delivery_card_id" />
 
                 <LinearLayout
                     android:layout_width="0dp"
@@ -66,11 +66,11 @@
                     android:gravity="center">
 
                     <TextView
-                        android:id="@+id/tv_r6_work_status"
+                        android:id="@+id/tv_r6_delivery_card_id"
                         android:theme="@style/AppTheme.BigText"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:background="@drawable/bg_status_normal"
+                        android:background="@drawable/bg_status_working"
                         android:gravity="center"
                         android:text="空闲" />
 
@@ -91,10 +91,10 @@
                     android:layout_height="match_parent"
                     android:layout_weight="1"
                     android:gravity="center"
-                    android:text="@string/temp_count_label" />
+                    android:text="@string/scanned_count_label" />
 
                 <TextView
-                    android:id="@+id/tv_r6_temp_count"
+                    android:id="@+id/tv_r6_scanned_count"
                     android:layout_width="0dp"
                     android:layout_height="match_parent"
                     android:layout_weight="1"

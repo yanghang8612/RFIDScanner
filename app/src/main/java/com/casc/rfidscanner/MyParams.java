@@ -21,10 +21,7 @@ public class MyParams {
      * Global Parameters
      */
     public static final String API_VERSION = "1.4";
-    public static final int SELECT_MAX_TRY_COUNT = 2; // 次数
-    public static final int READ_TID_MAX_TRY_COUNT = 3; // 次数
-    public static final int READ_TID_MAX_WAIT_TIME = 300; // ms
-    public static final int READ_USER_MEMORY_MAX_TRY_COUNT = 10; // 次数
+    public static final int READ_USER_MEMORY_MAX_TRY_COUNT = 5; // 次数
     public static final int SINGLE_CART_MIN_SCANNED_COUNT = 10; // 次数
     public static final int DELIVERY_CARD_SCANNED_COUNT = 10; // 次数
     public static final int ADMIN_CARD_SCANNED_COUNT = 5; // 次数
@@ -93,7 +90,7 @@ public class MyParams {
         CONFIG_DEFAULT_MAP.put(S_TAG_LIFECYCLE, "5Min");
         CONFIG_DEFAULT_MAP.put(S_BLANK_INTERVAL, "5");
         CONFIG_DEFAULT_MAP.put(S_DISCOVERY_INTERVAL, "2Sec");
-        CONFIG_DEFAULT_MAP.put(S_MAIN_PLATFORM_ADDR, "http://192.168.1.9:8080");
+        CONFIG_DEFAULT_MAP.put(S_MAIN_PLATFORM_ADDR, "http://192.168.1.4:8080");
         CONFIG_DEFAULT_MAP.put(S_STANDBY_PLATFORM_ADDR, "http://106.37.201.142:8888");
         CONFIG_DEFAULT_MAP.put(S_READER_ID, "100000000000000000000101");
         CONFIG_DEFAULT_MAP.put(S_READER_MAC, "00:00:00:00:00:00");

@@ -21,7 +21,6 @@ import com.casc.rfidscanner.backend.InsHandler;
 import com.casc.rfidscanner.bean.Bucket;
 import com.casc.rfidscanner.bean.Hint;
 import com.casc.rfidscanner.bean.RefluxBill;
-import com.casc.rfidscanner.helper.ConfigHelper;
 import com.casc.rfidscanner.helper.NetHelper;
 import com.casc.rfidscanner.helper.param.MessageReflux;
 import com.casc.rfidscanner.helper.param.Reply;
@@ -57,20 +56,15 @@ import retrofit2.Response;
  */
 public class R2Fragment extends BaseFragment implements InsHandler {
 
-    private enum WorkStatus {
-        IS_IDLE, IS_WORKING
-    }
-
     private static final String TAG = R2Fragment.class.getSimpleName();
     // Constant for InnerHandler message.what
-    private static final int MSG_REFLUX = 0;
-    private static final int MSG_UPDATE_HINT = 1;
+    private static final int MSG_UPDATE_HINT = 0;
+    private static final int MSG_UPDATE_CARD_ID = 1;
     private static final int MSG_UPDATE_COUNT = 2;
-    private static final int MSG_IS_NORMAL = 3;
-    private static final int MSG_IS_WORKING = 4;
+    private static final int MSG_RESET = 3;
 
-    @BindView(R.id.tv_r2_work_status) TextView mWorkStatusTv;
-    @BindView(R.id.tv_r2_temp_count) TextView mTempCountTv;
+    @BindView(R.id.tv_r2_reflux_card_id) TextView mRefluxCardIDTv;
+    @BindView(R.id.tv_r2_scanned_count) TextView mScannedCountTv;
     @BindView(R.id.tv_r2_uploaded_bill_count) TextView mUploadedBillCountTv;
     @BindView(R.id.tv_r2_stored_bill_count) TextView mStoredBillCountTv;
 
@@ -93,25 +87,13 @@ public class R2Fragment extends BaseFragment implements InsHandler {
     private HintAdapter mHintAdapter;
 
     // 当前正在回流的回流单
-    private RefluxBill mCurBill;
-
-    // 当前正在回流的桶列表（存储桶身EPC信息）
-    private List<String> mTempEPCs = new ArrayList<>();
+    private RefluxBill mPreBill, mCurBill;
 
     // 历史回流记录的缓存，用于排除偶然扫描数据
     private Set<String> mCache = new HashSet<>();
 
-    // 读取到的EPC计数以及检测到的空白期间隔
-    private int mReadCount, mBlankCount;
-
-    // 小推车被识别开始时间
-    private long mStartTime;
-
-    // 工作状态
-    private WorkStatus mStatus;
-
     // 同时回流提示标识符，卡EPC编码解析错误标识符
-    private boolean isMultiRefluxMentioned, isCardEPCCodeError;
+    private boolean mIsErrorNoticed;
 
     // Fragment内部handler
     private Handler mHandler = new InnerHandler(this);
@@ -143,6 +125,8 @@ public class R2Fragment extends BaseFragment implements InsHandler {
                 EventBus.getDefault().post(new BillStoredMessage());
             }
         });
+        if (bill == mCurBill)
+            mHandler.sendMessage(Message.obtain(mHandler, MSG_RESET));
         mBills.remove(bill);
         mBillsMap.remove(CommonUtils.bytesToHex(bill.getCardEPC()));
         mBillAdapter.notifyDataSetChanged();
@@ -204,7 +188,6 @@ public class R2Fragment extends BaseFragment implements InsHandler {
         int command = ins[2] & 0xFF;
         switch (command) {
             case 0x22: // 轮询成功的处理流程
-                mBlankCount = 0;
                 int pl = ((ins[3] & 0xFF) << 8) + (ins[4] & 0xFF);
                 byte[] epc = Arrays.copyOfRange(ins, 8, pl + 3);
                 String epcStr = CommonUtils.bytesToHex(epc);
@@ -212,87 +195,49 @@ public class R2Fragment extends BaseFragment implements InsHandler {
                     case NONE: // 检测到未注册标签，是否提示
                         break;
                     case BUCKET:
-                        mReadCount++;
-                        if (mReadCount >= MyParams.SINGLE_CART_MIN_SCANNED_COUNT) {
-                            mHandler.sendMessage(Message.obtain(mHandler, MSG_IS_WORKING));
-                            if (!mTempEPCs.contains(epcStr)) { // 扫到的EPC均判重后加入temp列表里
-                                mTempEPCs.add(epcStr);
+                        if (mCurBill == null) {
+                            if (!mIsErrorNoticed) {
+                                mIsErrorNoticed = true;
+                                SpeechSynthesizer.getInstance().speak("回流前请先刷卡");
+                            }
+                        } else {
+                            if (mCurBill.addBucket(new Bucket(epc))){
+                                playSound();
                                 mHandler.sendMessage(Message.obtain(mHandler, MSG_UPDATE_COUNT));
+                                EventBus.getDefault().post(new BillUpdatedMessage());
+
                             }
                         }
                         break;
                     case CARD_REFLUX:
-                        mReadCount++;
-                        if (mReadCount >= MyParams.SINGLE_CART_MIN_SCANNED_COUNT) {
-                            mHandler.sendMessage(Message.obtain(mHandler, MSG_IS_WORKING));
-                            if (mCurBill == null || !mCurBill.isHighlight()) {
-                                if (mBillsMap.containsKey(epcStr)) {
-                                    mCurBill = mBillsMap.get(epcStr);
-                                } else {
-                                    try {
-                                        mCurBill = new RefluxBill(epc);
-                                    } catch (Exception e) {
-                                        mCurBill = null;
-                                        isCardEPCCodeError = true;
-                                        return;
-                                    }
-                                    mBills.add(0, mCurBill);
-                                    mBillsMap.put(epcStr, mCurBill);
-                                }
-                                if (mCurBill != null) {
-                                    mCurBill.setUpdatedTime(System.currentTimeMillis());
-                                    mCurBill.setHighlight(true);
-                                    EventBus.getDefault().post(new BillUpdatedMessage());
-                                    SpeechSynthesizer.getInstance().speak(mCurBill.getCardNum() + "回收中");
-                                }
-                            } else if (!Arrays.equals(epc, mCurBill.getCardEPC()) && !isMultiRefluxMentioned) {
-                                isMultiRefluxMentioned = true;
-                                SpeechSynthesizer.getInstance().speak("回收中发现两张以上回流卡");
-                            }
+                        mIsErrorNoticed = false;
+                        if (mBillsMap.containsKey(epcStr)) {
+                            mCurBill = mBillsMap.get(epcStr);
+                            mBills.remove(mCurBill);
+                            mBills.add(0, mCurBill);
+                        } else {
+                            mCurBill = new RefluxBill(epc);
+                            mBills.add(0, mCurBill);
+                            mBillsMap.put(CommonUtils.bytesToHex(epc), mCurBill);
+                        }
+                        if (mPreBill != mCurBill) {
+                            mPreBill = mCurBill;
+                            mCurBill.setUpdatedTime(System.currentTimeMillis());
+                            mHandler.sendMessage(Message.obtain(mHandler, MSG_UPDATE_CARD_ID));
+                            EventBus.getDefault().post(new BillUpdatedMessage());
                         }
                         break;
                     case CARD_ADMIN:
                         mAdminCardScannedCount++;
                         if (mAdminCardScannedCount == MyParams.ADMIN_CARD_SCANNED_COUNT) {
-                            if (mStatus == WorkStatus.IS_IDLE) {
-                                sendAdminLoginMessage(CommonUtils.bytesToHex(epc));
-                                ConfigActivity.actionStart(getContext());
-                            } else {
-                                mAdminCardScannedCount = 0;
-                            }
+                            sendAdminLoginMessage(CommonUtils.bytesToHex(epc));
+                            ConfigActivity.actionStart(getContext());
                         }
                         break;
                 }
                 break;
             default: // 命令帧执行失败的处理流程，本环节只有轮询失败
                 mAdminCardScannedCount = 0;
-                int discoveryInterval =
-                        (int) (Double.valueOf(
-                                ConfigHelper.getParam(MyParams.S_DISCOVERY_INTERVAL)
-                                        .replace("Sec", ""))
-                                * 1000);
-                // 在工作状态，达到了空白期间隔设定值且发现间隔大于最小时间间隔
-                if (mStatus != WorkStatus.IS_IDLE
-                        && ++mBlankCount >= Integer.valueOf(ConfigHelper.getParam(MyParams.S_BLANK_INTERVAL))
-                        && System.currentTimeMillis() - mStartTime > discoveryInterval) { // 达到了空白期间隔设定值
-
-                    mBlankCount = 0;
-
-                    if (mReadCount < MyParams.SINGLE_CART_MIN_SCANNED_COUNT) {
-                        mReadCount = 0;
-                    } else if (isCardEPCCodeError) {
-                        SpeechSynthesizer.getInstance().speak("解析回流卡出错，请重试或联系营销人员");
-                    } else if (mCurBill == null && !mTempEPCs.isEmpty()) { // 检测到有桶在回收但是没有扫到回流卡，应声音提示
-                        writeHint("未发现回流卡");
-                        SpeechSynthesizer.getInstance().speak("未发现回流卡");
-                    } else if (mCurBill != null && mTempEPCs.size() == 0) { // EPC临时列表为空，空车通过
-                        writeHint(mCurBill.getCardID() + "空车通过");
-                        SpeechSynthesizer.getInstance().speak(mCurBill.getCardNum() + "空车通过");
-                    } else if (mCurBill != null && mTempEPCs.size() != 0) { // EPC临时列表不为空，正常回流
-                        mHandler.sendMessage(Message.obtain(mHandler, MSG_REFLUX));
-                    }
-                    mHandler.sendMessage(Message.obtain(mHandler, MSG_IS_NORMAL));
-                }
         }
     }
 
@@ -313,50 +258,25 @@ public class R2Fragment extends BaseFragment implements InsHandler {
         public void handleMessage(Message msg) {
             R2Fragment outer = mOuter.get();
             switch (msg.what) {
-                case MSG_RECEIVED_FRAME_FROM_READER:
-                    break;
-                case MSG_REFLUX:
-                    // 添加空桶到回流单中
-                    int count = 0;
-                    for (String epc : outer.mTempEPCs) {
-                        if (outer.mCurBill.addBucket(new Bucket(epc))) {
-                            count++;
-                        }
-                    }
-
-                    // 回流成功提示
-                    outer.writeHint(
-                            outer.mCurBill.getCardID() + "回收:" +
-                                    outer.mTempEPCs.size() + "桶(重复:" + (outer.mTempEPCs.size() - count) + "桶)");
-                    SpeechSynthesizer.getInstance().speak(
-                            outer.mCurBill.getCardNum() + "回收" +
-                                    CommonUtils.numToChinese(outer.mTempEPCs.size()) + "桶");
-                    break;
                 case MSG_UPDATE_HINT:
                     outer.mHintAdapter.notifyDataSetChanged();
                     break;
                 case MSG_UPDATE_COUNT:
-                    outer.increaseCount(outer.mTempCountTv);
+                    outer.increaseCount(outer.mScannedCountTv);
                     break;
-                case MSG_IS_NORMAL:
-                    if (outer.mCurBill != null) {
-                        outer.mCurBill.setHighlight(false);
-                    }
-                    //outer.mCurBill = null;
-                    outer.mTempEPCs.clear();
-                    outer.mStatus = WorkStatus.IS_IDLE;
-                    outer.isMultiRefluxMentioned = false;
-                    outer.isCardEPCCodeError = false;
-                    outer.mWorkStatusTv.setText("空闲");
-                    outer.mWorkStatusTv.setBackgroundResource(R.drawable.bg_status_normal);
-                    outer.mTempCountTv.setText("0");
-                    EventBus.getDefault().post(new BillUpdatedMessage());
+                case MSG_UPDATE_CARD_ID:
+                    if (!outer.mScannedCountTv.getText().equals("0"))
+                        outer.writeHint(
+                                outer.mRefluxCardIDTv.getText() + "回收" + outer.mScannedCountTv.getText() + "桶");
+                    outer.mRefluxCardIDTv.setText(outer.mCurBill.getCardID());
+                    outer.mScannedCountTv.setText("0");
+                    SpeechSynthesizer.getInstance().speak(
+                            outer.mCurBill.getCardNum() + "开始回收");
                     break;
-                case MSG_IS_WORKING:
-                    outer.mStatus = WorkStatus.IS_WORKING;
-                    outer.mStartTime = System.currentTimeMillis();
-                    outer.mWorkStatusTv.setText("回流中");
-                    outer.mWorkStatusTv.setBackgroundResource(R.drawable.bg_status_working);
+                case MSG_RESET:
+                    outer.mPreBill = outer.mCurBill = null;
+                    outer.mRefluxCardIDTv.setText("空闲");
+                    outer.mScannedCountTv.setText("0");
                     break;
             }
         }

@@ -187,7 +187,7 @@ public class TagCache {
                 while (it.hasNext()) {
                     Map.Entry<String, Tag> item = it.next();
                     if (item.getValue().status == TagStatus.NONE &&
-                            System.currentTimeMillis() - item.getValue().time > MyParams.READ_TID_MAX_WAIT_TIME) {
+                            System.currentTimeMillis() - item.getValue().time > 1000) {
                         item.getValue().status = TagStatus.UPLOADING;
                         upload(item.getValue().tid, item.getKey());
                     }

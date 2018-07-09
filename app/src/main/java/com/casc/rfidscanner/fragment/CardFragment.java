@@ -84,8 +84,8 @@ public class CardFragment extends BaseFragment implements InsHandler {
     // 注册状态的标志符
     private boolean mIsRegistering;
 
-    // 当前读取的EPC和数据存储区数据
-    private byte[] mScannedEPC, mDataRead;
+    // 当前读取的EPC
+    private byte[] mScannedEPC;
 
     // 读取到和未读取到EPC的计数器
     private int mReadCount, mReadNoneCount;
@@ -177,11 +177,6 @@ public class CardFragment extends BaseFragment implements InsHandler {
     public void dealIns(byte[] ins) {
         int command = ins[2] & 0xFF;
         switch (command) {
-            case 0x39: // 读取TID成功的处理流程
-                mDataRead = Arrays.copyOfRange(ins, 6 + ins[5], ins.length - 2);
-                break;
-            case 0x49: // 写入成功的处理流程
-                break;
             default: // 其他指令（轮询或失败指令）的处理流程，因为需要操作UI使用Handler传递消息
                 mHandler.sendMessage(Message.obtain(mHandler, MSG_RECEIVED_FRAME_FROM_READER, ins));
         }
@@ -343,6 +338,8 @@ public class CardFragment extends BaseFragment implements InsHandler {
 
         @Override
         public void run() {
+            byte[] data = null;
+
             if (Integer.valueOf(mBodyCodeIcl.getCode().substring(3)) > 255) {
                 writeHint("可视码最大编号为255");
                 writeHint("注册失败");
@@ -354,57 +351,45 @@ public class CardFragment extends BaseFragment implements InsHandler {
             }
             try {
                 // 设置Mask
-                MyVars.getReader().sendCommand(
-                        InsHelper.getEPCSelectParameter(mScannedEPC), MyParams.SELECT_MAX_TRY_COUNT);
+                MyVars.getReader().setMask(mScannedEPC);
 
                 // 尝试读取TID
                 writeHint("读取TID");
-                mDataRead = null;
-                MyVars.getReader().sendCommand(InsHelper.getReadMemBank(
+                data = MyVars.getReader().sendCommandSync(InsHelper.getReadMemBank(
                         CommonUtils.hexToBytes("00000000"), InsHelper.MemBankType.TID,
                         MyParams.TID_START_INDEX, MyParams.TID_LENGTH), READ_MAX_TRY_COUNT);
-                //Thread.sleep((READ_MAX_TRY_COUNT + 1) * LinkType.getSendInterval());
-                if (mDataRead == null) {
+                if (data == null) {
                     writeHint("读取TID失败");
                     writeTaskFailed();
                     return;
                 } else {
-                    mCardToRegister.setTid(mDataRead);
+                    mCardToRegister.setTid(InsHelper.getReadContent(data));
                 }
 
                 // 写入PC
                 writeHint("写入PC");
-                mDataRead = null;
-                MyVars.getReader().sendCommand(InsHelper.getWriteMemBank(
+                data = MyVars.getReader().sendCommandSync(InsHelper.getWriteMemBank(
                         CommonUtils.hexToBytes("00000000"), InsHelper.MemBankType.EPC,
                         1, mCardToRegister.getPc()), WRITE_MAX_TRY_COUNT);
-                MyVars.getReader().sendCommand(InsHelper.getReadMemBank(
-                        CommonUtils.hexToBytes("00000000"),
-                        InsHelper.MemBankType.EPC,
-                        1, 1), READ_MAX_TRY_COUNT);
-                //Thread.sleep((WRITE_MAX_TRY_COUNT + READ_MAX_TRY_COUNT + 1) * LinkType.getSendInterval());
-                if (mDataRead == null || ((mDataRead[0] & 0xFF) >> 3) != mCardToRegister.getEpc().length / 2) {
+                if (data == null || InsHelper.getWriteContent(data).length != mCardToRegister.getEpc().length) {
                     writeHint("写入PC失败");
                     writeTaskFailed();
                     return;
+                } else {
+                    writeHint("写入PC成功");
                 }
 
                 // 写入EPC
                 writeHint("写入EPC");
-                mDataRead = null;
-                MyVars.getReader().sendCommand(InsHelper.getWriteMemBank(
+                data = MyVars.getReader().sendCommandSync(InsHelper.getWriteMemBank(
                         CommonUtils.hexToBytes("00000000"), InsHelper.MemBankType.EPC,
                         2, mCardToRegister.getEpc()), WRITE_MAX_TRY_COUNT);
-                MyVars.getReader().sendCommand(
-                        InsHelper.getEPCSelectParameter(mCardToRegister.getEpc()), 2);
-                MyVars.getReader().sendCommand(InsHelper.getReadMemBank(
-                        CommonUtils.hexToBytes("00000000"), InsHelper.MemBankType.EPC,
-                        2, mCardToRegister.getEpc().length / 2), READ_MAX_TRY_COUNT);
-                //Thread.sleep((WRITE_MAX_TRY_COUNT + READ_MAX_TRY_COUNT + 3) * LinkType.getSendInterval());
-                if (!Arrays.equals(mDataRead, mCardToRegister.getEpc())) {
+                if (data == null) {
                     writeHint("写入EPC失败");
                     writeTaskFailed();
                     return;
+                } else {
+                    writeHint("写入EPC成功");
                 }
 
                 // 尝试上报平台

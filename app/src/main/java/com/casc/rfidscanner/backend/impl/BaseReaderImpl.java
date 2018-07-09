@@ -131,7 +131,6 @@ abstract class BaseReaderImpl implements TagReader {
     @Override
     public void stop() {
         mIsRunning = false;
-        lostConnection();
     }
 
     abstract void write(byte[] data) throws IOException;
@@ -240,9 +239,6 @@ abstract class BaseReaderImpl implements TagReader {
                             int j = i + 1;
                             while (j < totalCount && data[j] != InsHelper.INS_END) j++;
                             if (j < totalCount && InsHelper.checkIns(data, i, j)) { // 找到了一条指令，包含指令的开头和结尾，检查指令的合法性
-                                if (MyParams.PRINT_COMMAND) {
-                                    Log.i(TAG, CommonUtils.bytesToHex(Arrays.copyOfRange(data, i, j + 1)));
-                                }
                                 switch (data[i + 2] & 0xFF) {
                                     case 0xB6:
                                         mPower = ConfigHelper.getParam(MyParams.S_POWER);
@@ -262,7 +258,7 @@ abstract class BaseReaderImpl implements TagReader {
                                             sendSignal(mSensorSetup);
                                         } else {
                                             mIsSensorChecked = true;
-                                            mIsSensorHigh = data[i + 7] == 0x00;
+                                            mIsSensorHigh = data[i + 7] == 0x01;
                                             if (mInsHandler != null)
                                                 mInsHandler.sensorSignal(mIsSensorHigh);
                                             sendSignal(mSensorSignal);
@@ -277,6 +273,9 @@ abstract class BaseReaderImpl implements TagReader {
                                             if (mInsHandler != null)
                                                 mInsHandler.dealIns(Arrays.copyOfRange(data, i, j + 1));
                                         } else {
+                                            if (MyParams.PRINT_COMMAND) {
+                                                Log.i(TAG, CommonUtils.bytesToHex(Arrays.copyOfRange(data, i, j + 1)));
+                                            }
                                             sendSignal(mReaderSignal);
                                             if (mWriteQueue.isEmpty()) {
                                                 sendSignal(mInsSuccess);
@@ -285,6 +284,9 @@ abstract class BaseReaderImpl implements TagReader {
                                         }
                                         break;
                                     default:
+                                        if (MyParams.PRINT_COMMAND) {
+                                            Log.i(TAG, CommonUtils.bytesToHex(Arrays.copyOfRange(data, i, j + 1)));
+                                        }
                                         if (!mIsExecuteSyncTask) {
                                             if (mInsHandler != null)
                                                 mInsHandler.dealIns(Arrays.copyOfRange(data, i, j + 1));

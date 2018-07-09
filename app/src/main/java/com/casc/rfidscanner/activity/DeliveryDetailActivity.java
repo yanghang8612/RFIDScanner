@@ -59,7 +59,6 @@ public class DeliveryDetailActivity extends BaseActivity {
 
     @BindView(R.id.btn_detail_view_buckets) Button mViewBucketsBtn;
     @BindView(R.id.btn_detail_view_brief) Button mViewBriefBtn;
-    @BindView(R.id.btn_detail_confirm) Button mDetailConfirmBtn;
 
     private GoodsAdapter mGoodsAdapter;
     private BucketAdapter mBucketAdapter;
@@ -67,7 +66,6 @@ public class DeliveryDetailActivity extends BaseActivity {
 
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void onMessageEvent(BillUpdatedMessage message) {
-        mDetailConfirmBtn.setEnabled(!mBill.isHighlight());
         mDeliveryCountTv.setText(String.valueOf(mBill.getDeliveryCount()));
         mGoodsAdapter.notifyDataSetChanged();
         mBucketAdapter.notifyDataSetChanged();
@@ -80,7 +78,6 @@ public class DeliveryDetailActivity extends BaseActivity {
         ButterKnife.bind(this);
 
         mBill = MyVars.deliveryBillToShow;
-        mDetailConfirmBtn.setEnabled(!mBill.isHighlight());
         mCardIDTv.setText(mBill.getCardID());
         mBillIDTv.setText(TextUtils.isEmpty(mBill.getBillID()) ? "待补单" : mBill.getBillID());
         mDeliveryCountTv.setText(String.valueOf(mBill.getDeliveryCount()));

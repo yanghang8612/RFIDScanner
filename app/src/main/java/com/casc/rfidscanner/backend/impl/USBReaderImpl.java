@@ -74,22 +74,27 @@ public class USBReaderImpl extends BaseReaderImpl {
     @Override
     void lostConnection() {
         super.lostConnection();
-        if (mState == STATE_CONNECTED) {
-            try {
-                mSerialPort.close();
-            } catch (Exception e) {
-                Log.i(TAG, "Close usb serial port error");
-            } finally {
-                mUsbDevice = null;
-                mSerialPort = null;
-            }
+        try {
+            mSerialPort.close();
+        } catch (Exception e) {
+            Log.i(TAG, "Close usb serial port error");
+        } finally {
+            mUsbDevice = null;
+            mSerialPort = null;
         }
     }
 
     @Override
     public void start() {
         super.start();
-        buildConnection();
+        if (mState != STATE_CONNECTED)
+            buildConnection();
+    }
+
+    @Override
+    public void stop() {
+        super.stop();
+        lostConnection();
     }
 
     /**

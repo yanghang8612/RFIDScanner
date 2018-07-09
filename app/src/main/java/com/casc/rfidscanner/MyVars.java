@@ -61,21 +61,6 @@ public class MyVars {
             }
             return bleReader;
         }
-//        switch (LinkType.getType()) {
-//            case R0:
-//                return usbReader;
-//            case R1:
-//                return usbReader;
-//            case R2:
-//                return bleReader;
-//            case R3:
-//                return bleReader;
-//            case R4:
-//                return bleReader;
-//            case R6:
-//                return bleReader;
-//            default:
-//                return usbReader;
 //        }
     }
 }

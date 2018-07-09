@@ -46,7 +46,11 @@
     <string name="uploaded_bill_count_label">已上传单数：</string>
     <string name="stored_bill_count_label">已转储单数：</string>
     <string name="work_status_label">工作状态</string>
-    <string name="temp_count_label">扫描数量</string>
+    <string name="scanned_count_label">扫描数量</string>
+    <string name="delivery_card_id">当前出库</string>
+    <string name="cur_delivery_count_label">出库数量</string>
+    <string name="reflux_card_id">当前回收</string>
+    <string name="cur_reflux_count_label">回收数量</string>
 
     <string name="card_id_label">卡号：</string>
     <string name="delivery_bill_id_label">提货单号：</string>
