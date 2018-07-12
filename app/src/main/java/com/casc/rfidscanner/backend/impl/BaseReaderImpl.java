@@ -161,6 +161,10 @@ abstract class BaseReaderImpl implements TagReader {
 
         @Override
         public void run() { // 循环从写队列中取指令帧尝试下发给读写器，若队列为空或读写器尚未连接则休眠指定时间后重试
+            Thread.currentThread().setName(
+                    BaseReaderImpl.this.getClass().getSimpleName().substring(0, 3)
+                            + getClass().getSimpleName());
+
             while (true) {
                 try {
                     if (mState != STATE_CONNECTED) { // 读写器未连接状态下则不发送任何指令
@@ -201,6 +205,7 @@ abstract class BaseReaderImpl implements TagReader {
                     }
                 } catch (IOException | NullPointerException e) {
                     Log.i(TAG, "Reader disconnected");
+                    e.printStackTrace();
                     lostConnection();
                 } catch (InterruptedException e) {
                     e.printStackTrace();
@@ -223,15 +228,21 @@ abstract class BaseReaderImpl implements TagReader {
 
         @Override
         public void run() {
+            Thread.currentThread().setName(
+                    BaseReaderImpl.this.getClass().getSimpleName().substring(0, 3)
+                            + getClass().getSimpleName());
+
             byte[] data = new byte[512];
             byte[] temp = new byte[256];
 
             int leftCount = 0, totalCount = 0;
             while (true) {
                 try {
-                    Thread.sleep(0, 100);
+                    Thread.sleep(1);
                     if (mState != STATE_CONNECTED) continue;
+                    //long start = System.nanoTime();
                     totalCount = leftCount + read(temp);
+                    //Log.i(TAG, "Read Cost:" + (System.nanoTime() - start));
                     System.arraycopy(temp, 0, data, leftCount, totalCount - leftCount);
                     leftCount = totalCount;
                     for (int i = 0; i < totalCount; i++) {
@@ -306,6 +317,7 @@ abstract class BaseReaderImpl implements TagReader {
                     System.arraycopy(data, totalCount - leftCount, data, 0, leftCount);
                 } catch (IOException | NullPointerException e) {
                     Log.i(TAG, "Reader disconnected");
+                    e.printStackTrace();
                     lostConnection();
                 } catch (ArrayIndexOutOfBoundsException e) {
                     Log.i(TAG, "Expand read buffer");

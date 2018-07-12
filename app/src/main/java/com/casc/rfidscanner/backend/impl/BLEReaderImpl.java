@@ -91,6 +91,7 @@ public class BLEReaderImpl extends BaseReaderImpl {
             mBLESocket.close();
         } catch (Exception e) {
             Log.i(TAG, "Close bluetooth socket error");
+            e.printStackTrace();
         } finally {
             mBLESocket = null;
             startDiscovery();
@@ -113,7 +114,8 @@ public class BLEReaderImpl extends BaseReaderImpl {
     @Override
     public void stop() {
         super.stop();
-        lostConnection();
+        if (mState == STATE_CONNECTED)
+            lostConnection();
     }
 
     /**

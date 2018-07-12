@@ -81,7 +81,7 @@ public class MyParams {
     public static final Map<String, String> CONFIG_DEFAULT_MAP = new HashMap<>();
     static {
         CONFIG_DEFAULT_MAP.put(S_LINK, "00");
-        CONFIG_DEFAULT_MAP.put(S_SENSOR_SWITCH, "true");
+        CONFIG_DEFAULT_MAP.put(S_SENSOR_SWITCH, "false");
         CONFIG_DEFAULT_MAP.put(S_POWER, "26dBm");
         CONFIG_DEFAULT_MAP.put(S_Q_VALUE, "3");
         CONFIG_DEFAULT_MAP.put(S_REST, "20ms");
@@ -90,9 +90,9 @@ public class MyParams {
         CONFIG_DEFAULT_MAP.put(S_TAG_LIFECYCLE, "5Min");
         CONFIG_DEFAULT_MAP.put(S_BLANK_INTERVAL, "5");
         CONFIG_DEFAULT_MAP.put(S_DISCOVERY_INTERVAL, "2Sec");
-        CONFIG_DEFAULT_MAP.put(S_MAIN_PLATFORM_ADDR, "http://192.168.1.4:8080");
+        CONFIG_DEFAULT_MAP.put(S_MAIN_PLATFORM_ADDR, "http://59.252.100.114");
         CONFIG_DEFAULT_MAP.put(S_STANDBY_PLATFORM_ADDR, "http://106.37.201.142:8888");
-        CONFIG_DEFAULT_MAP.put(S_READER_ID, "100000000000000000000101");
+        CONFIG_DEFAULT_MAP.put(S_READER_ID, "100000000000000000000201");
         CONFIG_DEFAULT_MAP.put(S_READER_MAC, "00:00:00:00:00:00");
         CONFIG_DEFAULT_MAP.put(S_LONGITUDE, "121.39");
         CONFIG_DEFAULT_MAP.put(S_LATITUDE, "37.52");
@@ -107,8 +107,8 @@ public class MyParams {
 //    public static final int DELAY = 2 * 60 * 60;
     public static final int DELAY = 0;
     public static final boolean ENABLE_BACKDOOR = true;
-    public static final boolean PRINT_COMMAND = true;
-    public static final boolean PRINT_JSON = true;
+    public static final boolean PRINT_COMMAND = false;
+    public static final boolean PRINT_JSON = false;
 
     /**
      * EPC各种类型

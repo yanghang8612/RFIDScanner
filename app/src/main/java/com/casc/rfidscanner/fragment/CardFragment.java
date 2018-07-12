@@ -11,8 +11,11 @@ import android.support.v7.widget.RecyclerView;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.util.Log;
+import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
+import android.widget.LinearLayout;
+import android.widget.Switch;
 import android.widget.TextView;
 
 import com.casc.rfidscanner.MyApplication;
@@ -58,6 +61,8 @@ public class CardFragment extends BaseFragment implements InsHandler {
     private static final int MSG_FAILED = 2;
 
     @BindView(R.id.spn_card_type) BetterSpinner mCardTypeSpn;
+    @BindView(R.id.ll_card_special) LinearLayout mCardSpecialLl;
+    @BindView(R.id.sw_card_special) Switch mCardSpecialSw;
     @BindView(R.id.spn_card_validity) BetterSpinner mCardValiditySpn;
 
     @BindView(R.id.tv_epc) TextView mEpcTv;
@@ -136,14 +141,18 @@ public class CardFragment extends BaseFragment implements InsHandler {
                 switch (s.toString()) {
                     case "出库专用卡":
                         mBodyCodeIcl.setHeader(MyVars.config.getCompanySymbol() + "C");
+                        mCardSpecialLl.setVisibility(View.VISIBLE);
                         break;
                     case "运维专用卡":
                         mBodyCodeIcl.setHeader("PTA");
+                        mCardSpecialLl.setVisibility(View.GONE);
                         break;
                     case "回流专用卡":
                         mBodyCodeIcl.setHeader(MyVars.config.getCompanySymbol() + "R");
+                        mCardSpecialLl.setVisibility(View.GONE);
                         break;
                 }
+                mCardSpecialSw.setChecked(false);
             }
         });
         mCardValiditySpn.setText(getResources().getStringArray(R.array.card_validity)[0]);
@@ -199,6 +208,7 @@ public class CardFragment extends BaseFragment implements InsHandler {
         mRegisterBtn.setEnabled(false);
         // 生成Card实例
         mCardToRegister = new Card(mCardTypeSpn.getText().toString(), mBodyCodeIcl.getCode(), mCardValiditySpn.getText().toString());
+        if (mCardSpecialSw.isChecked()) mCardToRegister.setSpecial();
         // 开始写入任务
         MyVars.executor.execute(new WriteEPCTask());
     }
@@ -371,12 +381,12 @@ public class CardFragment extends BaseFragment implements InsHandler {
                 data = MyVars.getReader().sendCommandSync(InsHelper.getWriteMemBank(
                         CommonUtils.hexToBytes("00000000"), InsHelper.MemBankType.EPC,
                         1, mCardToRegister.getPc()), WRITE_MAX_TRY_COUNT);
-                if (data == null || InsHelper.getWriteContent(data).length != mCardToRegister.getEpc().length) {
+                if (data != null && data[2] == 0x49) {
+                    writeHint("写入PC成功");
+                } else {
                     writeHint("写入PC失败");
                     writeTaskFailed();
                     return;
-                } else {
-                    writeHint("写入PC成功");
                 }
 
                 // 写入EPC

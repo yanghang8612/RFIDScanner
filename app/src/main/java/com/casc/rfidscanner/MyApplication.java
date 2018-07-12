@@ -64,6 +64,7 @@ public class MyApplication extends Application {
         MyVars.cache = new TagCache(this);
 
         // 初始化Speech相关授权及参数
+
         SpeechSynthesizer speechSynthesizer = SpeechSynthesizer.getInstance();
         speechSynthesizer.setContext(this);
         speechSynthesizer.setAppId(MyParams.AppId);
@@ -79,13 +80,6 @@ public class MyApplication extends Application {
         MyVars.executor.scheduleWithFixedDelay(new UpdateConfigTask(), 0 , MyParams.CONFIG_UPDATE_INTERVAL, TimeUnit.SECONDS);
         MyVars.executor.scheduleWithFixedDelay(new InternetStatusCheckTask(), 0, MyParams.INTERNET_STATUS_CHECK_INTERVAL, TimeUnit.MILLISECONDS);
         MyVars.executor.scheduleWithFixedDelay(new PlatformStatusCheckTask(), 0, MyParams.PLATFORM_STATUS_CHECK_INTERVAL, TimeUnit.MILLISECONDS);
-    }
-
-    @Override
-    public void onTerminate() {
-        super.onTerminate();
-        Log.i(TAG, "App terminated");
-        MyVars.executor.shutdown();
     }
 
     private class UpdateConfigTask implements Runnable {

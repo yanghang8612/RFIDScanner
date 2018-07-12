@@ -62,8 +62,6 @@ public class Card {
                 epc[MyParams.EPC_TYPE_INDEX] = MyParams.EPCType.CARD_DELIVERY.getCode();
                 epc[MyParams.EPC_TYPE_INDEX + 1] = (byte) (Integer.valueOf(bodyCode.substring(4)) >> 8);
                 epc[MyParams.EPC_TYPE_INDEX + 2] = (byte) (Integer.valueOf(bodyCode.substring(4)) & 0xFF);
-                // TODO: 2018/4/11 补单专用
-                epc[MyParams.EPC_TYPE_INDEX + 3] = (byte) 0x00;
                 break;
             case "运维专用卡":
                 this.pc = CommonUtils.hexToBytes(MyParams.ADMIN_PC_CONTENT);
@@ -125,5 +123,9 @@ public class Card {
 
     public String getComment() {
         return comment;
+    }
+
+    public void setSpecial() {
+        epc[MyParams.EPC_TYPE_INDEX + 3] = (byte) 0x01;
     }
 }

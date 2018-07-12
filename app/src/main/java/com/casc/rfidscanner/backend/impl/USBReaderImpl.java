@@ -68,7 +68,7 @@ public class USBReaderImpl extends BaseReaderImpl {
 
     @Override
     int read(byte[] data) throws IOException {
-        return mSerialPort.read(data, 0);
+        return mSerialPort.read(data, 100);
     }
 
     @Override
@@ -94,7 +94,8 @@ public class USBReaderImpl extends BaseReaderImpl {
     @Override
     public void stop() {
         super.stop();
-        lostConnection();
+        if (mState == STATE_CONNECTED)
+            lostConnection();
     }
 
     /**
