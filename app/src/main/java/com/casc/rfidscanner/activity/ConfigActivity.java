@@ -8,6 +8,7 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.Bundle;
 import android.os.CountDownTimer;
+import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -21,13 +22,21 @@ import com.casc.rfidscanner.MyParams;
 import com.casc.rfidscanner.MyVars;
 import com.casc.rfidscanner.R;
 import com.casc.rfidscanner.adapter.ReaderAdapter;
+import com.casc.rfidscanner.bean.Config;
 import com.casc.rfidscanner.bean.LinkType;
 import com.casc.rfidscanner.helper.ConfigHelper;
+import com.casc.rfidscanner.helper.NetHelper;
+import com.casc.rfidscanner.helper.param.MessageConfig;
+import com.casc.rfidscanner.helper.param.Reply;
+import com.casc.rfidscanner.message.ConfigUpdatedMessage;
 import com.casc.rfidscanner.utils.ClsUtils;
 import com.chad.library.adapter.base.BaseQuickAdapter;
+import com.google.gson.Gson;
 import com.rengwuxian.materialedittext.MaterialEditText;
 import com.rengwuxian.materialedittext.validation.RegexpValidator;
 import com.weiwangcn.betterspinner.library.BetterSpinner;
+
+import org.greenrobot.eventbus.EventBus;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -35,6 +44,9 @@ import java.util.List;
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
 
 public class ConfigActivity extends BaseActivity {
 
@@ -220,7 +232,26 @@ public class ConfigActivity extends BaseActivity {
             ConfigHelper.setParam(MyParams.S_LATITUDE, mLatitudeMet.getText().toString());
             ConfigHelper.setParam(MyParams.S_HEIGHT, mHeightMet.getText().toString());
 
-            ConfigHelper.setParam(MyParams.S_READER_ID, mReaderIDMet.getText().toString());
+            if (!ConfigHelper.getParam(MyParams.S_READER_ID).equals(mReaderIDMet.getText().toString())) {
+                ConfigHelper.setParam(MyParams.S_READER_ID, mReaderIDMet.getText().toString());
+                NetHelper.getInstance().getConfig(new MessageConfig()).enqueue(new Callback<Reply>() {
+                    @Override
+                    public void onResponse(@NonNull Call<Reply> call, @NonNull Response<Reply> response) {
+                        Reply reply = response.body();
+                        //Log.i(TAG, reply.toString());
+                        if (response.isSuccessful() && reply != null && reply.getCode() == 200) {
+                            ConfigHelper.setParam(MyParams.S_API_JSON, reply.getContent().toString());
+                            MyVars.config = new Gson().fromJson(reply.getContent().toString(), Config.class);
+                            EventBus.getDefault().post(new ConfigUpdatedMessage());
+                        }
+                    }
+
+                    @Override
+                    public void onFailure(@NonNull Call<Reply> call, @NonNull Throwable t) {}
+                });
+            } else {
+                ConfigHelper.setParam(MyParams.S_READER_ID, mReaderIDMet.getText().toString());
+            }
             ConfigHelper.setParam(MyParams.S_MAIN_PLATFORM_ADDR, mMainPlatformAddrMet.getText().toString());
             ConfigHelper.setParam(MyParams.S_STANDBY_PLATFORM_ADDR, mStandbyPlatformAddrMet.getText().toString());
             ConfigHelper.setParam(MyParams.S_READER_MAC, mReaderMacTv.getText().toString());

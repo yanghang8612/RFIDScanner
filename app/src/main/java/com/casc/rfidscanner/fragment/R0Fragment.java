@@ -56,7 +56,6 @@ public class R0Fragment extends BaseFragment implements InsHandler, QRCodeReader
     private static final int READ_MAX_TRY_COUNT = 5;
     private static final int WRITE_PC_MAX_TRY_COUNT = 5;
     private static final int WRITE_EPC_MAX_TRY_COUNT = 5;
-    private static final int NETWORK_WAIT_COUNT = 5;
     private static final int CAN_REGISTER_READ_COUNT = 5;
     private static final int MAX_READ_NONE_COUNT = 3;
     // Constant for InnerHandler message.what
@@ -354,6 +353,7 @@ public class R0Fragment extends BaseFragment implements InsHandler, QRCodeReader
                 data = MyVars.getReader().sendCommandSync(InsHelper.getReadMemBank(
                         CommonUtils.hexToBytes("00000000"), InsHelper.MemBankType.TID,
                         MyParams.TID_START_INDEX, MyParams.TID_LENGTH), READ_MAX_TRY_COUNT);
+                Log.i(TAG, Arrays.toString(data));
                 if (data == null) {
                     writeHint(new R0Hint(false, "注册失败,读取TID失败"));
                     writeTaskFailed();
@@ -387,13 +387,14 @@ public class R0Fragment extends BaseFragment implements InsHandler, QRCodeReader
                 data = MyVars.getReader().sendCommandSync(InsHelper.getWriteMemBank(
                         CommonUtils.hexToBytes("00000000"), InsHelper.MemBankType.EPC,
                         1, CommonUtils.hexToBytes(MyParams.BUCKET_PC_CONTENT)), WRITE_PC_MAX_TRY_COUNT);
+                Log.i(TAG, Arrays.toString(data));
                 // 这里不能检查epc的长度，因为修改PC后返回的EPC是修改之前的长度，而实际长度可能会发生变化
-                if (data != null && data[2] == 0x49) {
-                    writeHint(new R0Hint(true, "写入PC成功"));
-                } else {
+                if (data == null) {
                     writeHint(new R0Hint(false, "注册失败,写入PC失败"));
                     writeTaskFailed();
                     return;
+                } else {
+                    writeHint(new R0Hint(true, "写入PC成功"));
                 }
 
                 // 写入EPC

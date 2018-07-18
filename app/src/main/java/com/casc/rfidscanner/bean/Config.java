@@ -36,15 +36,15 @@ public class Config {
     }
 
     public List<String> getDealerInfo() {
-        return dealerinfo;
+        return dealerinfo == null ? dealerinfo = new ArrayList<>() : dealerinfo;
     }
 
     public List<String> getDriverInfo() {
-        return driverinfo;
+        return driverinfo == null ? driverinfo = new ArrayList<>() : driverinfo;
     }
 
     public List<ProductInfo> getProductInfo() {
-        return productinfo;
+        return productinfo == null ? productinfo = new ArrayList<>() : productinfo;
     }
 
     public ProductInfo getProductInfoByCode(int code) {
@@ -66,7 +66,7 @@ public class Config {
     }
 
     public List<DisableInfo> getDisableInfo() {
-        return disableinfo;
+        return disableinfo == null ? disableinfo = new ArrayList<>() : disableinfo;
     }
 
     public DisableInfo getDisableInfoByCode(int code) {

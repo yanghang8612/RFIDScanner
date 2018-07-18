@@ -96,7 +96,8 @@ abstract class BaseReaderImpl implements TagReader {
             mInsSuccess.await();
         } catch (InterruptedException e) {
             e.printStackTrace();
-        } finally {
+        } finally { // 这里若成功执行完毕后被唤醒，后续尚未执行的指令并没有继续执行的意义，因此需要清空写队列
+            mWriteQueue.clear();
             mLock.unlock();
         }
         return mResult;
@@ -203,11 +204,11 @@ abstract class BaseReaderImpl implements TagReader {
                     } else {
                         Thread.sleep(1);
                     }
-                } catch (IOException | NullPointerException e) {
+                } catch (IOException e) {
                     Log.i(TAG, "Reader disconnected");
                     e.printStackTrace();
                     lostConnection();
-                } catch (InterruptedException e) {
+                } catch (Exception e) {
                     e.printStackTrace();
                 }
             }
@@ -232,8 +233,8 @@ abstract class BaseReaderImpl implements TagReader {
                     BaseReaderImpl.this.getClass().getSimpleName().substring(0, 3)
                             + getClass().getSimpleName());
 
-            byte[] data = new byte[512];
-            byte[] temp = new byte[256];
+            byte[] temp = new byte[1024];
+            byte[] data = new byte[2 * temp.length];
 
             int leftCount = 0, totalCount = 0;
             while (true) {
@@ -250,6 +251,7 @@ abstract class BaseReaderImpl implements TagReader {
                             int j = i + 1;
                             while (j < totalCount && data[j] != InsHelper.INS_END) j++;
                             if (j < totalCount && InsHelper.checkIns(data, i, j)) { // 找到了一条指令，包含指令的开头和结尾，检查指令的合法性
+                                //Log.i(TAG, CommonUtils.bytesToHex(Arrays.copyOfRange(data, i, j + 1)));
                                 switch (data[i + 2] & 0xFF) {
                                     case 0xB6:
                                         mPower = ConfigHelper.getParam(MyParams.S_POWER);
@@ -315,7 +317,7 @@ abstract class BaseReaderImpl implements TagReader {
                         }
                     }
                     System.arraycopy(data, totalCount - leftCount, data, 0, leftCount);
-                } catch (IOException | NullPointerException e) {
+                } catch (IOException e) {
                     Log.i(TAG, "Reader disconnected");
                     e.printStackTrace();
                     lostConnection();
