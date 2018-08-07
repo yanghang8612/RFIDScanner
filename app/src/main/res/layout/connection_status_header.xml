@@ -6,77 +6,113 @@
     android:layout_height="match_parent">
 
     <LinearLayout
-        android:orientation="horizontal"
+        android:id="@+id/ll_connection_status"
         android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_weight="3"
-        android:layout_gravity="center"
+        android:layout_height="match_parent"
+        android:layout_weight="9"
         android:gravity="center">
 
-        <ImageView
-            android:id="@+id/iv_reader_status"
-            android:layout_width="wrap_content"
+        <LinearLayout
+            android:id="@+id/ll_monitor_status"
+            android:orientation="horizontal"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
+            android:layout_weight="3"
             android:layout_gravity="center"
-            android:src="@drawable/ic_connection_abnormal" />
+            android:gravity="center">
 
-        <TextView
-            android:layout_width="wrap_content"
+            <ImageView
+                android:id="@+id/iv_monitor_status"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:src="@drawable/ic_connection_abnormal" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:gravity="center"
+                android:text="@string/monitor_status_label"
+                android:textSize="14sp"
+                android:textColor="@color/black" />
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/ll_reader_status"
+            android:orientation="horizontal"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:gravity="center"
-            android:text="@string/reader_connection_status_label"
-            android:textSize="14sp"
-            android:textColor="@color/black" />
-
-    </LinearLayout>
-
-    <LinearLayout
-        android:orientation="horizontal"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_weight="3"
-        android:layout_gravity="center"
-        android:gravity="center">
-
-        <ImageView
-            android:id="@+id/iv_network_status"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
+            android:layout_weight="3"
             android:layout_gravity="center"
-            android:src="@drawable/ic_connection_abnormal" />
+            android:gravity="center">
 
-        <TextView
-            android:layout_width="wrap_content"
+            <ImageView
+                android:id="@+id/iv_reader_status"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:src="@drawable/ic_connection_abnormal" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:gravity="center"
+                android:text="@string/reader_status_label"
+                android:textSize="14sp"
+                android:textColor="@color/black" />
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:orientation="horizontal"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:gravity="center"
-            android:text="@string/network_connection_status_label"
-            android:textSize="14sp"
-            android:textColor="@color/black" />
-
-    </LinearLayout>
-
-    <LinearLayout
-        android:orientation="horizontal"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_weight="3"
-        android:layout_gravity="center"
-        android:gravity="center">
-
-        <ImageView
-            android:id="@+id/iv_platform_status"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
+            android:layout_weight="3"
             android:layout_gravity="center"
-            android:src="@drawable/ic_connection_abnormal" />
+            android:gravity="center">
 
-        <TextView
-            android:layout_width="wrap_content"
+            <ImageView
+                android:id="@+id/iv_network_status"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:src="@drawable/ic_connection_abnormal" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:gravity="center"
+                android:text="@string/network_status_label"
+                android:textSize="14sp"
+                android:textColor="@color/black" />
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:orientation="horizontal"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:gravity="center"
-            android:text="@string/platform_connection_status_label"
-            android:textSize="14sp"
-            android:textColor="@color/black" />
+            android:layout_weight="3"
+            android:layout_gravity="center"
+            android:gravity="center">
+
+            <ImageView
+                android:id="@+id/iv_platform_status"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:src="@drawable/ic_connection_abnormal" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:gravity="center"
+                android:text="@string/platform_status_label"
+                android:textSize="14sp"
+                android:textColor="@color/black" />
+
+        </LinearLayout>
 
     </LinearLayout>
 

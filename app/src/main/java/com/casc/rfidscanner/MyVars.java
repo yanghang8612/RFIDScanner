@@ -7,6 +7,7 @@ import com.casc.rfidscanner.bean.Bucket;
 import com.casc.rfidscanner.bean.Config;
 import com.casc.rfidscanner.bean.DeliveryBill;
 import com.casc.rfidscanner.bean.RefluxBill;
+import com.casc.rfidscanner.bean.Server;
 import com.casc.rfidscanner.message.BatteryStatusMessage;
 import com.casc.rfidscanner.message.MultiStatusMessage;
 import com.casc.rfidscanner.utils.ActivityCollector;
@@ -31,6 +32,8 @@ public class MyVars {
     public static TagCache cache = null;
 
     public static Config config = null;
+
+    public static Server server = new Server();
 
     public static DeliveryBill deliveryBillToShow = null;
 

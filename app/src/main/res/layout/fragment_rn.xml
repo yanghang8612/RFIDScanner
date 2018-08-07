@@ -101,6 +101,57 @@
 
                 <LinearLayout
                     android:theme="@style/AppTheme.BigText"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="8dp"
+                    android:layout_marginEnd="8dp">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="司机：" />
+
+                    <AutoCompleteTextView
+                        android:id="@+id/act_rn_driver"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:imeOptions="flagNoExtractUi"
+                        android:inputType="text"
+                        android:maxLines="1"
+                        android:singleLine="true"
+                        android:completionThreshold="1" />
+
+                </LinearLayout>
+
+                <LinearLayout
+                    android:theme="@style/AppTheme.BigText"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="8dp"
+                    android:layout_marginEnd="8dp">
+
+                    <TextView
+                        android:id="@+id/tv_rn_counter_label"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="发货方：" />
+
+                    <AutoCompleteTextView
+                        android:id="@+id/act_rn_counter"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:imeOptions="flagNoExtractUi"
+                        android:inputType="text"
+                        android:maxLines="1"
+                        android:singleLine="true"
+                        android:completionThreshold="1" />
+
+                </LinearLayout>
+
+                <LinearLayout
+                    android:theme="@style/AppTheme.BigText"
                     android:orientation="horizontal"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"

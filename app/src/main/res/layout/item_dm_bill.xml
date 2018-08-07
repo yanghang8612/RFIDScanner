@@ -1,0 +1,177 @@
+<?xml version="1.0" encoding="utf-8"?>
+<android.support.v7.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/cv_dm_bill_root"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_margin="8dp"
+    app:cardCornerRadius="8dp"
+    app:cardElevation="4dp"
+    app:cardBackgroundColor="@color/snow">
+
+    <LinearLayout
+        android:orientation="horizontal"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_marginTop="@dimen/item_monitor_bill_vertical_margin"
+        android:layout_marginBottom="@dimen/item_monitor_bill_vertical_margin"
+        android:layout_marginStart="@dimen/item_monitor_bill_horizontal_margin"
+        android:layout_marginEnd="@dimen/item_monitor_bill_horizontal_margin">
+
+        <LinearLayout
+            android:visibility="gone"
+            android:orientation="vertical"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="0dp"
+                android:layout_weight="1"
+                android:gravity="center">
+
+                <TextView
+                    android:id="@+id/tv_line_name"
+                    android:theme="@style/AppTheme.CommonText"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:background="@drawable/bg_light_grey"
+                    android:text="出库线-①" />
+
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="0dp"
+                android:layout_weight="1"
+                android:gravity="center">
+
+                <TextView
+                    android:id="@+id/tv_bill_status"
+                    android:theme="@style/AppTheme.CommonText"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:background="@drawable/bg_light_grey"
+                    android:text="出库中" />
+
+            </LinearLayout>
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:orientation="vertical"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="7">
+
+            <LinearLayout
+                android:orientation="horizontal"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:padding="@dimen/item_monitor_bill_padding">
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent"
+                    android:layout_weight="1"
+                    android:layout_marginStart="@dimen/item_monitor_bill_horizontal_margin"
+                    android:gravity="start">
+
+                    <TextView
+                        android:theme="@style/AppTheme.BillText"
+                        android:layout_width="wrap_content"
+                        android:layout_height="match_parent"
+                        android:text="@string/card_id_label" />
+
+                    <TextView
+                        android:id="@+id/tv_dm_bill_card_id"
+                        android:theme="@style/AppTheme.BillText"
+                        android:layout_width="wrap_content"
+                        android:layout_height="match_parent"
+                        android:background="@drawable/bg_bill_card_normal"
+                        android:text="HY1001" />
+
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="match_parent">
+
+                    <TextView
+                        android:theme="@style/AppTheme.BillText"
+                        android:layout_width="wrap_content"
+                        android:layout_height="match_parent"
+                        android:text="@string/delivery_bill_id_label" />
+
+                    <TextView
+                        android:id="@+id/tv_dm_bill_id"
+                        android:theme="@style/AppTheme.BillText"
+                        android:layout_width="wrap_content"
+                        android:layout_height="match_parent"
+                        android:text="HY020171212001" />
+
+                </LinearLayout>
+
+            </LinearLayout>
+
+            <LinearLayout
+                android:orientation="horizontal"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:paddingStart="@dimen/item_monitor_bill_padding"
+                android:paddingEnd="@dimen/item_monitor_bill_padding"
+                android:gravity="center">
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent"
+                    android:layout_weight="1" />
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="4"
+                    android:gravity="end">
+
+                    <TextView
+                        android:theme="@style/AppTheme.BillText"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="2"
+                        android:text="@string/delivery_count_label" />
+
+                    <com.casc.rfidscanner.view.NumberSwitcher
+                        android:id="@+id/ns_dm_delivery_count"
+                        android:theme="@style/AppTheme.BigNumber"
+                        android:layout_width="0dp"
+                        android:layout_height="match_parent"
+                        android:layout_weight="3"
+                        android:gravity="end" />
+
+                    <TextView
+                        android:theme="@style/AppTheme.BillText"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="2"
+                        android:layout_marginStart="@dimen/item_delivery_bill_margin"
+                        android:text="@string/total_count_label" />
+
+                    <TextView
+                        android:id="@+id/tv_dm_total_count"
+                        android:theme="@style/AppTheme.BigNumber"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="3"
+                        android:gravity="end"
+                        android:text="@string/number_default_value" />
+
+                </LinearLayout>
+
+            </LinearLayout>
+
+        </LinearLayout>
+
+    </LinearLayout>
+
+</android.support.v7.widget.CardView>

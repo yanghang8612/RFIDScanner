@@ -7,10 +7,7 @@ import com.casc.rfidscanner.MyParams.EPCType;
 import com.casc.rfidscanner.MyVars;
 import com.google.gson.Gson;
 
-import java.math.BigInteger;
 import java.text.SimpleDateFormat;
-import java.util.Arrays;
-import java.util.BitSet;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Locale;

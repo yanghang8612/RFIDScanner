@@ -20,6 +20,7 @@
             app:popupTheme="@style/AppTheme.PopupOverlay">
 
             <TextView
+                android:id="@+id/tv_card_title"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="@dimen/toolbar_title_margin_start"
@@ -201,7 +202,7 @@
                                 android:layout_height="wrap_content"
                                 android:text="可视码：" />
 
-                            <com.casc.rfidscanner.layout.InputCodeLayout
+                            <com.casc.rfidscanner.view.InputCodeLayout
                                 android:id="@+id/icl_body_code"
                                 android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
@@ -233,7 +234,7 @@
                             <!--android:textSize="@dimen/r0_content_text_size" />-->
 
                             <Button
-                                android:id="@+id/btn_register"
+                                android:id="@+id/btn_card_register"
                                 android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
                                 android:theme="@style/ButtonPrimary"

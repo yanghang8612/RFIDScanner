@@ -9,6 +9,7 @@ import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.text.TextUtils;
 import android.util.Log;
+import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.ImageView;
@@ -25,10 +26,9 @@ import com.casc.rfidscanner.backend.InsHandler;
 import com.casc.rfidscanner.bean.Bucket;
 import com.casc.rfidscanner.helper.InsHelper;
 import com.casc.rfidscanner.helper.NetHelper;
-import com.casc.rfidscanner.helper.param.MessageQuery;
 import com.casc.rfidscanner.helper.param.MessageRegister;
 import com.casc.rfidscanner.helper.param.Reply;
-import com.casc.rfidscanner.layout.InputCodeLayout;
+import com.casc.rfidscanner.view.InputCodeLayout;
 import com.casc.rfidscanner.message.ConfigUpdatedMessage;
 import com.casc.rfidscanner.message.MultiStatusMessage;
 import com.casc.rfidscanner.utils.CommonUtils;
@@ -64,7 +64,7 @@ public class R0Fragment extends BaseFragment implements InsHandler, QRCodeReader
     private static final int MSG_UPDATE_HINT = 2;
 
     @BindView(R.id.icl_body_code) InputCodeLayout mBodyCodeIcl;
-    @BindView(R.id.btn_register) Button mRegisterBtn;
+    @BindView(R.id.btn_r0_register) Button mRegisterBtn;
     @BindView(R.id.qrv_body_code_reader) QRCodeReaderView mBodyCodeReaderQrv;
     @BindView(R.id.spn_product_name) BetterSpinner mProductNameSpn;
     @BindView(R.id.rv_registered_count_list) RecyclerView mRegisteredCountListRv;
@@ -116,9 +116,12 @@ public class R0Fragment extends BaseFragment implements InsHandler, QRCodeReader
 
     @Override
     protected void initFragment() {
+        mMonitorStatusLl.setVisibility(View.GONE);
+        mReaderStatusLl.setVisibility(View.VISIBLE);
+
         updateConfigViews();
         MyVars.registeredBuckets = mBuckets;
-        mVibrator = (Vibrator) MyApplication.getInstance().getSystemService(Context.VIBRATOR_SERVICE);
+        mVibrator = (Vibrator) mContext.getSystemService(Context.VIBRATOR_SERVICE);
 
         mAdapter = new RegisteredCountAdapter();
         mRegisteredCountListRv.setLayoutManager(new GridLayoutManager(this.getContext(), 2));
@@ -165,7 +168,7 @@ public class R0Fragment extends BaseFragment implements InsHandler, QRCodeReader
         }
     }
 
-    @OnClick(R.id.btn_register)
+    @OnClick(R.id.btn_r0_register)
     void onRegisterButtonClicked() {
         // 修改注册标志位，禁用界面按钮
         mIsRegistering = true;
@@ -190,8 +193,8 @@ public class R0Fragment extends BaseFragment implements InsHandler, QRCodeReader
     private void updateConfigViews() {
         mBodyCodeIcl.setHeader(MyVars.config.getHeader());
 
-        mProductNameSpn.setAdapter(new ArrayAdapter<>(MyApplication.getInstance(),
-                R.layout.item_common, MyVars.config.getProductInfo()));
+        mProductNameSpn.setAdapter(new ArrayAdapter<>(mContext, R.layout.item_common,
+                MyVars.config.getProductInfo()));
 
         String curProductName = mProductNameSpn.getText().toString();
         if (TextUtils.isEmpty(curProductName)
@@ -316,8 +319,8 @@ public class R0Fragment extends BaseFragment implements InsHandler, QRCodeReader
                 case MSG_UPDATE_HINT:
                     R0Hint hint = (R0Hint) msg.obj;
                     outer.mHintContentTv.setTextColor(hint.isSuccess ?
-                            MyApplication.getInstance().getColor(R.color.green) :
-                            MyApplication.getInstance().getColor(R.color.indian_red));
+                            outer.mContext.getColor(R.color.green) :
+                            outer.mContext.getColor(R.color.indian_red));
                     outer.mHintContentTv.setText(hint.content);
                     break;
             }
@@ -353,7 +356,6 @@ public class R0Fragment extends BaseFragment implements InsHandler, QRCodeReader
                 data = MyVars.getReader().sendCommandSync(InsHelper.getReadMemBank(
                         CommonUtils.hexToBytes("00000000"), InsHelper.MemBankType.TID,
                         MyParams.TID_START_INDEX, MyParams.TID_LENGTH), READ_MAX_TRY_COUNT);
-                Log.i(TAG, Arrays.toString(data));
                 if (data == null) {
                     writeHint(new R0Hint(false, "注册失败,读取TID失败"));
                     writeTaskFailed();
@@ -387,7 +389,6 @@ public class R0Fragment extends BaseFragment implements InsHandler, QRCodeReader
                 data = MyVars.getReader().sendCommandSync(InsHelper.getWriteMemBank(
                         CommonUtils.hexToBytes("00000000"), InsHelper.MemBankType.EPC,
                         1, CommonUtils.hexToBytes(MyParams.BUCKET_PC_CONTENT)), WRITE_PC_MAX_TRY_COUNT);
-                Log.i(TAG, Arrays.toString(data));
                 // 这里不能检查epc的长度，因为修改PC后返回的EPC是修改之前的长度，而实际长度可能会发生变化
                 if (data == null) {
                     writeHint(new R0Hint(false, "注册失败,写入PC失败"));
@@ -416,11 +417,12 @@ public class R0Fragment extends BaseFragment implements InsHandler, QRCodeReader
                         CommonUtils.bytesToHex(mBucketToRegister.getEpc()),
                         mBucketToRegister.getBodyCode());
                 Response<Reply> responseR0 = NetHelper.getInstance().uploadR0Message(message).execute();
+                Reply replyR0 = responseR0.body();
                 if (!responseR0.isSuccessful()) {
                     writeHint(new R0Hint(false, "注册失败,平台连接失败"));
                     writeTaskFailed();
                     return;
-                } else if (responseR0.body() == null || responseR0.body().getCode() != 200) {
+                } else if (replyR0 == null || replyR0.getCode() != 200) {
                     writeHint(new R0Hint(false, "注册失败,桶身码已使用"));
                     writeTaskFailed();
                     return;

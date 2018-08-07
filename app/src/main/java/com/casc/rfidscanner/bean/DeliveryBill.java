@@ -1,13 +1,21 @@
 package com.casc.rfidscanner.bean;
 
+import android.text.TextUtils;
+
 import com.casc.rfidscanner.MyVars;
+import com.casc.rfidscanner.adapter.GoodsAdapter;
 import com.casc.rfidscanner.utils.CommonUtils;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 
 public class DeliveryBill {
 
@@ -26,9 +34,11 @@ public class DeliveryBill {
     private static final int SPEC_LENGTH = 20;
     private static final int SPEC_INDEX = 9 + 6 + 10 + 4;
 
-    private boolean isHighlight;
+    private boolean isHighlight, isBacking, isComplete;
 
     private long updatedTime = System.currentTimeMillis();
+
+    private Client client;
 
     private byte[] card;
 
@@ -44,7 +54,9 @@ public class DeliveryBill {
 
     private List<Goods> goods = new ArrayList<>();
 
-    private List<Bucket> buckets = new ArrayList<>();
+    private Map<String, Bucket> buckets = new LinkedHashMap<>();
+
+    private GoodsAdapter goodsAdapter;
 
     public DeliveryBill(byte[] card) {
         // 解析出库专用卡EPC
@@ -53,6 +65,7 @@ public class DeliveryBill {
         cardNo += (card[5] & 0xFF) << 8;
         cardNo += (card[6] & 0xFF);
         this.cardID = MyVars.config.getCompanySymbol() + "C" + String.format("%03d", cardNo);
+        this.goodsAdapter = new GoodsAdapter(goods, true);
     }
 
     public DeliveryBill(byte[] card, byte[] bill) {
@@ -106,12 +119,36 @@ public class DeliveryBill {
         this.updatedTime = updatedTime;
     }
 
+    public boolean isComplete() {
+        return isComplete;
+    }
+
+    public void setComplete(boolean complete) {
+        isComplete = complete;
+    }
+
+    public Client getClient() {
+        return client;
+    }
+
+    public void setClient(Client client) {
+        this.client = client;
+    }
+
     public byte[] getCard() {
         return card;
     }
 
+    public String getCardStr() {
+        return CommonUtils.bytesToHex(card);
+    }
+
     public byte[] getBill() {
         return bill;
+    }
+
+    public String getBillStr() {
+        return CommonUtils.bytesToHex(bill);
     }
 
     public int getDayOfYear() {
@@ -147,39 +184,47 @@ public class DeliveryBill {
     }
 
     public List<Bucket> getBuckets() {
-        return buckets;
+        return new ArrayList<>(buckets.values());
     }
 
     public int getDeliveryCount() {
         return buckets.size();
     }
 
-    public boolean addProduct(Bucket bucket) {
-        int index = findMatchedProductIndex(bucket);
-        if (index == -1) {
-            buckets.add(0, bucket);
+    public boolean addBucket(String bucketEPC) {
+        return addBucket(new Bucket(bucketEPC));
+    }
+
+    public boolean addBucket(Bucket bucket) {
+        if (!buckets.containsKey(bucket.getEpcStr())) {
+            buckets.put(bucket.getEpcStr(), bucket);
             Goods matchedGoods = findMatchedGoods(bucket);
             if (matchedGoods == null) {
                 matchedGoods = new Goods(bucket.getProductInfo(), 0);
                 goods.add(matchedGoods);
             }
             matchedGoods.addCurCount();
+            return true;
         }
-        return index == -1;
+        return false;
     }
 
-    public boolean removeProduct(Bucket bucket) {
-        int index = findMatchedProductIndex(bucket);
-        if (index != -1) {
-            buckets.remove(index);
+    public boolean removeBucket(String bucketEPC) {
+        if (buckets.containsKey(bucketEPC)) {
+            Bucket bucket = buckets.remove(bucketEPC);
             Goods matchedGoods = findMatchedGoods(bucket);
             if (matchedGoods != null) {
                 matchedGoods.minusCurCount();
                 if (matchedGoods.getCurCount() == 0 && matchedGoods.getTotalCount() == 0)
                     goods.remove(matchedGoods);
             }
+            return true;
         }
-        return index != -1;
+        return false;
+    }
+
+    public boolean removeBucket(Bucket bucket) {
+        return removeBucket(bucket.getEpcStr());
     }
 
     public boolean checkBill() {
@@ -191,20 +236,12 @@ public class DeliveryBill {
     }
 
     public boolean checkGoods() {
+        if (bill == null) return true; // 补单的出库单，检查始终合法
         for (Goods goods : goods) {
             if (goods.getTotalCount() == 0)
                 return false;
         }
         return buckets.size() <= totalCount;
-    }
-
-    private int findMatchedProductIndex(Bucket bucket) {
-        for (int i = 0; i < buckets.size(); i++) {
-            if (Arrays.equals(buckets.get(i).getEpc(), bucket.getEpc())) {
-                return i;
-            }
-        }
-        return -1;
     }
 
     private Goods findMatchedGoods(Bucket bucket) {
@@ -213,5 +250,17 @@ public class DeliveryBill {
                 return goods;
         }
         return null;
+    }
+
+    public GoodsAdapter getGoodsAdapter() {
+        return goodsAdapter;
+    }
+
+    public boolean isBacking() {
+        return isBacking;
+    }
+
+    public void setBacking(boolean backing) {
+        isBacking = backing;
     }
 }

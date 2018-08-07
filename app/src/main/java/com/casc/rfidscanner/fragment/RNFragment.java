@@ -7,8 +7,11 @@ import android.support.annotation.NonNull;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.helper.ItemTouchHelper;
+import android.text.TextUtils;
 import android.util.Log;
+import android.view.View;
 import android.widget.ArrayAdapter;
+import android.widget.AutoCompleteTextView;
 import android.widget.TextView;
 
 import com.afollestad.materialdialogs.DialogAction;
@@ -20,6 +23,7 @@ import com.casc.rfidscanner.activity.ConfigActivity;
 import com.casc.rfidscanner.adapter.RNBucketAdapter;
 import com.casc.rfidscanner.backend.InsHandler;
 import com.casc.rfidscanner.bean.RNBucket;
+import com.casc.rfidscanner.helper.ConfigHelper;
 import com.casc.rfidscanner.helper.NetHelper;
 import com.casc.rfidscanner.helper.param.MessageDealer;
 import com.casc.rfidscanner.helper.param.Reply;
@@ -40,6 +44,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 import butterknife.BindView;
 import butterknife.OnClick;
@@ -60,6 +65,9 @@ public class RNFragment extends BaseFragment implements InsHandler {
     private static final int MSG_UPDATE_BUCKET_LIST = 1;
 
     @BindView(R.id.spn_rn_link) BetterSpinner mRNLinkSpn;
+    @BindView(R.id.act_rn_driver) AutoCompleteTextView mRNDriverAct;
+    @BindView(R.id.tv_rn_counter_label) TextView mRNCounterLabelTv;
+    @BindView(R.id.act_rn_counter) AutoCompleteTextView mRNCounterAct;
     @BindView(R.id.rv_rn_buckets) RecyclerView mBucketsRv;
     @BindView(R.id.tv_rn_bucket_count) TextView mBucketCountTv;
 
@@ -99,7 +107,29 @@ public class RNFragment extends BaseFragment implements InsHandler {
         mStoredBillCountTv.setText(String.valueOf(MyVars.cache.getStoredDealerBill()));
         mLinks = getResources().getStringArray(R.array.rn_link);
         mRNLinkSpn.setText(mLinks[0]);
-        mRNLinkSpn.setAdapter(new ArrayAdapter<>(getContext(), R.layout.item_rn_link, mLinks));
+        mRNLinkSpn.setAdapter(new ArrayAdapter<>(mContext, R.layout.item_rn_link, mLinks));
+        ArrayAdapter<String> mDriverAdapter = new ArrayAdapter<>(mContext,
+                android.R.layout.simple_dropdown_item_1line,
+                Objects.requireNonNull(ConfigHelper.getParam(MyParams.S_DRIVER_HISTORY).split(",")));
+        mRNDriverAct.setAdapter(mDriverAdapter);
+        mRNDriverAct.setOnFocusChangeListener(new View.OnFocusChangeListener() {
+            @Override
+            public void onFocusChange(View v, boolean hasFocus) {
+                if (hasFocus)
+                    ((AutoCompleteTextView) v).showDropDown();
+            }
+        });
+        ArrayAdapter<String> mCounterAdapter = new ArrayAdapter<>(mContext,
+                android.R.layout.simple_dropdown_item_1line,
+                Objects.requireNonNull(ConfigHelper.getParam(MyParams.S_COUNTER_HISTORY).split(",")));
+        mRNCounterAct.setAdapter(mCounterAdapter);
+        mRNCounterAct.setOnFocusChangeListener(new View.OnFocusChangeListener() {
+            @Override
+            public void onFocusChange(View v, boolean hasFocus) {
+                if (hasFocus)
+                    ((AutoCompleteTextView) v).showDropDown();
+            }
+        });
 
         mAdapter = new RNBucketAdapter(mBuckets);
         mAdapter.enableSwipeItem();
@@ -212,7 +242,7 @@ public class RNFragment extends BaseFragment implements InsHandler {
     @OnClick(R.id.btn_rn_clear)
     void onClearButtonClicked() {
         //DialogActivity.actionStart(getContext(), "");
-        new MaterialDialog.Builder(getContext())
+        new MaterialDialog.Builder(mContext)
                 .title("提示信息")
                 .content("确认清空当前扫描桶列表吗？")
                 .positiveText("确认")
@@ -238,7 +268,7 @@ public class RNFragment extends BaseFragment implements InsHandler {
 
     @OnClick(R.id.btn_rn_commit)
     void onCommitButtonClicked() {
-        new MaterialDialog.Builder(getContext())
+        new MaterialDialog.Builder(mContext)
                 .title("提示信息")
                 .content("确认提交当前的" + mRNLinkSpn.getText().toString() + "吗？")
                 .positiveText("确认")
@@ -256,7 +286,11 @@ public class RNFragment extends BaseFragment implements InsHandler {
                                 break;
                             }
                         }
-                        final MessageDealer dealer = new MessageDealer(stage);
+                        String counter = mRNCounterAct.getText().toString();
+                        String driver = mRNDriverAct.getText().toString();
+                        saveHistory(mRNCounterAct, MyParams.S_COUNTER_HISTORY);
+                        saveHistory(mRNDriverAct, MyParams.S_DRIVER_HISTORY);
+                        final MessageDealer dealer = new MessageDealer(stage, counter, driver);
                         for (RNBucket bucket : mBuckets) {
                             dealer.addBucket(System.currentTimeMillis() / 1000, bucket.getEpc());
                         }
@@ -290,6 +324,17 @@ public class RNFragment extends BaseFragment implements InsHandler {
                     }
                 })
                 .show();
+    }
+
+    private void saveHistory(AutoCompleteTextView input, String keyword) {
+        String history = ConfigHelper.getParam(keyword);
+        String newWord = input.getText().toString();
+        if (!TextUtils.isEmpty(newWord) && !history.contains(newWord + ",")) {
+            ConfigHelper.setParam(keyword, history + newWord + ",");
+            ((ArrayAdapter<String>) input.getAdapter()).add(newWord);
+            ((ArrayAdapter<String>) input.getAdapter()).remove("");
+        }
+        input.setText("");
     }
 
     private void clearBuckets() {

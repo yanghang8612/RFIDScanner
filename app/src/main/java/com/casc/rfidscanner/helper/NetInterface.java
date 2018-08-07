@@ -1,10 +1,5 @@
 package com.casc.rfidscanner.helper;
 
-import com.casc.rfidscanner.helper.param.MessageCardReg;
-import com.casc.rfidscanner.helper.param.MessageConfig;
-import com.casc.rfidscanner.helper.param.MessageQuery;
-import com.casc.rfidscanner.helper.param.MessageRegister;
-import com.casc.rfidscanner.helper.param.MessageScrap;
 import com.casc.rfidscanner.helper.param.Reply;
 
 import java.util.Map;
@@ -16,6 +11,7 @@ import retrofit2.http.Field;
 import retrofit2.http.FormUrlEncoded;
 import retrofit2.http.GET;
 import retrofit2.http.POST;
+import retrofit2.http.Query;
 import retrofit2.http.QueryMap;
 import retrofit2.http.Url;
 
@@ -53,6 +49,21 @@ public interface NetInterface {
 
     @POST
     Call<Reply> uploadAdminLoginInfo(@Url String url, @QueryMap Map<String, String> header, @Body RequestBody login);
+
+    @POST
+    Call<Reply> reportHeartbeat(@Url String url, @Query("line")String line);
+
+    @POST
+    Call<Reply> reportBillDelivery(@Url String url, @Query("line") String line, @Body RequestBody bill);
+
+    @POST
+    Call<Reply> reportBillReflux(@Url String url, @Query("line") String line, @Body RequestBody bill);
+
+    @POST
+    Call<Reply> reportBillBucket(@Url String url, @Query("line") String line, @Body RequestBody bucket);
+
+    @POST
+    Call<Reply> reportBillComplete(@Url String url, @Query("line") String line, @Body RequestBody message);
 
     @POST
     @FormUrlEncoded

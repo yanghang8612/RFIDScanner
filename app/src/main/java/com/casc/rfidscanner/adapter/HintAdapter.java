@@ -8,7 +8,6 @@ import com.casc.rfidscanner.utils.CommonUtils;
 import com.chad.library.adapter.base.BaseQuickAdapter;
 import com.chad.library.adapter.base.BaseViewHolder;
 
-import java.text.SimpleDateFormat;
 import java.util.List;
 
 public class HintAdapter extends BaseQuickAdapter<Hint, BaseViewHolder> {

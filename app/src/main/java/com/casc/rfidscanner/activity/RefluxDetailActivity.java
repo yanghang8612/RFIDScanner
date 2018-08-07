@@ -89,14 +89,14 @@ public class RefluxDetailActivity extends BaseActivity {
         if (!MyVars.config.getDealerInfo().isEmpty())
             mDealerSpn.setText(MyVars.config.getDealerInfo().get(0));
 
-        mDealerSpn.setAdapter(new ArrayAdapter<>(MyApplication.getInstance(),
-                R.layout.item_specify, MyVars.config.getDealerInfo()));
+        mDealerSpn.setAdapter(new ArrayAdapter<>(this, R.layout.item_specify,
+                MyVars.config.getDealerInfo()));
 
         if (!MyVars.config.getDriverInfo().isEmpty())
             mDriverSpn.setText(MyVars.config.getDriverInfo().get(0));
 
-        mDriverSpn.setAdapter(new ArrayAdapter<>(MyApplication.getInstance(),
-                R.layout.item_specify, MyVars.config.getDriverInfo()));
+        mDriverSpn.setAdapter(new ArrayAdapter<>(this, R.layout.item_specify,
+                MyVars.config.getDriverInfo()));
     }
 
     @Override

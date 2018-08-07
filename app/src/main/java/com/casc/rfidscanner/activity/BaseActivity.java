@@ -3,6 +3,7 @@ package com.casc.rfidscanner.activity;
 import android.annotation.SuppressLint;
 import android.content.Context;
 import android.os.Bundle;
+import android.support.annotation.StringRes;
 import android.support.v7.app.AppCompatActivity;
 import android.view.MotionEvent;
 import android.view.View;
@@ -19,6 +20,7 @@ import java.lang.reflect.Method;
 
 public abstract class BaseActivity extends AppCompatActivity implements View.OnSystemUiVisibilityChangeListener {
 
+    private Toast mToast;
     private View mDecorView;
     private int mVisibility =
                     View.SYSTEM_UI_FLAG_LAYOUT_STABLE
@@ -34,6 +36,7 @@ public abstract class BaseActivity extends AppCompatActivity implements View.OnS
         ActivityCollector.addActivity(this);
         setTitle("");
 
+        mToast = Toast.makeText(this, "", Toast.LENGTH_SHORT);
         mDecorView = getWindow().getDecorView();
         mDecorView.setSystemUiVisibility(mVisibility);
         mDecorView.setOnSystemUiVisibilityChangeListener(this);
@@ -43,6 +46,7 @@ public abstract class BaseActivity extends AppCompatActivity implements View.OnS
     protected void onDestroy() {
         super.onDestroy();
         ActivityCollector.removeActivity(this);
+        mToast.cancel();
     }
 
     @Override
@@ -142,17 +146,19 @@ public abstract class BaseActivity extends AppCompatActivity implements View.OnS
 
     /**
      * 在当前Activity的上下文中打印一条短消息
-     * @param message 消息内容
+     * @param content 消息内容
      */
-    public void showToast(String message) {
-        Toast.makeText(this, message, Toast.LENGTH_SHORT).show();
+    public void showToast(String content) {
+        mToast.setText(content);
+        mToast.show();
     }
 
     /**
      * 在当前Activity的上下文中打印一条短消息
      * @param resId 消息的资源ID
      */
-    public void showToast(int resId) {
-        Toast.makeText(this, resId, Toast.LENGTH_SHORT).show();
+    public void showToast(@StringRes int resId) {
+        mToast.setText(resId);
+        mToast.show();
     }
 }

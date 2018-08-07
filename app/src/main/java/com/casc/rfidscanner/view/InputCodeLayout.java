@@ -1,4 +1,4 @@
-package com.casc.rfidscanner.layout;
+package com.casc.rfidscanner.view;
 
 import android.content.Context;
 import android.content.res.TypedArray;

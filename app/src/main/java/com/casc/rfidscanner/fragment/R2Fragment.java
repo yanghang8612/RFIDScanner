@@ -5,6 +5,7 @@ import android.os.Message;
 import android.support.annotation.NonNull;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.text.TextUtils;
 import android.view.View;
 import android.widget.TextView;
 
@@ -28,6 +29,7 @@ import com.casc.rfidscanner.message.BillFinishedMessage;
 import com.casc.rfidscanner.message.BillStoredMessage;
 import com.casc.rfidscanner.message.BillUpdatedMessage;
 import com.casc.rfidscanner.message.BillUploadedMessage;
+import com.casc.rfidscanner.message.MultiStatusMessage;
 import com.casc.rfidscanner.utils.ActivityCollector;
 import com.casc.rfidscanner.utils.CommonUtils;
 import com.chad.library.adapter.base.BaseQuickAdapter;
@@ -63,6 +65,7 @@ public class R2Fragment extends BaseFragment implements InsHandler {
     private static final int MSG_UPDATE_COUNT = 2;
     private static final int MSG_RESET = 3;
 
+    @BindView(R.id.tv_r2_title) TextView mTitleTv;
     @BindView(R.id.tv_r2_reflux_card_id) TextView mRefluxCardIDTv;
     @BindView(R.id.tv_r2_scanned_count) TextView mScannedCountTv;
     @BindView(R.id.tv_r2_uploaded_bill_count) TextView mUploadedBillCountTv;
@@ -99,6 +102,13 @@ public class R2Fragment extends BaseFragment implements InsHandler {
     private Handler mHandler = new InnerHandler(this);
 
     @Subscribe(threadMode = ThreadMode.MAIN)
+    public void onMessageEvent(MultiStatusMessage message) {
+        super.onMessageEvent(message);
+        if (!TextUtils.isEmpty(MyVars.server.getLineName()))
+            mTitleTv.setText(MyVars.server.getLineName());
+    }
+
+    @Subscribe(threadMode = ThreadMode.MAIN)
     public void onMessageEvent(BillFinishedMessage message) {
         RefluxBill bill = MyVars.refluxBillToShow;
         writeHint(bill.getCardID() + "回流完成");
@@ -128,7 +138,7 @@ public class R2Fragment extends BaseFragment implements InsHandler {
         if (bill == mCurBill)
             mHandler.sendMessage(Message.obtain(mHandler, MSG_RESET));
         mBills.remove(bill);
-        mBillsMap.remove(CommonUtils.bytesToHex(bill.getCardEPC()));
+        mBillsMap.remove(bill.getCardStr());
         mBillAdapter.notifyDataSetChanged();
     }
 
@@ -153,6 +163,9 @@ public class R2Fragment extends BaseFragment implements InsHandler {
 
     @Override
     protected void initFragment() {
+        mMonitorStatusLl.setVisibility(View.VISIBLE);
+        mReaderStatusLl.setVisibility(View.VISIBLE);
+
         mHintAdapter = new HintAdapter(mHints);
         mBillAdapter = new RefluxBillAdapter(mBills);
         mBillAdapter.setOnItemClickListener(new BaseQuickAdapter.OnItemClickListener() {
@@ -205,7 +218,6 @@ public class R2Fragment extends BaseFragment implements InsHandler {
                                 playSound();
                                 mHandler.sendMessage(Message.obtain(mHandler, MSG_UPDATE_COUNT));
                                 EventBus.getDefault().post(new BillUpdatedMessage());
-
                             }
                         }
                         break;

@@ -11,6 +11,7 @@ import android.os.Handler;
 import android.os.Message;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentTransaction;
+import android.util.Log;
 
 import com.casc.rfidscanner.MyVars;
 import com.casc.rfidscanner.R;
@@ -73,6 +74,15 @@ public class MainActivity extends BaseActivity {
     public void onResume() {
         super.onResume();
         switchFragment();
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        Log.i(TAG, "MainActivity onDestroy called");
+        MyVars.executor.shutdown();
+        MyVars.usbReader.shutdown();
+        MyVars.bleReader.shutdown();
     }
 
     private void switchFragment() {

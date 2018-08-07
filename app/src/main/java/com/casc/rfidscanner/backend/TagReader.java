@@ -62,13 +62,18 @@ public interface TagReader {
     void start();
 
     /**
-     * 暂停读写器工作
+     * 暂停读写器工作，但不断开连接
      */
     void pause();
 
     /**
-     * 停止读写器工作
+     * 停止读写器工作，且断开连接
      */
     void stop();
+
+    /**
+     * 停止读写器工作，断开一切连接，并终止所有读写线程
+     */
+    void shutdown();
 }
 

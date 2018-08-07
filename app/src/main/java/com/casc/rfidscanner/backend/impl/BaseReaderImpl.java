@@ -36,6 +36,9 @@ abstract class BaseReaderImpl implements TagReader {
     // 读写器的工作状态
     boolean mIsRunning;
 
+    // 读写器的运行标志
+    private boolean mIsShutdown;
+
     // 是否正在进行同步发送任务
     private boolean mIsExecuteSyncTask;
 
@@ -134,6 +137,13 @@ abstract class BaseReaderImpl implements TagReader {
         mIsRunning = false;
     }
 
+    @Override
+    public void shutdown() {
+        mIsRunning = false;
+        mIsShutdown = true;
+        lostConnection();
+    }
+
     abstract void write(byte[] data) throws IOException;
 
     abstract int read(byte[] data) throws IOException;
@@ -166,7 +176,7 @@ abstract class BaseReaderImpl implements TagReader {
                     BaseReaderImpl.this.getClass().getSimpleName().substring(0, 3)
                             + getClass().getSimpleName());
 
-            while (true) {
+            while (!mIsShutdown) {
                 try {
                     if (mState != STATE_CONNECTED) { // 读写器未连接状态下则不发送任何指令
                         Thread.sleep(1);
@@ -235,9 +245,9 @@ abstract class BaseReaderImpl implements TagReader {
 
             byte[] temp = new byte[1024];
             byte[] data = new byte[2 * temp.length];
-
             int leftCount = 0, totalCount = 0;
-            while (true) {
+
+            while (!mIsShutdown) {
                 try {
                     Thread.sleep(1);
                     if (mState != STATE_CONNECTED) continue;
@@ -323,6 +333,7 @@ abstract class BaseReaderImpl implements TagReader {
                     lostConnection();
                 } catch (ArrayIndexOutOfBoundsException e) {
                     Log.i(TAG, "Expand read buffer");
+                    e.printStackTrace();
                     data = new byte[data.length * 10];
                     temp = new byte[temp.length * 10];
                 } catch (IllegalArgumentException e) {

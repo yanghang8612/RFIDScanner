@@ -32,6 +32,10 @@ public class Goods {
         totalCount += count;
     }
 
+    public int getLeftCount() {
+        return Math.max(0, totalCount - curCount);
+    }
+
     public int getCurCount() {
         return curCount;
     }

@@ -3,6 +3,8 @@ package com.casc.rfidscanner.helper.param;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 
+import java.util.Random;
+
 public class Reply {
 
     // 平台响应状态码，参见外部接口协议中关于此字段的定义
@@ -16,6 +18,12 @@ public class Reply {
 
     // 平台响应内容主体
     private JsonElement content;
+
+    public Reply(int code, String message) {
+        this.code = code;
+        this.message = message;
+        this.random_number = new Random().nextInt();
+    }
 
     public int getCode() {
         return code;

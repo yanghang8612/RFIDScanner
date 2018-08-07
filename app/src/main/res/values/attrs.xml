@@ -29,4 +29,8 @@
         <attr name="android:gravity"/>
     </declare-styleable>
 
+    <declare-styleable name="NumberSwitcher">
+        <attr name="ns_reverseAnim" format="boolean"/>
+    </declare-styleable>
+
 </resources>

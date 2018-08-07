@@ -4,6 +4,7 @@ import android.os.Handler;
 import android.os.Message;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.view.View;
 import android.widget.TextView;
 
 import com.casc.rfidscanner.MyParams;
@@ -62,6 +63,9 @@ public class R4Fragment extends BaseFragment implements InsHandler {
 
     @Override
     protected void initFragment() {
+        mMonitorStatusLl.setVisibility(View.GONE);
+        mReaderStatusLl.setVisibility(View.VISIBLE);
+
         mStoredCountTv.setText(String.valueOf(MyVars.cache.getStoredCount()));
         mAdapter = new BucketAdapter(mBuckets);
         mEncapsulationProductsTv.setLayoutManager(new LinearLayoutManager(getContext()));
@@ -74,9 +78,7 @@ public class R4Fragment extends BaseFragment implements InsHandler {
     }
 
     @Override
-    public void sensorSignal(boolean isHigh) {
-
-    }
+    public void sensorSignal(boolean isHigh) {}
 
     @Override
     public void dealIns(byte[] ins) {

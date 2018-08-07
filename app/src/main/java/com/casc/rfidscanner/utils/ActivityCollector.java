@@ -37,10 +37,16 @@ public class ActivityCollector {
     }
 
     public static void finishAll() {
-        for (Activity activity : activities) {
-            if (!activity.isFinishing()) {
-                activity.finish();
+        try {
+            for (Activity activity : activities) {
+                if (!activity.isFinishing()) {
+                    activity.finish();
+                }
             }
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            System.exit(0);
         }
     }
 
@@ -56,6 +62,6 @@ public class ActivityCollector {
 //        editor.remove("password");
 //        editor.apply();
 //        LoginActivity.actionStart(activities.get(0));
-//        activities.get(0).finish();
+//        activities.get(0).shutdown();
     }
 }

@@ -1,10 +1,13 @@
 package com.casc.rfidscanner.bean;
 
 import com.casc.rfidscanner.MyVars;
+import com.casc.rfidscanner.utils.CommonUtils;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 public class RefluxBill {
 
@@ -12,19 +15,19 @@ public class RefluxBill {
 
     private long updatedTime;
 
-    private byte[] cardEPC;
+    private byte[] card;
 
     private String cardID;
 
     private List<Goods> goods = new ArrayList<>();
 
-    private List<Bucket> buckets = new ArrayList<>();
+    private Map<String, Bucket> buckets = new LinkedHashMap<>();
 
-    public RefluxBill(byte[] cardEPC) {
-        this.cardEPC = cardEPC;
+    public RefluxBill(byte[] card) {
+        this.card = card;
         this.cardID =
                 MyVars.config.getCompanySymbol() + "R"
-                        + String.format("%03d", ((cardEPC[5] & 0xFF) << 8) + (cardEPC[6] & 0xFF));
+                        + String.format("%03d", ((card[5] & 0xFF) << 8) + (card[6] & 0xFF));
     }
 
     public boolean isHighlight() {
@@ -43,8 +46,12 @@ public class RefluxBill {
         this.updatedTime = updatedTime;
     }
 
-    public byte[] getCardEPC() {
-        return cardEPC;
+    public byte[] getCard() {
+        return card;
+    }
+
+    public String getCardStr() {
+        return CommonUtils.bytesToHex(card);
     }
 
     public String getCardID() {
@@ -60,34 +67,30 @@ public class RefluxBill {
     }
 
     public List<Bucket> getBuckets() {
-        return buckets;
+        return new ArrayList<>(buckets.values());
     }
 
     public int getRefluxCount() {
         return buckets.size();
     }
 
-    public boolean addBucket(Bucket bucket) {
-        int index = findMatchedBucketIndex(bucket);
-        if (index == -1) {
-            buckets.add(0, bucket);
+    public boolean addBucket(String bucketEPC) {
+        if (!buckets.containsKey(bucketEPC)) {
+            Bucket bucket = new Bucket(bucketEPC);
+            buckets.put(bucketEPC, bucket);
             Goods matchedGoods = findMatchedGoods(bucket);
             if (matchedGoods == null) {
                 matchedGoods = new Goods(bucket.getProductInfo(), -1);
                 goods.add(matchedGoods);
             }
             matchedGoods.addCurCount();
+            return true;
         }
-        return index == -1;
+        return false;
     }
 
-    private int findMatchedBucketIndex(Bucket bucket) {
-        for (int i = 0; i < buckets.size(); i++) {
-            if (Arrays.equals(buckets.get(i).getEpc(), bucket.getEpc())) {
-                return i;
-            }
-        }
-        return -1;
+    public boolean addBucket(Bucket bucket) {
+        return addBucket(bucket.getEpcStr());
     }
 
     private Goods findMatchedGoods(Bucket bucket) {

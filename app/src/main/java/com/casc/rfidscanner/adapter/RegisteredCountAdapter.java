@@ -1,7 +1,5 @@
 package com.casc.rfidscanner.adapter;
 
-import android.support.annotation.Nullable;
-
 import com.casc.rfidscanner.R;
 import com.casc.rfidscanner.bean.Bucket;
 import com.casc.rfidscanner.bean.RegisteredCount;

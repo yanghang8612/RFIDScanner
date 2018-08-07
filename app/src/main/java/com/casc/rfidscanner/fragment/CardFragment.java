@@ -32,7 +32,7 @@ import com.casc.rfidscanner.helper.InsHelper;
 import com.casc.rfidscanner.helper.NetHelper;
 import com.casc.rfidscanner.helper.param.MessageCardReg;
 import com.casc.rfidscanner.helper.param.Reply;
-import com.casc.rfidscanner.layout.InputCodeLayout;
+import com.casc.rfidscanner.view.InputCodeLayout;
 import com.casc.rfidscanner.message.MultiStatusMessage;
 import com.casc.rfidscanner.utils.CommonUtils;
 import com.weiwangcn.betterspinner.library.BetterSpinner;
@@ -69,7 +69,7 @@ public class CardFragment extends BaseFragment implements InsHandler {
     @BindView(R.id.tv_rssi) TextView mRssiTv;
 
     @BindView(R.id.icl_body_code) InputCodeLayout mBodyCodeIcl;
-    @BindView(R.id.btn_register) Button mRegisterBtn;
+    @BindView(R.id.btn_card_register) Button mRegisterBtn;
 
     @BindView(R.id.rv_card_list) RecyclerView mCardRv;
     @BindView(R.id.rv_card_hint_list) RecyclerView mHintRv;
@@ -123,12 +123,12 @@ public class CardFragment extends BaseFragment implements InsHandler {
     protected void initFragment() {
         mCardAdapter = new CardAdapter(mCards);
         mHintAdapter = new HintAdapter(mHints);
-        mVibrator = (Vibrator) getActivity().getSystemService(Context.VIBRATOR_SERVICE);
+        mVibrator = (Vibrator) mContext.getSystemService(Context.VIBRATOR_SERVICE);
 
         mBodyCodeIcl.setHeader(MyVars.config.getCompanySymbol() + "C");
         mCardTypeSpn.setText(getResources().getStringArray(R.array.card_type)[0]);
-        mCardTypeSpn.setAdapter(new ArrayAdapter<>(MyApplication.getInstance(),
-                R.layout.item_specify, getResources().getStringArray(R.array.card_type)));
+        mCardTypeSpn.setAdapter(new ArrayAdapter<>(mContext, R.layout.item_specify,
+                getResources().getStringArray(R.array.card_type)));
         mCardTypeSpn.addTextChangedListener(new TextWatcher() {
             @Override
             public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
@@ -156,8 +156,8 @@ public class CardFragment extends BaseFragment implements InsHandler {
             }
         });
         mCardValiditySpn.setText(getResources().getStringArray(R.array.card_validity)[0]);
-        mCardValiditySpn.setAdapter(new ArrayAdapter<>(MyApplication.getInstance(),
-                R.layout.item_specify, getResources().getStringArray(R.array.card_validity)));
+        mCardValiditySpn.setAdapter(new ArrayAdapter<>(mContext, R.layout.item_specify,
+                getResources().getStringArray(R.array.card_validity)));
 
         mBodyCodeIcl.setOnInputCompleteListener(new InputCodeLayout.OnInputCompleteCallback() {
             @Override
@@ -191,7 +191,7 @@ public class CardFragment extends BaseFragment implements InsHandler {
         }
     }
 
-    @OnClick(R.id.btn_register)
+    @OnClick(R.id.btn_card_register)
     void onRegisterButtonClicked() {
         // 清空提示区，已便本次注册使用
         mHints.clear();
@@ -296,7 +296,7 @@ public class CardFragment extends BaseFragment implements InsHandler {
                             outer.mRegisterBtn.setEnabled(outer.canRegister());
                         }
                         outer.mReadNoneCount = 0;
-                        outer.mEpcTv.setBackgroundColor(MyApplication.getInstance().getColor(R.color.white));
+                        outer.mEpcTv.setBackgroundColor(outer.mContext.getColor(R.color.white));
                         //outer.mEpcTv.setText(CommonUtils.bytesToHex(epc));
                         outer.mEpcTv.setText(CommonUtils.bytesToHex(epc) + CommonUtils.validEPC(epc).getComment());
                         outer.mRssiTv.setText(data[5] + "dBm");
@@ -406,15 +406,16 @@ public class CardFragment extends BaseFragment implements InsHandler {
                 writeHint("上报平台");
                 MessageCardReg message = new MessageCardReg(mCardToRegister);
                 Response<Reply> responseCardReg = NetHelper.getInstance().uploadCardRegMessage(message).execute();
+                Reply replyCardReg = responseCardReg.body();
                 if (!responseCardReg.isSuccessful()) {
                     writeHint("平台连接失败");
                     writeTaskFailed();
                     return;
-                } else if (responseCardReg.body() != null && responseCardReg.body().getCode() == 210) {
+                } else if (replyCardReg != null && replyCardReg.getCode() == 210) {
                     writeHint("TID已注册");
                     writeTaskFailed();
                     return;
-                } else if (responseCardReg.body() != null && responseCardReg.body().getCode() == 211) {
+                } else if (replyCardReg != null && replyCardReg.getCode() == 211) {
                     writeHint("可视码已注册");
                     writeTaskFailed();
                     return;

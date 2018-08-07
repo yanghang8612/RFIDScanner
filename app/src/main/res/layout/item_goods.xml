@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:id="@+id/ll_goods_root"
     android:orientation="vertical"
     android:layout_width="match_parent"
@@ -19,32 +20,33 @@
             android:theme="@style/AppTheme.GoodsText"
             android:layout_width="0dp"
             android:layout_height="match_parent"
-            android:layout_weight="2"
+            android:layout_weight="3"
             android:gravity="center|bottom"
             android:text="11L不老泉纯净水" />
 
-        <LinearLayout
+        <com.casc.rfidscanner.view.NumberSwitcher
+            android:id="@+id/ns_goods_left_count"
+            android:theme="@style/AppTheme.BigNumber"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:layout_marginBottom="-10dp"
-            android:gravity="end">
+            app:ns_reverseAnim="true" />
 
-            <TextView
-                android:id="@+id/tv_goods_cur_count"
-                android:theme="@style/AppTheme.BigNumber"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="18" />
-
-        </LinearLayout>
+        <com.casc.rfidscanner.view.NumberSwitcher
+            android:id="@+id/ns_goods_cur_count"
+            android:theme="@style/AppTheme.BigNumber"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="2"
+            android:layout_marginBottom="-10dp" />
 
         <TextView
             android:id="@+id/tv_goods_total_count"
             android:theme="@style/AppTheme.BigNumber"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_weight="1"
+            android:layout_weight="2"
             android:layout_marginBottom="-10dp"
             android:gravity="end"
             android:text="20" />

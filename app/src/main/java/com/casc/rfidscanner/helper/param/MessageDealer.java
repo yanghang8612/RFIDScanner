@@ -27,15 +27,15 @@ public class MessageDealer {
     // 成品出库的桶身码相关扫描信息
     private List<Bucket> bucket_info = new ArrayList<>();
 
-    public MessageDealer(String stage) {
+    public MessageDealer(String stage, String counterparty, String driver) {
         this.stage = stage;
         this.reader_TID = ConfigHelper.getParam(MyParams.S_READER_ID);
         this.longitude = Double.valueOf(ConfigHelper.getParam(MyParams.S_LONGITUDE));
         this.latitude = Double.valueOf(ConfigHelper.getParam(MyParams.S_LATITUDE));
         this.height = Double.valueOf(ConfigHelper.getParam(MyParams.S_HEIGHT));
         this.time = System.currentTimeMillis() / 1000 - (MyParams.DELAY * (14 - Integer.valueOf(stage)));
-        this.counterparty = "";
-        this.driver = "";
+        this.counterparty = counterparty;
+        this.driver = driver;
     }
 
     public String getStage() {

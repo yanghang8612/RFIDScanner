@@ -111,6 +111,9 @@ public class R1Fragment extends BaseFragment implements InsHandler {
 
     @Override
     protected void initFragment() {
+        mMonitorStatusLl.setVisibility(View.GONE);
+        mReaderStatusLl.setVisibility(View.VISIBLE);
+
         updateConfigViews();
         mAdapter = new BucketAdapter(mBuckets);
         mScrapProductsRv.setLayoutManager(new LinearLayoutManager(getContext()));
@@ -226,8 +229,8 @@ public class R1Fragment extends BaseFragment implements InsHandler {
     }
 
     private void updateConfigViews() {
-        mScrapReasonSpn.setAdapter(new ArrayAdapter<>(MyApplication.getInstance(),
-                R.layout.item_common, MyVars.config.getDisableInfo()));
+        mScrapReasonSpn.setAdapter(new ArrayAdapter<>(mContext, R.layout.item_common,
+                MyVars.config.getDisableInfo()));
 
         String curScrapReason = mScrapReasonSpn.getText().toString();
         if (TextUtils.isEmpty(curScrapReason)

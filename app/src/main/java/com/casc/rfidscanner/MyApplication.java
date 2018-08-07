@@ -2,11 +2,11 @@ package com.casc.rfidscanner;
 
 import android.app.Application;
 import android.content.Context;
+import android.content.Intent;
 import android.net.ConnectivityManager;
 import android.net.NetworkCapabilities;
 import android.net.wifi.WifiManager;
 import android.support.annotation.NonNull;
-import android.util.Log;
 
 import com.baidu.tts.client.SpeechSynthesizer;
 import com.baidu.tts.client.TtsMode;
@@ -20,6 +20,7 @@ import com.casc.rfidscanner.helper.NetHelper;
 import com.casc.rfidscanner.helper.param.MessageConfig;
 import com.casc.rfidscanner.helper.param.Reply;
 import com.casc.rfidscanner.message.ConfigUpdatedMessage;
+import com.casc.rfidscanner.service.HttpService;
 import com.google.gson.Gson;
 
 import org.greenrobot.eventbus.EventBus;
@@ -80,6 +81,9 @@ public class MyApplication extends Application {
         MyVars.executor.scheduleWithFixedDelay(new UpdateConfigTask(), 0 , MyParams.CONFIG_UPDATE_INTERVAL, TimeUnit.SECONDS);
         MyVars.executor.scheduleWithFixedDelay(new InternetStatusCheckTask(), 0, MyParams.INTERNET_STATUS_CHECK_INTERVAL, TimeUnit.MILLISECONDS);
         MyVars.executor.scheduleWithFixedDelay(new PlatformStatusCheckTask(), 0, MyParams.PLATFORM_STATUS_CHECK_INTERVAL, TimeUnit.MILLISECONDS);
+
+        // 开启Http Server
+        //startService(new Intent(this, HttpService.class));
     }
 
     private class UpdateConfigTask implements Runnable {

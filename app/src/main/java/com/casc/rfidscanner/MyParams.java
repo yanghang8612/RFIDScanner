@@ -1,7 +1,5 @@
 package com.casc.rfidscanner;
 
-import com.casc.rfidscanner.bean.LinkType;
-
 import java.util.HashMap;
 import java.util.Map;
 
@@ -53,6 +51,7 @@ public class MyParams {
      * Setting Parameters
      */
     // APP参数配置
+    public static final int HEARTBEAT_TIMEOUT = 2000; // ms
     public static final int NET_CONNECT_TIMEOUT = 3000; // ms
     public static final int NET_RW_TIMEOUT = 3000; // ms
     public static final int CONFIG_UPDATE_INTERVAL = 60; // s
@@ -70,12 +69,15 @@ public class MyParams {
     public static final String S_BLANK_INTERVAL = "blank_interval"; // 空白期间隔
     public static final String S_DISCOVERY_INTERVAL = "discovery_interval"; // 最小时间间隔
     public static final String S_MAIN_PLATFORM_ADDR = "main_platform_addr"; // 主平台软件地址
-    public static final String S_STANDBY_PLATFORM_ADDR = "standby_platform_addr"; // 备用平台软件地址
+    public static final String S_MONITOR_APP_ADDR = "standby_platform_addr"; // 监控APP地址
     public static final String S_READER_ID = "reader_id"; // 读写器ID
     public static final String S_READER_MAC = "reader_mac"; // 读写器蓝牙MAC地址
     public static final String S_LONGITUDE = "longitude"; // 经度
     public static final String S_LATITUDE = "latitude"; // 纬度
     public static final String S_HEIGHT = "height"; // 高度
+    public static final String S_COUNTER_HISTORY = "counter_history";
+    public static final String S_DRIVER_HISTORY = "driver_history";
+    public static final String S_LINE_NAMME = "line_name";
     // 平台软件外部接口，统一使用一个json字符串存储
     public static final String S_API_JSON = "api_json";
     public static final Map<String, String> CONFIG_DEFAULT_MAP = new HashMap<>();
@@ -91,13 +93,16 @@ public class MyParams {
         CONFIG_DEFAULT_MAP.put(S_BLANK_INTERVAL, "5");
         CONFIG_DEFAULT_MAP.put(S_DISCOVERY_INTERVAL, "2Sec");
         CONFIG_DEFAULT_MAP.put(S_MAIN_PLATFORM_ADDR, "http://59.252.100.114");
-        CONFIG_DEFAULT_MAP.put(S_STANDBY_PLATFORM_ADDR, "http://106.37.201.142:8888");
+        CONFIG_DEFAULT_MAP.put(S_MONITOR_APP_ADDR, "http://192.168.1.8:8888");
         CONFIG_DEFAULT_MAP.put(S_READER_ID, "100000000000000000000201");
         CONFIG_DEFAULT_MAP.put(S_READER_MAC, "00:00:00:00:00:00");
         CONFIG_DEFAULT_MAP.put(S_LONGITUDE, "121.39");
         CONFIG_DEFAULT_MAP.put(S_LATITUDE, "37.52");
         CONFIG_DEFAULT_MAP.put(S_HEIGHT, "922.88");
         CONFIG_DEFAULT_MAP.put(S_API_JSON, "{}");
+        CONFIG_DEFAULT_MAP.put(S_COUNTER_HISTORY, "");
+        CONFIG_DEFAULT_MAP.put(S_DRIVER_HISTORY, "");
+        CONFIG_DEFAULT_MAP.put(S_LINE_NAMME, "");
     }
 
     /**

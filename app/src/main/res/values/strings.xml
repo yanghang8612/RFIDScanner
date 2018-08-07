@@ -5,17 +5,20 @@
     <string name="r0_title">桶注册</string>
     <string name="r1_title">桶报废</string>
     <string name="r2_title">空桶回流</string>
+    <string name="r2_monitor_title">回流监控</string>
     <string name="r3_title">桶筛选</string>
-    <string name="r4_title">成品水注册</string>
-    <string name="r6_title">成品水出库</string>
-    <string name="rn_title">水站库存管理</string>
+    <string name="r4_title">成品注册</string>
+    <string name="r6_title">成品出库</string>
+    <string name="r6_monitor_title">出库监控</string>
+    <string name="rn_title">经销商库存管理</string>
     <string name="card_title">专用卡注册</string>
     <string name="config_title">配置管理</string>
 
     <!-- common string for all fragments -->
-    <string name="reader_connection_status_label">读写器连接状态</string>
-    <string name="network_connection_status_label">互联网连接状态</string>
-    <string name="platform_connection_status_label">平台连接状态</string>
+    <string name="monitor_status_label">监控APP状态</string>
+    <string name="reader_status_label">读写器状态</string>
+    <string name="network_status_label">互联网状态</string>
+    <string name="platform_status_label">平台状态</string>
     <string name="action_save">保存</string>
     <string name="action_cancel">取消</string>
 
@@ -40,11 +43,11 @@
     <string name="body_code_label">桶身码：</string>
     <string name="register_button_text">注册</string>
     <string name="scanning_status_label">扫描状态：</string>
-    <string name="delivery_count_label">已出库</string>
-    <string name="reflux_count_label">已回收</string>
+    <string name="delivery_count_label">总出库</string>
+    <string name="reflux_count_label">总回收</string>
     <string name="total_count_label">总数量</string>
-    <string name="uploaded_bill_count_label">已上传单数：</string>
-    <string name="stored_bill_count_label">已转储单数：</string>
+    <string name="uploaded_bill_count_label">已上传单数</string>
+    <string name="stored_bill_count_label">已转储单数</string>
     <string name="work_status_label">工作状态</string>
     <string name="scanned_count_label">扫描数量</string>
     <string name="delivery_card_id">当前出库</string>
@@ -52,7 +55,7 @@
     <string name="reflux_card_id">当前回收</string>
     <string name="cur_reflux_count_label">回收数量</string>
 
-    <string name="card_id_label">卡号：</string>
+    <string name="card_id_label">专用卡号：</string>
     <string name="delivery_bill_id_label">提货单号：</string>
     <string name="view_buckets_button_text">桶详细信息</string>
     <string name="view_brief_button_text">简要信息</string>
@@ -74,7 +77,8 @@
     <string name="config_reader_q_value_label">读写器Q值</string>
     <string name="config_reader_send_interval_label">读写器发送间隔</string>
     <string name="config_main_platform_addr_label">主平台地址</string>
-    <string name="config_standby_platform_addr">备用平台地址</string>
+    <string name="config_monitor_app_addr">监控APP地址</string>
+    <string name="config_line_name_label">处理线名称</string>
     <string name="config_reader_id_label">读写器ID</string>
     <string name="config_longitude_label">经度</string>
     <string name="config_latitude_label">纬度</string>
@@ -82,7 +86,8 @@
     <string name="config_reader_mac_label">读写器蓝牙MAC地址</string>
     <string name="config_reader_list_label">可用蓝牙设备列表</string>
     <string name="save_config_button_text">保存配置</string>
-    <string name="resume_button_text">返回</string>
+    <string name="exit_button_text">退出系统</string>
+    <string name="resume_button_text">返回上级</string>
     <string name="process_scanned_count_label">已扫描数量</string>
     <string name="process_uploaded_count_label">已上传数量</string>
     <string name="process_stored_count_label">已转储数量</string>

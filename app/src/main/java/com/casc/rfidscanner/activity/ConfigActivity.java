@@ -9,12 +9,16 @@ import android.content.IntentFilter;
 import android.os.Bundle;
 import android.os.CountDownTimer;
 import android.support.annotation.NonNull;
-import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.text.Editable;
+import android.text.TextWatcher;
+import android.util.Log;
 import android.view.View;
+import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
+import android.widget.LinearLayout;
 import android.widget.Switch;
 import android.widget.TextView;
 
@@ -29,6 +33,7 @@ import com.casc.rfidscanner.helper.NetHelper;
 import com.casc.rfidscanner.helper.param.MessageConfig;
 import com.casc.rfidscanner.helper.param.Reply;
 import com.casc.rfidscanner.message.ConfigUpdatedMessage;
+import com.casc.rfidscanner.utils.ActivityCollector;
 import com.casc.rfidscanner.utils.ClsUtils;
 import com.chad.library.adapter.base.BaseQuickAdapter;
 import com.google.gson.Gson;
@@ -69,9 +74,11 @@ public class ConfigActivity extends BaseActivity {
     @BindView(R.id.met_config_latitude) MaterialEditText mLatitudeMet;
     @BindView(R.id.met_config_height) MaterialEditText mHeightMet;
 
+    @BindView(R.id.ll_config_line_name) LinearLayout mLineNameLl;
+    @BindView(R.id.met_config_line_name) MaterialEditText mLineNameMet;
     @BindView(R.id.met_config_reader_id) MaterialEditText mReaderIDMet;
     @BindView(R.id.met_config_main_platform_addr) MaterialEditText mMainPlatformAddrMet;
-    @BindView(R.id.met_config_standby_platform_addr) MaterialEditText mStandbyPlatformAddrMet;
+    @BindView(R.id.met_config_monitor_app_addr) MaterialEditText mMonitorAppAddrMet;
     @BindView(R.id.met_config_reader_mac) TextView mReaderMacTv;
 
     @BindView(R.id.rv_reader_list) RecyclerView mReaderRv;
@@ -85,6 +92,8 @@ public class ConfigActivity extends BaseActivity {
     private List<BluetoothDevice> mReaders = new ArrayList<>();
 
     private int mSelectedIndex;
+
+    private long mClickTime;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -165,6 +174,24 @@ public class ConfigActivity extends BaseActivity {
         mLinkSpn.setText(linkType.comment);
         mLinkSpn.setAdapter(new ArrayAdapter<>(this,
                 R.layout.item_config, getResources().getStringArray(R.array.link)));
+        mLinkSpn.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {}
+
+            @Override
+            public void afterTextChanged(Editable s) {
+                if (LinkType.R2.comment.equals(s.toString()) ||
+                        LinkType.R6.comment.equals(s.toString())) {
+                    mLineNameLl.setVisibility(View.VISIBLE);
+                    mLineNameMet.setText(ConfigHelper.getParam(MyParams.S_LINE_NAMME));
+                } else {
+                    mLineNameLl.setVisibility(View.GONE);
+                }
+            }
+        });
 
         mSensorSw.setChecked(ConfigHelper.getBooleanParam(MyParams.S_SENSOR_SWITCH));
 
@@ -198,14 +225,18 @@ public class ConfigActivity extends BaseActivity {
         mHeightMet.addValidator(new RegexpValidator("格式错误(2位小数)",
                 "^-?(0|[0-9]+)[.][0-9]{2}$"));
 
+        mLineNameLl.setVisibility(linkType == LinkType.R2 || linkType == LinkType.R6 ?
+                View.VISIBLE : View.GONE);
+        mLineNameMet.setText(ConfigHelper.getParam(MyParams.S_LINE_NAMME));
+
         mReaderIDMet.setText(ConfigHelper.getParam(MyParams.S_READER_ID));
         mReaderIDMet.addValidator(new RegexpValidator("24位读写器ID(字符仅含0-9、A-F)",
                 "^([0-9A-F]{24})$"));
         mMainPlatformAddrMet.setText(ConfigHelper.getParam(MyParams.S_MAIN_PLATFORM_ADDR));
         mMainPlatformAddrMet.addValidator(new RegexpValidator("网址格式错误",
                 "^((([hH][tT][tT][pP][sS]?|[fF][tT][pP])\\:\\/\\/)?([\\w\\.\\-]+(\\:[\\w\\.\\&%\\$\\-]+)*@)?((([^\\s\\(\\)\\<\\>\\\\\\\"\\.\\[\\]\\,@;:]+)(\\.[^\\s\\(\\)\\<\\>\\\\\\\"\\.\\[\\]\\,@;:]+)*(\\.[a-zA-Z]{2,4}))|((([01]?\\d{1,2}|2[0-4]\\d|25[0-5])\\.){3}([01]?\\d{1,2}|2[0-4]\\d|25[0-5])))(\\b\\:(6553[0-5]|655[0-2]\\d|65[0-4]\\d{2}|6[0-4]\\d{3}|[1-5]\\d{4}|[1-9]\\d{0,3}|0)\\b)?((\\/[^\\/][\\w\\.\\,\\?\\'\\\\\\/\\+&%\\$#\\=~_\\-@]*)*[^\\.\\,\\?\\\"\\'\\(\\)\\[\\]!;<>{}\\s\\x7F-\\xFF])?)$"));
-        mStandbyPlatformAddrMet.setText(ConfigHelper.getParam(MyParams.S_STANDBY_PLATFORM_ADDR));
-        mStandbyPlatformAddrMet.addValidator(new RegexpValidator("网址格式错误",
+        mMonitorAppAddrMet.setText(ConfigHelper.getParam(MyParams.S_MONITOR_APP_ADDR));
+        mMonitorAppAddrMet.addValidator(new RegexpValidator("网址格式错误",
                 "^((([hH][tT][tT][pP][sS]?|[fF][tT][pP])\\:\\/\\/)?([\\w\\.\\-]+(\\:[\\w\\.\\&%\\$\\-]+)*@)?((([^\\s\\(\\)\\<\\>\\\\\\\"\\.\\[\\]\\,@;:]+)(\\.[^\\s\\(\\)\\<\\>\\\\\\\"\\.\\[\\]\\,@;:]+)*(\\.[a-zA-Z]{2,4}))|((([01]?\\d{1,2}|2[0-4]\\d|25[0-5])\\.){3}([01]?\\d{1,2}|2[0-4]\\d|25[0-5])))(\\b\\:(6553[0-5]|655[0-2]\\d|65[0-4]\\d{2}|6[0-4]\\d{3}|[1-5]\\d{4}|[1-9]\\d{0,3}|0)\\b)?((\\/[^\\/][\\w\\.\\,\\?\\'\\\\\\/\\+&%\\$#\\=~_\\-@]*)*[^\\.\\,\\?\\\"\\'\\(\\)\\[\\]!;<>{}\\s\\x7F-\\xFF])?)$"));
         mReaderMacTv.setText(ConfigHelper.getParam(MyParams.S_READER_MAC));
     }
@@ -218,7 +249,7 @@ public class ConfigActivity extends BaseActivity {
     @OnClick(R.id.btn_config_save)
     public void onSaveButtonClicked() {
         if (mLongitudeMet.validate() && mLatitudeMet.validate() && mHeightMet.validate() &&
-                mReaderIDMet.validate() && mMainPlatformAddrMet.validate() && mStandbyPlatformAddrMet.validate()) {
+                mReaderIDMet.validate() && mMainPlatformAddrMet.validate() && mMonitorAppAddrMet.validate()) {
             LinkType linkType = LinkType.getTypeByComment(mLinkSpn.getText().toString());
             ConfigHelper.setParam(MyParams.S_LINK, linkType.link);
             ConfigHelper.setParam(MyParams.S_SENSOR_SWITCH, String.valueOf(mSensorSw.isChecked()));
@@ -238,7 +269,6 @@ public class ConfigActivity extends BaseActivity {
                     @Override
                     public void onResponse(@NonNull Call<Reply> call, @NonNull Response<Reply> response) {
                         Reply reply = response.body();
-                        //Log.i(TAG, reply.toString());
                         if (response.isSuccessful() && reply != null && reply.getCode() == 200) {
                             ConfigHelper.setParam(MyParams.S_API_JSON, reply.getContent().toString());
                             MyVars.config = new Gson().fromJson(reply.getContent().toString(), Config.class);
@@ -252,11 +282,22 @@ public class ConfigActivity extends BaseActivity {
             } else {
                 ConfigHelper.setParam(MyParams.S_READER_ID, mReaderIDMet.getText().toString());
             }
+            ConfigHelper.setParam(MyParams.S_LINE_NAMME, mLineNameMet.getText().toString());
             ConfigHelper.setParam(MyParams.S_MAIN_PLATFORM_ADDR, mMainPlatformAddrMet.getText().toString());
-            ConfigHelper.setParam(MyParams.S_STANDBY_PLATFORM_ADDR, mStandbyPlatformAddrMet.getText().toString());
+            ConfigHelper.setParam(MyParams.S_MONITOR_APP_ADDR, mMonitorAppAddrMet.getText().toString());
             ConfigHelper.setParam(MyParams.S_READER_MAC, mReaderMacTv.getText().toString());
 
             finish();
+        }
+    }
+
+    @OnClick(R.id.btn_config_exit)
+    public void onExitButtonClicked() {
+        if (System.currentTimeMillis() - mClickTime < 2000) {
+            ActivityCollector.finishAll();
+        } else {
+            mClickTime = System.currentTimeMillis();
+            showToast("再点击一次退出系统");
         }
     }
 

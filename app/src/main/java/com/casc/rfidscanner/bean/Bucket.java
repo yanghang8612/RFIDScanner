@@ -33,6 +33,11 @@ public class Bucket {
         this(CommonUtils.hexToBytes(epcStr));
     }
 
+    public Bucket(String epcStr, long time) {
+        this(CommonUtils.hexToBytes(epcStr));
+        this.time = time;
+    }
+
     public boolean isScraped() {
         return isScraped;
     }

@@ -39,11 +39,20 @@
     <dimen name="r2_padding">24dp</dimen>
     <dimen name="r2_margin">16dp</dimen>
 
+    <dimen name="r2_monitor_padding">24dp</dimen>
+    <dimen name="r2_monitor_margin">16dp</dimen>
+
     <dimen name="r6_padding">24dp</dimen>
     <dimen name="r6_margin">16dp</dimen>
 
+    <dimen name="r6_monitor_padding">24dp</dimen>
+    <dimen name="r6_monitor_margin">16dp</dimen>
+
     <dimen name="rn_padding">24dp</dimen>
     <dimen name="rn_margin">16dp</dimen>
+
+    <dimen name="config_padding">24dp</dimen>
+    <dimen name="config_margin">16dp</dimen>
 
     <dimen name="item_specify_text_size">16sp</dimen>
     <dimen name="item_specify_padding">8dp</dimen>
@@ -54,13 +63,15 @@
     <dimen name="item_config_padding">8dp</dimen>
     <dimen name="item_config_height">36dp</dimen>
 
-    <dimen name="item_delivery_bill_margin">24dp</dimen>
-    <dimen name="item_delivery_bill_padding">10dp</dimen>
+    <dimen name="item_delivery_bill_margin">16dp</dimen>
+    <dimen name="item_delivery_bill_padding">8dp</dimen>
 
     <dimen name="item_reflux_bill_margin">24dp</dimen>
     <dimen name="item_reflux_bill_padding">10dp</dimen>
 
     <dimen name="item_goods_margin">8dp</dimen>
+
+    <dimen name="item_client_margin">8dp</dimen>
 
     <dimen name="delivery_detail_padding">24dp</dimen>
     <dimen name="delivery_detail_margin">16dp</dimen>
@@ -78,5 +89,9 @@
     <dimen name="header_icon_margin">2dp</dimen>
 
     <dimen name="process_count_margin">36dp</dimen>
+
+    <dimen name="item_monitor_bill_horizontal_margin">16dp</dimen>
+    <dimen name="item_monitor_bill_vertical_margin">8dp</dimen>
+    <dimen name="item_monitor_bill_padding">8dp</dimen>
 
 </resources>

@@ -13,7 +13,6 @@ import android.util.Log;
 import com.baidu.tts.client.SpeechSynthesizer;
 import com.casc.rfidscanner.MyParams;
 import com.casc.rfidscanner.MyVars;
-import com.casc.rfidscanner.backend.TagReader;
 import com.casc.rfidscanner.helper.ConfigHelper;
 
 import org.greenrobot.eventbus.EventBus;
@@ -21,7 +20,6 @@ import org.greenrobot.eventbus.EventBus;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.util.Set;
 import java.util.UUID;
 
 /**
@@ -179,7 +177,7 @@ public class BLEReaderImpl extends BaseReaderImpl {
 
         @Override
         public void onFinish() {
-            Log.i(TAG, "BLE discovery finish");
+            Log.i(TAG, "BLE finish discovery");
             mBLEAdapter.cancelDiscovery();
             isRunning = false;
             startDiscovery();

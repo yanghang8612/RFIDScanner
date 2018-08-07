@@ -94,6 +94,8 @@
             android:name=".activity.DialogActivity"
             android:screenOrientation="landscape"
             android:theme="@style/AppTheme.LightTransparent" />
+        <service
+            android:name=".service.HttpService" />
     </application>
 
 </manifest>
