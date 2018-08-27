@@ -1,64 +1,96 @@
 package com.casc.rfidscanner.fragment;
 
-import android.os.Handler;
-import android.os.Message;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.view.View;
-import android.widget.TextView;
 
 import com.casc.rfidscanner.MyParams;
 import com.casc.rfidscanner.MyVars;
 import com.casc.rfidscanner.R;
 import com.casc.rfidscanner.activity.ConfigActivity;
-import com.casc.rfidscanner.adapter.BucketAdapter;
-import com.casc.rfidscanner.backend.InsHandler;
+import com.casc.rfidscanner.adapter.HintAdapter;
 import com.casc.rfidscanner.bean.Bucket;
+import com.casc.rfidscanner.bean.Hint;
+import com.casc.rfidscanner.message.AbnormalBucketMessage;
+import com.casc.rfidscanner.message.PollingResultMessage;
 import com.casc.rfidscanner.message.TagCountChangedMessage;
 import com.casc.rfidscanner.utils.CommonUtils;
+import com.casc.rfidscanner.view.NumberSwitcher;
 
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
 
-import java.lang.ref.WeakReference;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 import butterknife.BindView;
 
 /**
- * 成品注册Fragment
+ * 成品下线Fragment
  */
-public class R4Fragment extends BaseFragment implements InsHandler {
+public class R4Fragment extends BaseFragment {
 
     private static final String TAG = R4Fragment.class.getSimpleName();
-    // Constant for InnerHandler message.what
-    private static final int MSG_INCREASE_SCANNED_COUNT = 0;
 
-    @BindView(R.id.tv_scanned_count) TextView mScannedCountTv;
-    @BindView(R.id.tv_uploaded_count) TextView mUploadedCountTv;
-    @BindView(R.id.tv_stored_count) TextView mStoredCountTv;
-    @BindView(R.id.rv_encapsulation_products) RecyclerView mEncapsulationProductsTv;
+    @BindView(R.id.ns_scanned_count)
+    NumberSwitcher mScannedCountNs;
+    @BindView(R.id.ns_uploaded_count) NumberSwitcher mUploadedCountNs;
+    @BindView(R.id.ns_stored_count) NumberSwitcher mStoredCountNs;
+    @BindView(R.id.rv_r4_hint_list) RecyclerView mHintListRv;
 
-    // 已筛选桶列表
-    private List<Bucket> mBuckets = new ArrayList<>();
+    // 提示信息列表
+    private List<Hint> mHints = new ArrayList<>();
 
-    // 已筛选桶列表适配器
-    private BucketAdapter mAdapter;
-
-    // Fragment内部handler
-    private Handler mHandler = new InnerHandler(this);
+    // 提示信息列表适配器
+    private HintAdapter mHintAdapter;
 
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void onMessageEvent(TagCountChangedMessage message) {
-        if (Integer.valueOf(mScannedCountTv.getText().toString()) < message.scannedCount) {
-            playSound();
+        mScannedCountNs.setNumber(message.scannedCount);
+        mUploadedCountNs.setNumber(message.uploadedCount);
+        mStoredCountNs.setNumber(message.storedCount);
+    }
+
+    @Subscribe(threadMode = ThreadMode.MAIN)
+    public void onMessageEvent(AbnormalBucketMessage message) {
+        mScannedCountNs.increaseNumber();
+        String content = message.isReadNone ?
+                "未发现桶标签" : "发现弱标签：" + new Bucket(message.epc).getBodyCode();
+        mHints.add(0, new Hint(content));
+        mHintAdapter.notifyDataSetChanged();
+    }
+
+    @Subscribe(threadMode = ThreadMode.MAIN)
+    public void onMessageEvent(PollingResultMessage message) {
+        if (message.isRead) {
+            MyParams.EPCType epcType = CommonUtils.validEPC(message.epc);
+            switch (epcType) {
+                case NONE: // 检测到未注册标签，是否提示
+                    break;
+                case BUCKET:
+                    if (MyVars.cache.insert(CommonUtils.bytesToHex(message.epc))) {
+                        playSound();
+                    }
+//                    // 下发Mask指令
+//                    MyVars.getReader().sendCommand(InsHelper.getEPCSelectParameter(epc), MyParams.SELECT_MAX_TRY_COUNT);
+//                    // 下发TID读取指令
+//                    MyVars.getReader().sendCommand(InsHelper.getReadMemBank(
+//                            CommonUtils.hexToBytes("00000000"),
+//                            InsHelper.MemBankType.TID,
+//                            MyParams.TID_START_INDEX,
+//                            MyParams.TID_LENGTH), MyParams.READ_TID_MAX_TRY_COUNT);
+                    break;
+                case CARD_ADMIN:
+                    if (++mAdminCardScannedCount == MyParams.ADMIN_CARD_SCANNED_COUNT) {
+                        sendAdminLoginMessage(CommonUtils.bytesToHex(message.epc));
+                        ConfigActivity.actionStart(getContext());
+                    }
+                    break;
+            }
+        } else {
+            mAdminCardScannedCount = 0;
         }
-        mAdapter.notifyDataSetChanged();
-        mScannedCountTv.setText(String.valueOf(message.scannedCount));
-        mUploadedCountTv.setText(String.valueOf(message.uploadedCount));
-        mStoredCountTv.setText(String.valueOf(message.storedCount));
+        //MyVars.cache.setTID(ins);
     }
 
     @Override
@@ -66,86 +98,17 @@ public class R4Fragment extends BaseFragment implements InsHandler {
         mMonitorStatusLl.setVisibility(View.GONE);
         mReaderStatusLl.setVisibility(View.VISIBLE);
 
-        mStoredCountTv.setText(String.valueOf(MyVars.cache.getStoredCount()));
-        mAdapter = new BucketAdapter(mBuckets);
-        mEncapsulationProductsTv.setLayoutManager(new LinearLayoutManager(getContext()));
-        mEncapsulationProductsTv.setAdapter(mAdapter);
+        mScannedCountNs.setNumber(0);
+        mUploadedCountNs.setNumber(0);
+        mStoredCountNs.setNumber((int) MyVars.cache.getStoredCount());
+
+        mHintAdapter = new HintAdapter(mHints);
+        mHintListRv.setLayoutManager(new LinearLayoutManager(mContext));
+        mHintListRv.setAdapter(mHintAdapter);
     }
 
     @Override
     protected int getLayout() {
         return R.layout.fragment_r4;
-    }
-
-    @Override
-    public void sensorSignal(boolean isHigh) {}
-
-    @Override
-    public void dealIns(byte[] ins) {
-        int command = ins[2] & 0xFF;
-        switch (command) {
-            case 0x22: // 轮询成功的处理流程
-                int pl = ((ins[3] & 0xFF) << 8) + (ins[4] & 0xFF);
-                byte[] epc = Arrays.copyOfRange(ins, 8, pl + 3);
-                MyParams.EPCType epcType = CommonUtils.validEPC(epc);
-                switch (epcType) {
-                    case NONE: // 检测到未注册标签，是否提示
-                        break;
-                    case BUCKET:
-                        if (MyVars.cache.insert(CommonUtils.bytesToHex(epc))) {
-                            if (mBuckets.size() > MyParams.PRODUCT_LIST_MAX_COUNT) {
-                                mBuckets.clear();
-                            }
-                            mBuckets.add(0, new Bucket(epc));
-//                            // 下发Mask指令
-//                            MyVars.getReader().sendCommand(InsHelper.getEPCSelectParameter(epc), MyParams.SELECT_MAX_TRY_COUNT);
-//                            // 下发TID读取指令
-//                            MyVars.getReader().sendCommand(InsHelper.getReadMemBank(
-//                                    CommonUtils.hexToBytes("00000000"),
-//                                    InsHelper.MemBankType.TID,
-//                                    MyParams.TID_START_INDEX,
-//                                    MyParams.TID_LENGTH), MyParams.READ_TID_MAX_TRY_COUNT);
-                        }
-                        break;
-                    case CARD_ADMIN:
-                        mAdminCardScannedCount++;
-                        if (mAdminCardScannedCount == MyParams.ADMIN_CARD_SCANNED_COUNT) {
-                            sendAdminLoginMessage(CommonUtils.bytesToHex(epc));
-                            ConfigActivity.actionStart(getContext());
-                        }
-                        break;
-                }
-                break;
-            case 0x39: // 读TID成功的处理流程
-                MyVars.cache.setTID(ins);
-                break;
-            default: // 命令帧执行失败的处理流程
-                switch (ins[5] & 0xFF) {
-                    case 0x15: // 轮询失败
-                        mAdminCardScannedCount = 0;
-                        break;
-                }
-        }
-    }
-
-    private static class InnerHandler extends Handler {
-
-        private WeakReference<R4Fragment> mOuter;
-
-        InnerHandler(R4Fragment fragment) {
-            this.mOuter = new WeakReference<>(fragment);
-        }
-
-        @Override
-        public void handleMessage(Message msg) {
-            R4Fragment outer = mOuter.get();
-            switch (msg.what) {
-                case MSG_INCREASE_SCANNED_COUNT:
-                    outer.increaseCount(outer.mScannedCountTv);
-                    outer.mAdapter.notifyDataSetChanged();
-                    outer.playSound();
-                    break;
-            }
-        }
     }
 }

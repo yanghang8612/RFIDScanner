@@ -2,7 +2,6 @@ package com.casc.rfidscanner;
 
 import android.app.Application;
 import android.content.Context;
-import android.content.Intent;
 import android.net.ConnectivityManager;
 import android.net.NetworkCapabilities;
 import android.net.wifi.WifiManager;
@@ -20,7 +19,6 @@ import com.casc.rfidscanner.helper.NetHelper;
 import com.casc.rfidscanner.helper.param.MessageConfig;
 import com.casc.rfidscanner.helper.param.Reply;
 import com.casc.rfidscanner.message.ConfigUpdatedMessage;
-import com.casc.rfidscanner.service.HttpService;
 import com.google.gson.Gson;
 
 import org.greenrobot.eventbus.EventBus;
@@ -71,12 +69,13 @@ public class MyApplication extends Application {
         speechSynthesizer.setAppId(MyParams.AppId);
         speechSynthesizer.setApiKey(MyParams.AppKey, MyParams.AppSecret);
         speechSynthesizer.auth(TtsMode.MIX);
-        speechSynthesizer.setParam(SpeechSynthesizer.PARAM_MIX_MODE, SpeechSynthesizer.MIX_MODE_HIGH_SPEED_SYNTHESIZE_WIFI);
+        speechSynthesizer.setParam(SpeechSynthesizer.PARAM_MIX_MODE,
+                SpeechSynthesizer.MIX_MODE_HIGH_SPEED_SYNTHESIZE_WIFI);
         speechSynthesizer.initTts(TtsMode.MIX);
 
         // 初始化配置，并启动配置信息更新线程
         if (MyVars.config == null) {
-            MyVars.config = new Gson().fromJson(ConfigHelper.getParam(MyParams.S_API_JSON), Config.class);
+            MyVars.config = new Gson().fromJson(ConfigHelper.getString(MyParams.S_API_JSON), Config.class);
         }
         MyVars.executor.scheduleWithFixedDelay(new UpdateConfigTask(), 0 , MyParams.CONFIG_UPDATE_INTERVAL, TimeUnit.SECONDS);
         MyVars.executor.scheduleWithFixedDelay(new InternetStatusCheckTask(), 0, MyParams.INTERNET_STATUS_CHECK_INTERVAL, TimeUnit.MILLISECONDS);

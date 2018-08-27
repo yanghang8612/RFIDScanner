@@ -34,7 +34,7 @@ public class GPSHelper {
      * @return 经度
      */
     public static double getLongitude(Context context) {
-        return Float.valueOf(ConfigHelper.getParam(MyParams.S_LONGITUDE));
+        return Float.valueOf(ConfigHelper.getString(MyParams.S_LONGITUDE));
     }
 
     /**
@@ -43,7 +43,7 @@ public class GPSHelper {
      * @return 纬度
      */
     public static Double getLatitude(Context context) {
-        return Double.valueOf(ConfigHelper.getParam(MyParams.S_LATITUDE));
+        return Double.valueOf(ConfigHelper.getString(MyParams.S_LATITUDE));
     }
 
     /**
@@ -52,6 +52,6 @@ public class GPSHelper {
      * @return 高度
      */
     public static double getHeight(Context context) {
-        return Double.valueOf(ConfigHelper.getParam(MyParams.S_HEIGHT));
+        return Double.valueOf(ConfigHelper.getString(MyParams.S_HEIGHT));
     }
 }

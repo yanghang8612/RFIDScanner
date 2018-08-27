@@ -127,11 +127,11 @@ public class InsHelper {
      * 在芯片内部MCU 进行多次轮询Inventory 操作的过程中，
      * 可以立即停止多次轮询操作，非暂停多次轮询操作。
      */
-    public static byte[] getTerminateMultoPolling() {
-        return TERMINATE_MULTO_POLLING;
+    public static byte[] getStopMultiPolling() {
+        return TERMINATE_MULTI_POLLING;
     }
 
-    private static final byte[] TERMINATE_MULTO_POLLING = new byte[]{INS_HEADER, INS_TYPE[0], (byte) 0x28, (byte) 0x00, (byte) 0x00, (byte) 0x28, INS_END};
+    private static final byte[] TERMINATE_MULTI_POLLING = new byte[]{INS_HEADER, INS_TYPE[0], (byte) 0x28, (byte) 0x00, (byte) 0x00, (byte) 0x28, INS_END};
 
     /**
      * 设置Select 参数指令
@@ -167,7 +167,7 @@ public class InsHelper {
     }
 
     public static byte[] getSelectParameter(byte target, byte action, MemBankType memBankType, byte[] ptr, boolean truncate, byte[] mask) {
-        byte selParm = (byte) ((target << 6) | (action << 3) | memBankType.getVaule());
+        byte selParm = (byte) ((target << 5) | (action << 2) | memBankType.getVaule());
         return getSelectParameter(selParm, ptr, truncate, mask);
     }
 
@@ -514,6 +514,6 @@ public class InsHelper {
     }
 
     public static void main(String[] args) {
-        System.out.println(Arrays.toString(getReadMemBank(new byte[4], MemBankType.EPC, 2, 6)));
+        System.out.println(CommonUtils.bytesToHex(getReadMemBank(new byte[4], MemBankType.TID, 0, 6)));
     }
 }

@@ -1,9 +1,6 @@
 package com.casc.rfidscanner.backend;
 
-import android.util.Log;
-
 import com.casc.rfidscanner.bean.Client;
-import com.casc.rfidscanner.bean.LinkType;
 import com.casc.rfidscanner.helper.param.MessageBillBucket;
 import com.casc.rfidscanner.helper.param.MessageBillComplete;
 import com.casc.rfidscanner.helper.param.MessageBillDelivery;
@@ -38,6 +35,7 @@ public class HttpServer extends NanoHTTPD {
     @Override
     public Response serve(IHTTPSession session) {
         // 如果不对每次请求parseBody的话，那么下一次请求时这个残留的body会被合并到一起，真鸡儿尴尬
+        // Log.i(TAG,  session.getRemoteIpAddress() + ":" + session.getMethod().toString() + ":" + session.getUri());
         if (Method.POST.equals(session.getMethod())) {
             Client client;
             String lineName = session.getParameters().get("line").get(0);

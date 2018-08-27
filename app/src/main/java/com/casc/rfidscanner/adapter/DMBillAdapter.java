@@ -1,10 +1,8 @@
 package com.casc.rfidscanner.adapter;
 
 import android.support.annotation.Nullable;
-import android.support.v7.widget.CardView;
 import android.text.TextUtils;
 
-import com.casc.rfidscanner.MyApplication;
 import com.casc.rfidscanner.R;
 import com.casc.rfidscanner.bean.DeliveryBill;
 import com.casc.rfidscanner.view.NumberSwitcher;

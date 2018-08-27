@@ -61,7 +61,7 @@ public class BLEReaderImpl extends BaseReaderImpl {
                 BluetoothDevice scanDevice = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
                 if (BluetoothDevice.ACTION_FOUND.equals(intent.getAction())) {
                     //Log.i(TAG, "Found " + scanDevice.getAddress());
-                    String btReaderMAC = ConfigHelper.getParam(MyParams.S_READER_MAC);
+                    String btReaderMAC = ConfigHelper.getString(MyParams.S_READER_MAC);
                     if (mIsRunning && mState == STATE_NONE && scanDevice.getAddress().equals(btReaderMAC)) {
                         mBLEDevice = scanDevice;
                         MyVars.executor.execute(new BLEConnectTask());
@@ -100,7 +100,7 @@ public class BLEReaderImpl extends BaseReaderImpl {
     public void start() {
         super.start();
         if (mBLESocket != null && !mBLESocket.isConnected() || mBLEDevice == null ||
-                !ConfigHelper.getParam(MyParams.S_READER_MAC).equals(mBLEDevice.getAddress())) {
+                !ConfigHelper.getString(MyParams.S_READER_MAC).equals(mBLEDevice.getAddress())) {
             if (mState == STATE_CONNECTED) {
                 lostConnection();
             } else {

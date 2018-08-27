@@ -24,10 +24,10 @@ public class MessageRegister {
     private List<BucketInfo> bucket_info = new ArrayList<>();
 
     public MessageRegister(String productname) {
-        this.reader_TID = ConfigHelper.getParam(MyParams.S_READER_ID);
-        this.longitude = Double.valueOf(ConfigHelper.getParam(MyParams.S_LONGITUDE));
-        this.latitude = Double.valueOf(ConfigHelper.getParam(MyParams.S_LATITUDE));
-        this.height = Double.valueOf(ConfigHelper.getParam(MyParams.S_HEIGHT));
+        this.reader_TID = ConfigHelper.getString(MyParams.S_READER_ID);
+        this.longitude = Double.valueOf(ConfigHelper.getString(MyParams.S_LONGITUDE));
+        this.latitude = Double.valueOf(ConfigHelper.getString(MyParams.S_LATITUDE));
+        this.height = Double.valueOf(ConfigHelper.getString(MyParams.S_HEIGHT));
         this.productname = productname;
     }
 

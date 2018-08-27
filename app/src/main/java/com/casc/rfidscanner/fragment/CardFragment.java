@@ -10,7 +10,6 @@ import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.text.Editable;
 import android.text.TextWatcher;
-import android.util.Log;
 import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
@@ -18,23 +17,22 @@ import android.widget.LinearLayout;
 import android.widget.Switch;
 import android.widget.TextView;
 
-import com.casc.rfidscanner.MyApplication;
 import com.casc.rfidscanner.MyParams;
 import com.casc.rfidscanner.MyVars;
 import com.casc.rfidscanner.R;
 import com.casc.rfidscanner.activity.ConfigActivity;
 import com.casc.rfidscanner.adapter.CardAdapter;
 import com.casc.rfidscanner.adapter.HintAdapter;
-import com.casc.rfidscanner.backend.InsHandler;
 import com.casc.rfidscanner.bean.Card;
 import com.casc.rfidscanner.bean.Hint;
 import com.casc.rfidscanner.helper.InsHelper;
 import com.casc.rfidscanner.helper.NetHelper;
 import com.casc.rfidscanner.helper.param.MessageCardReg;
 import com.casc.rfidscanner.helper.param.Reply;
-import com.casc.rfidscanner.view.InputCodeLayout;
 import com.casc.rfidscanner.message.MultiStatusMessage;
+import com.casc.rfidscanner.message.PollingResultMessage;
 import com.casc.rfidscanner.utils.CommonUtils;
+import com.casc.rfidscanner.view.InputCodeLayout;
 import com.weiwangcn.betterspinner.library.BetterSpinner;
 
 import org.greenrobot.eventbus.Subscribe;
@@ -49,7 +47,7 @@ import butterknife.BindView;
 import butterknife.OnClick;
 import retrofit2.Response;
 
-public class CardFragment extends BaseFragment implements InsHandler {
+public class CardFragment extends BaseFragment {
 
     private static final String TAG = CardFragment.class.getSimpleName();
     private static final int READ_MAX_TRY_COUNT = 5;
@@ -119,8 +117,43 @@ public class CardFragment extends BaseFragment implements InsHandler {
         }
     }
 
+    @Subscribe(threadMode = ThreadMode.MAIN)
+    public void onMessageEvent(PollingResultMessage message) {
+        mIsUnregisteredEPCRead = false;
+        if (message.isRead) {
+            // 判定扫到的EPC是否为前一次扫到的
+            if (Arrays.equals(message.epc, mScannedEPC)) {
+                mReadCount++;
+            } else {
+                mReadCount = 0;
+                mScannedEPC = message.epc;
+            }
+            if (mReadCount > CAN_REGISTER_READ_COUNT) {
+                mIsUnregisteredEPCRead = true;
+                mRegisterBtn.setEnabled(canRegister());
+            }
+            mReadNoneCount = 0;
+            mEpcTv.setBackgroundColor(mContext.getColor(R.color.white));
+            //outer.mEpcTv.setText(CommonUtils.bytesToHex(epc));
+            mEpcTv.setText(CommonUtils.bytesToHex(mScannedEPC)
+                    + CommonUtils.validEPC(mScannedEPC).getComment());
+        } else {
+            mReadNoneCount += 8;
+            if (mReadNoneCount > 8) {
+                mReadCount = 0;
+                mIsUnregisteredEPCRead = false;
+                mRegisterBtn.setEnabled(false);
+            }
+            mEpcTv.setBackgroundColor(
+                    Color.parseColor(CommonUtils.generateGradientRedColor(mReadNoneCount)));
+        }
+    }
+
     @Override
     protected void initFragment() {
+        mMonitorStatusLl.setVisibility(View.GONE);
+        mReaderStatusLl.setVisibility(View.VISIBLE);
+
         mCardAdapter = new CardAdapter(mCards);
         mHintAdapter = new HintAdapter(mHints);
         mVibrator = (Vibrator) mContext.getSystemService(Context.VIBRATOR_SERVICE);
@@ -177,20 +210,6 @@ public class CardFragment extends BaseFragment implements InsHandler {
         return R.layout.fragment_card;
     }
 
-    @Override
-    public void sensorSignal(boolean isHigh) {
-
-    }
-
-    @Override
-    public void dealIns(byte[] ins) {
-        int command = ins[2] & 0xFF;
-        switch (command) {
-            default: // 其他指令（轮询或失败指令）的处理流程，因为需要操作UI使用Handler传递消息
-                mHandler.sendMessage(Message.obtain(mHandler, MSG_RECEIVED_FRAME_FROM_READER, ins));
-        }
-    }
-
     @OnClick(R.id.btn_card_register)
     void onRegisterButtonClicked() {
         // 清空提示区，已便本次注册使用
@@ -243,7 +262,6 @@ public class CardFragment extends BaseFragment implements InsHandler {
 
     @OnClick(R.id.btn_card_back)
     void onCardBackClicked() {
-         MyVars.getReader().pause();
          ConfigActivity.actionStart(getContext());
     }
 
@@ -278,53 +296,6 @@ public class CardFragment extends BaseFragment implements InsHandler {
         public void handleMessage(Message msg) {
             CardFragment outer = mOuter.get();
             switch (msg.what) {
-                case MSG_RECEIVED_FRAME_FROM_READER:
-                    byte[] data = (byte[]) msg.obj;
-                    outer.mIsUnregisteredEPCRead = false;
-                    if (!outer.mIsRegistering && data[2] == 0x22) { // 轮询成功的处理流程
-                        int pl = ((data[3] & 0xFF) << 8) + (data[4] & 0xFF);
-                        byte[] epc = Arrays.copyOfRange(data, 8, pl + 3);
-                        // 判定扫到的EPC是否为前一次扫到的
-                        if (Arrays.equals(epc, outer.mScannedEPC)) {
-                            outer.mReadCount++;
-                        } else {
-                            outer.mReadCount = 0;
-                            outer.mScannedEPC = epc;
-                        }
-                        if (outer.mReadCount > CAN_REGISTER_READ_COUNT) {
-                            outer.mIsUnregisteredEPCRead = true;
-                            outer.mRegisterBtn.setEnabled(outer.canRegister());
-                        }
-                        outer.mReadNoneCount = 0;
-                        outer.mEpcTv.setBackgroundColor(outer.mContext.getColor(R.color.white));
-                        //outer.mEpcTv.setText(CommonUtils.bytesToHex(epc));
-                        outer.mEpcTv.setText(CommonUtils.bytesToHex(epc) + CommonUtils.validEPC(epc).getComment());
-                        outer.mRssiTv.setText(data[5] + "dBm");
-                    }
-                    else if ((data[2] & 0xFF) == 0xFF){ // 命令帧执行失败的处理流程
-                        switch (data[5] & 0xFF) {
-                            case 0x15: // 轮询失败
-                                outer.mAdminCardScannedCount = 0;
-                                outer.mReadNoneCount += 8;
-                                if (outer.mReadNoneCount > 8) {
-                                    outer.mReadCount = 0;
-                                    outer.mIsUnregisteredEPCRead = false;
-                                    outer.mRegisterBtn.setEnabled(false);
-                                }
-                                outer.mEpcTv.setBackgroundColor(Color.parseColor(CommonUtils.generateGradientRedColor(outer.mReadNoneCount)));
-                                break;
-                            case 0x09: // 读时标签不在场区
-                            case 0x10: // 写时标签不在场区
-                            case 0x16: // Access Password错误
-                                Log.i(TAG, "标准错误");
-                                break;
-                            case 0xA4: // 读Locked
-                            case 0xB4: // 写Locked
-                                Log.i(TAG, "Locked");
-                                break;
-                        }
-                    }
-                    break;
                 case MSG_UPDATE_HINT:
                     outer.mHintAdapter.notifyDataSetChanged();
                     break;
@@ -348,7 +319,7 @@ public class CardFragment extends BaseFragment implements InsHandler {
 
         @Override
         public void run() {
-            byte[] data = null;
+            byte[] data;
 
             if (Integer.valueOf(mBodyCodeIcl.getCode().substring(3)) > 255) {
                 writeHint("可视码最大编号为255");
@@ -361,13 +332,15 @@ public class CardFragment extends BaseFragment implements InsHandler {
             }
             try {
                 // 设置Mask
-                MyVars.getReader().setMask(mScannedEPC);
+                MyVars.getReader().setMask(mScannedEPC, 2);
 
                 // 尝试读取TID
                 writeHint("读取TID");
                 data = MyVars.getReader().sendCommandSync(InsHelper.getReadMemBank(
-                        CommonUtils.hexToBytes("00000000"), InsHelper.MemBankType.TID,
-                        MyParams.TID_START_INDEX, MyParams.TID_LENGTH), READ_MAX_TRY_COUNT);
+                        CommonUtils.hexToBytes("00000000"),
+                        InsHelper.MemBankType.TID,
+                        MyParams.TID_START_INDEX,
+                        MyParams.TID_READ_LENGTH));
                 if (data == null) {
                     writeHint("读取TID失败");
                     writeTaskFailed();
@@ -379,9 +352,11 @@ public class CardFragment extends BaseFragment implements InsHandler {
                 // 写入PC
                 writeHint("写入PC");
                 data = MyVars.getReader().sendCommandSync(InsHelper.getWriteMemBank(
-                        CommonUtils.hexToBytes("00000000"), InsHelper.MemBankType.EPC,
-                        1, mCardToRegister.getPc()), WRITE_MAX_TRY_COUNT);
-                if (data != null && data[2] == 0x49) {
+                        CommonUtils.hexToBytes("00000000"),
+                        InsHelper.MemBankType.EPC,
+                        1,
+                        mCardToRegister.getPc()));
+                if (data != null) {
                     writeHint("写入PC成功");
                 } else {
                     writeHint("写入PC失败");
@@ -392,8 +367,10 @@ public class CardFragment extends BaseFragment implements InsHandler {
                 // 写入EPC
                 writeHint("写入EPC");
                 data = MyVars.getReader().sendCommandSync(InsHelper.getWriteMemBank(
-                        CommonUtils.hexToBytes("00000000"), InsHelper.MemBankType.EPC,
-                        2, mCardToRegister.getEpc()), WRITE_MAX_TRY_COUNT);
+                        CommonUtils.hexToBytes("00000000"),
+                        InsHelper.MemBankType.EPC,
+                        2,
+                        mCardToRegister.getEpc()));
                 if (data == null) {
                     writeHint("写入EPC失败");
                     writeTaskFailed();

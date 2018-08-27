@@ -1,5 +1,6 @@
 package com.casc.rfidscanner.bean;
 
+import com.casc.rfidscanner.MyParams;
 import com.casc.rfidscanner.utils.CommonUtils;
 
 public class RNBucket {
@@ -8,19 +9,19 @@ public class RNBucket {
 
     private String epc;
 
-    private String bodyCode;
+    private String bodyCode = "";
 
-    private boolean isHighlight;
+    private boolean isHighlight = true;
 
     public RNBucket(byte[] epc) {
         this.time = System.currentTimeMillis();
         this.epc = CommonUtils.bytesToHex(epc);
-        int code = 0;
-        code += ((epc[13] & 0xFF) << 16);
-        code += ((epc[14] & 0xFF) << 8);
-        code += (epc[15] & 0xFF);
-        this.bodyCode = "YQ" + String.format("%06d", code);
-        this.isHighlight = true;
+        for (int i = 0; i < MyParams.BODY_CODE_HEADER_LENGTH; i++) {
+            this.bodyCode = String.format("%s%s", this.bodyCode, (char) epc[1 + i]);
+        }
+        for (int i = 0; i < MyParams.BODY_CODE_CONTENT_LENGTH; i++) {
+            this.bodyCode = String.format("%s%s", this.bodyCode, (char) epc[7 + i]);
+        }
     }
 
     public long getTime() {

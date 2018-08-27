@@ -21,8 +21,9 @@
     <dimen name="r0_content_margin">16dp</dimen>
     <dimen name="r0_content_text_size">12sp</dimen>
     <dimen name="r0_button_text_size">24sp</dimen>
-    <dimen name="r0_body_code_size">64dp</dimen>
+    <dimen name="r0_body_code_size">48dp</dimen>
     <dimen name="r0_body_code_text_size">24sp</dimen>
+    <dimen name="r0_camera_size">450dp</dimen>
 
     <dimen name="r0_keyboard_radius">6dp</dimen>
     <dimen name="r0_keyboard_text_size">24sp</dimen>
@@ -42,8 +43,14 @@
     <dimen name="r2_monitor_padding">24dp</dimen>
     <dimen name="r2_monitor_margin">16dp</dimen>
 
-    <dimen name="r6_padding">24dp</dimen>
+    <dimen name="r6_padding">8dp</dimen>
     <dimen name="r6_margin">16dp</dimen>
+
+    <dimen name="r3_padding">8dp</dimen>
+    <dimen name="r3_margin">16dp</dimen>
+
+    <dimen name="r4_padding">8dp</dimen>
+    <dimen name="r4_margin">16dp</dimen>
 
     <dimen name="r6_monitor_padding">24dp</dimen>
     <dimen name="r6_monitor_margin">16dp</dimen>
@@ -66,8 +73,8 @@
     <dimen name="item_delivery_bill_margin">16dp</dimen>
     <dimen name="item_delivery_bill_padding">8dp</dimen>
 
-    <dimen name="item_reflux_bill_margin">24dp</dimen>
-    <dimen name="item_reflux_bill_padding">10dp</dimen>
+    <dimen name="item_reflux_bill_margin">16dp</dimen>
+    <dimen name="item_reflux_bill_padding">8dp</dimen>
 
     <dimen name="item_goods_margin">8dp</dimen>
 

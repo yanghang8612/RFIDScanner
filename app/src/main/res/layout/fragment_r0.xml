@@ -44,154 +44,148 @@
         android:layout_margin="@dimen/r0_content_margin">
 
         <LinearLayout
+            android:visibility="gone"
             android:orientation="horizontal"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="@dimen/activity_vertical_margin">
+            android:layout_height="wrap_content">
 
-            <LinearLayout
-                android:layout_width="0dp"
+            <TextView
+                android:theme="@style/AppTheme.BigText"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_weight="5"
                 android:layout_gravity="center"
-                android:layout_marginStart="@dimen/r0_content_margin"
-                android:gravity="center">
+                android:text="产品：" />
 
-                <com.casc.rfidscanner.view.InputCodeLayout
-                    android:id="@+id/icl_body_code"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    app:icl_header="AHY"
-                    app:icl_number="5"
-                    app:icl_width="@dimen/r0_body_code_size"
-                    app:icl_height="@dimen/r0_body_code_size"
-                    app:icl_divideWidth="10dp"
-                    app:icl_showMode="normal"
-                    app:icl_textColor="@color/black"
-                    app:icl_textSize="@dimen/r0_body_code_text_size"
-                    app:icl_focusBackground="@drawable/bg_edit_focus"
-                    app:icl_unFocusBackground="@drawable/bg_edit_un_focus" />
-
-            </LinearLayout>
-
-            <Button
-                android:id="@+id/btn_r0_register"
-                android:layout_width="276dp"
-                android:layout_height="80dp"
-                android:theme="@style/ButtonPrimary"
-                android:text="@string/register_button_text"
-                android:textSize="@dimen/r0_button_text_size"/>
+            <com.weiwangcn.betterspinner.library.BetterSpinner
+                android:id="@+id/spn_product_name"
+                android:theme="@style/AppTheme.BigText"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content" />
 
         </LinearLayout>
 
         <LinearLayout
-            android:orientation="vertical"
+            android:orientation="horizontal"
             android:layout_width="match_parent"
-            android:layout_height="0dp"
-            android:layout_weight="1"
-            android:layout_marginTop="@dimen/activity_vertical_margin">
+            android:layout_height="wrap_content">
+
+            <com.casc.rfidscanner.view.InputCodeLayout
+                android:id="@+id/icl_body_code"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:layout_gravity="center"
+                app:icl_header="AHY"
+                app:icl_number="5"
+                app:icl_width="@dimen/r0_body_code_size"
+                app:icl_height="@dimen/r0_body_code_size"
+                app:icl_divideWidth="10dp"
+                app:icl_showMode="normal"
+                app:icl_textColor="@color/black"
+                app:icl_textSize="@dimen/r0_body_code_text_size"
+                app:icl_focusBackground="@drawable/bg_edit_focus"
+                app:icl_unFocusBackground="@drawable/bg_edit_un_focus" />
 
             <LinearLayout
-                android:orientation="horizontal"
-                android:layout_width="match_parent"
-                android:layout_height="300dp">
-
-                <com.dlazaro66.qrcodereaderview.QRCodeReaderView
-                    android:id="@+id/qrv_body_code_reader"
-                    android:layout_width="300dp"
-                    android:layout_height="match_parent"
-                    android:layout_margin="10dp" />
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1">
 
                 <LinearLayout
-                    android:orientation="vertical"
+                    android:orientation="horizontal"
                     android:layout_width="0dp"
                     android:layout_height="match_parent"
-                    android:layout_weight="1"
-                    android:layout_marginStart="@dimen/activity_horizontal_margin">
+                    android:layout_weight="2">
+
+                    <TextView
+                        android:theme="@style/AppTheme.BigText"
+                        android:layout_width="0dp"
+                        android:layout_height="match_parent"
+                        android:layout_weight="1"
+                        android:gravity="center"
+                        android:text="已注册" />
 
                     <LinearLayout
-                        android:orientation="horizontal"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content">
+                        android:layout_width="0dp"
+                        android:layout_height="match_parent"
+                        android:layout_weight="1"
+                        android:gravity="center">
 
-                        <TextView
-                            android:theme="@style/AppTheme.BigText"
+                        <com.casc.rfidscanner.view.NumberSwitcher
+                            android:id="@+id/ns_r0_registered_count"
+                            android:theme="@style/AppTheme.CommonNumber"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:layout_gravity="center"
-                            android:text="规格配置信息：" />
-
-                        <com.weiwangcn.betterspinner.library.BetterSpinner
-                            android:id="@+id/spn_product_name"
-                            android:theme="@style/AppTheme.BigText"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content" />
-
-                    </LinearLayout>
-
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="match_parent"
-                        android:background="@drawable/bg_r0_list"
-                        android:padding="8dp">
-
-                        <android.support.v7.widget.RecyclerView
-                            android:id="@+id/rv_registered_count_list"
-                            android:layout_width="match_parent"
-                            android:layout_height="match_parent" />
+                            android:text="0" />
 
                     </LinearLayout>
 
                 </LinearLayout>
 
+                <Button
+                    android:id="@+id/btn_r0_register"
+                    android:layout_width="0dp"
+                    android:layout_height="64dp"
+                    android:layout_weight="1"
+                    android:theme="@style/ButtonPrimary"
+                    android:text="@string/register_button_text"
+                    android:textSize="@dimen/r0_button_text_size"/>
+
             </LinearLayout>
 
-            <LinearLayout
-                android:layout_width="match_parent"
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+
+            <com.dlazaro66.qrcodereaderview.QRCodeReaderView
+                android:id="@+id/qrv_body_code_reader"
+                android:layout_width="0dp"
                 android:layout_height="match_parent"
-                android:layout_marginTop="@dimen/activity_vertical_margin"
-                android:gravity="center">
+                android:layout_weight="1"
+                android:layout_marginEnd="@dimen/r0_content_margin" />
+
+            <RelativeLayout
+                android:id="@+id/rl_r0_hint_root"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:background="@drawable/bg_r0_normal">
 
                 <LinearLayout
-                    android:layout_width="match_parent"
+                    android:orientation="horizontal"
+                    android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:padding="8dp"
-                    android:background="@drawable/bg_r0_hint">
+                    android:layout_margin="8dp"
+                    android:layout_alignParentBottom="true">
 
-                    <LinearLayout
-                        android:orientation="horizontal"
-                        android:layout_width="300dp"
-                        android:layout_height="match_parent"
-                        android:gravity="center">
-
-                        <ImageView
-                            android:id="@+id/iv_tag_status"
-                            android:layout_width="48dp"
-                            android:layout_height="48dp"
-                            android:layout_gravity="center"
-                            android:src="@drawable/ic_connection_abnormal" />
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_gravity="center"
-                            android:text="桶标签"
-                            android:textSize="46sp"
-                            android:textColor="@color/black" />
-
-                    </LinearLayout>
+                    <ImageView
+                        android:id="@+id/iv_tag_status"
+                        android:layout_width="48dp"
+                        android:layout_height="48dp"
+                        android:layout_gravity="center"
+                        android:src="@drawable/ic_connection_abnormal" />
 
                     <TextView
-                        android:id="@+id/tv_r0_hint"
-                        android:layout_width="0dp"
-                        android:layout_height="match_parent"
-                        android:layout_weight="1"
-                        android:gravity="center"
-                        android:textSize="46sp" />
+                        android:id="@+id/tv_tag_status"
+                        android:theme="@style/AppTheme.LargeText"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="center"
+                        android:text="未检测到标签" />
 
-            </LinearLayout>
+                </LinearLayout>
 
-            </LinearLayout>
+                <TextView
+                    android:id="@+id/tv_r0_hint_content"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:gravity="center"
+                    android:textSize="72sp"
+                    android:textColor="@color/black" />
+
+            </RelativeLayout>
 
         </LinearLayout>
 

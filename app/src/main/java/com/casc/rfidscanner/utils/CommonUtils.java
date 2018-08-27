@@ -82,6 +82,12 @@ public class CommonUtils {
         return header;
     }
 
+    public static byte[] generatePC(int epcLength) {
+        byte[] pc = new byte[2];
+        pc[0] = (byte) (((epcLength / 2) << 3) & 0xFF);
+        return pc;
+    }
+
     public static String convertEPCHeader(byte[] epc) {
         String header = "";
         header += epc[1];
@@ -121,7 +127,7 @@ public class CommonUtils {
 
     private static final char[] hexArray = "0123456789ABCDEF".toCharArray();
     public static String bytesToHex(byte[] bytes) {
-        if (bytes == null) return "";
+        if (bytes == null) return "null";
         return bytesToHex(bytes, 0, bytes.length);
     }
 
@@ -177,10 +183,6 @@ public class CommonUtils {
 
     public static String convertDateTime(long time) {
         return new SimpleDateFormat("MM-dd HH:mm:ss", Locale.CHINA).format(time);
-    }
-
-    static class Test {
-        private byte aChar = 0;
     }
 
     public static void main(String[] args) {

@@ -4,7 +4,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:layout_marginTop="48dp"
-    android:padding="16dp">
+    android:padding="8dp">
 
     <LinearLayout
         android:layout_width="0dp"
@@ -159,6 +159,7 @@
                 </LinearLayout>
 
                 <LinearLayout
+                    android:visibility="gone"
                     android:orientation="horizontal"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
@@ -290,6 +291,7 @@
                 android:text="@string/view_brief_button_text" />
 
             <Button
+                android:visibility="gone"
                 android:id="@+id/btn_detail_confirm"
                 android:layout_width="0dp"
                 android:layout_height="match_parent"

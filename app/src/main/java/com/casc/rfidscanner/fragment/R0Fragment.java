@@ -5,43 +5,45 @@ import android.graphics.PointF;
 import android.os.Handler;
 import android.os.Message;
 import android.os.Vibrator;
-import android.support.v7.widget.GridLayoutManager;
-import android.support.v7.widget.RecyclerView;
-import android.text.TextUtils;
 import android.util.Log;
 import android.view.View;
-import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.ImageView;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import com.baidu.tts.client.SpeechSynthesizer;
-import com.casc.rfidscanner.MyApplication;
 import com.casc.rfidscanner.MyParams;
 import com.casc.rfidscanner.MyVars;
 import com.casc.rfidscanner.R;
 import com.casc.rfidscanner.activity.ConfigActivity;
-import com.casc.rfidscanner.adapter.RegisteredCountAdapter;
-import com.casc.rfidscanner.backend.InsHandler;
+import com.casc.rfidscanner.activity.ErrorRemindActivity;
+import com.casc.rfidscanner.activity.ProductChooseActivity;
 import com.casc.rfidscanner.bean.Bucket;
+import com.casc.rfidscanner.helper.ConfigHelper;
 import com.casc.rfidscanner.helper.InsHelper;
 import com.casc.rfidscanner.helper.NetHelper;
 import com.casc.rfidscanner.helper.param.MessageRegister;
 import com.casc.rfidscanner.helper.param.Reply;
-import com.casc.rfidscanner.view.InputCodeLayout;
 import com.casc.rfidscanner.message.ConfigUpdatedMessage;
 import com.casc.rfidscanner.message.MultiStatusMessage;
+import com.casc.rfidscanner.message.PollingResultMessage;
+import com.casc.rfidscanner.message.ProductChoseMessage;
 import com.casc.rfidscanner.utils.CommonUtils;
+import com.casc.rfidscanner.view.InputCodeLayout;
+import com.casc.rfidscanner.view.NumberSwitcher;
 import com.dlazaro66.qrcodereaderview.QRCodeReaderView;
-import com.weiwangcn.betterspinner.library.BetterSpinner;
 
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
 
 import java.lang.ref.WeakReference;
-import java.util.ArrayList;
+import java.text.SimpleDateFormat;
 import java.util.Arrays;
-import java.util.List;
+import java.util.Date;
+import java.util.HashSet;
+import java.util.Locale;
+import java.util.Set;
 
 import butterknife.BindView;
 import butterknife.OnClick;
@@ -50,31 +52,30 @@ import retrofit2.Response;
 /**
  * 桶注册Fragment
  */
-public class R0Fragment extends BaseFragment implements InsHandler, QRCodeReaderView.OnQRCodeReadListener {
+public class R0Fragment extends BaseFragment implements QRCodeReaderView.OnQRCodeReadListener {
 
     private static final String TAG = R0Fragment.class.getSimpleName();
-    private static final int READ_MAX_TRY_COUNT = 5;
-    private static final int WRITE_PC_MAX_TRY_COUNT = 5;
-    private static final int WRITE_EPC_MAX_TRY_COUNT = 5;
-    private static final int CAN_REGISTER_READ_COUNT = 5;
-    private static final int MAX_READ_NONE_COUNT = 3;
+    private static final int CAN_REGISTER_READ_COUNT = 50;
+    private static final int MAX_READ_NONE_COUNT = 20;
     // Constant for InnerHandler message.what
     private static final int MSG_SUCCESS = 0;
-    private static final int MSG_FAILED = 1;
-    private static final int MSG_UPDATE_HINT = 2;
+    private static final int MSG_UPDATED = 1;
+    private static final int MSG_FAILED = 2;
+    private static final int MSG_RESET_READ_STATUS = 3;
+    private static final int MSG_UPDATE_HINT = 4;
 
+    @BindView(R.id.tv_r0_title) TextView mTitleTv;
     @BindView(R.id.icl_body_code) InputCodeLayout mBodyCodeIcl;
+    @BindView(R.id.ns_r0_registered_count) NumberSwitcher mRegisteredCountNs;
     @BindView(R.id.btn_r0_register) Button mRegisterBtn;
     @BindView(R.id.qrv_body_code_reader) QRCodeReaderView mBodyCodeReaderQrv;
-    @BindView(R.id.spn_product_name) BetterSpinner mProductNameSpn;
-    @BindView(R.id.rv_registered_count_list) RecyclerView mRegisteredCountListRv;
+    @BindView(R.id.rl_r0_hint_root) RelativeLayout mHintRootRl;
     @BindView(R.id.iv_tag_status) ImageView mTagStatusIv;
-    @BindView(R.id.tv_r0_hint) TextView mHintContentTv;
-
-    private RegisteredCountAdapter mAdapter;
+    @BindView(R.id.tv_tag_status) TextView mTagStatusTv;
+    @BindView(R.id.tv_r0_hint_content) TextView mHintContentTv;
 
     // 已注册桶列表
-    private List<Bucket> mBuckets = new ArrayList<>();
+    private Set<String> mEPCs = new HashSet<>();
 
     // 注册状态的标志符
     private boolean mIsRegistering;
@@ -83,10 +84,13 @@ public class R0Fragment extends BaseFragment implements InsHandler, QRCodeReader
     private byte[] mScannedEPC;
 
     // 读取到和未读取到EPC的计数器
-    private int mReadCount, mReadNoneCount;
+    private int mReadCount, mQualifiedCount, mReadNoneCount;
 
     // 注册所必需的相关元素标志位
     private boolean mIsUnregisteredEPCRead, mIsAllConnectionsReady, mIsBodyCodeWritten;
+
+    // 要注册的产品名称
+    private String mProductName;
 
     // 要注册的桶实例
     private Bucket mBucketToRegister;
@@ -107,11 +111,88 @@ public class R0Fragment extends BaseFragment implements InsHandler, QRCodeReader
             mIsAllConnectionsReady = false;
             mRegisterBtn.setEnabled(false);
         }
+        if (!message.readerStatus) {
+            mTagStatusIv.setImageResource(R.drawable.ic_connection_abnormal);
+            if (mIsRegistering) {
+                mIsRegistering = false;
+                mRegisterBtn.setEnabled(false);
+            }
+        }
     }
 
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void onMessageEvent(ConfigUpdatedMessage message) {
-        updateConfigViews();
+        mBodyCodeIcl.setHeader(MyVars.config.getHeader());
+    }
+
+    @Subscribe(threadMode = ThreadMode.MAIN)
+    public void onMessageEvent(PollingResultMessage message) {
+        if (message.isRead) {
+            MyParams.EPCType epcType = CommonUtils.validEPC(mScannedEPC);
+            String epcStr = CommonUtils.bytesToHex(message.epc);
+            switch (epcType) {
+                case BUCKET: // 检测到注册桶标签，也允许注册
+                case NONE: // 检测到未注册桶标签，允许注册
+                    mReadNoneCount = 0;
+                    if (mEPCs.contains(epcStr) && mBucketToRegister == null) {
+                        mTagStatusIv.setImageResource(R.drawable.ic_connection_abnormal);
+                        mTagStatusTv.setText("检测到已注册标签");
+                    } else {
+                        mTagStatusIv.setImageResource(R.drawable.ic_connection_normal);
+                        if (Arrays.equals(message.epc, mScannedEPC)) { // 判定扫到的EPC是否为前一次扫到的
+                            mReadCount += 1;
+                            mQualifiedCount += message.rssi >=
+                                    ConfigHelper.getInt(MyParams.S_RSSI_THRESHOLD) ? 1 : 0;
+                        } else {
+                            mReadCount = 0;
+                            mQualifiedCount = 0;
+                            mScannedEPC = message.epc;
+                            mIsUnregisteredEPCRead = false;
+                        }
+                        if (mReadCount >= CAN_REGISTER_READ_COUNT) {
+                            if (mQualifiedCount < ConfigHelper.getInt(MyParams.S_MIN_REACH_TIMES)) {
+                                mTagStatusTv.setText("标签信号弱");
+//                                mTagStatusTv.setTextColor(mContext.getColor(R.color.indian_red));
+                            } else {
+                                mIsUnregisteredEPCRead = true;
+                                mRegisterBtn.setEnabled(canRegister());
+                                mTagStatusTv.setText("标签信号正常");
+//                                mTagStatusTv.setTextColor(mContext.getColor(R.color.green));
+                            }
+                        }
+                    }
+                    break;
+                case CARD_ADMIN:
+                    if (++mAdminCardScannedCount == MyParams.ADMIN_CARD_SCANNED_COUNT) { // 启动配置界面，并暂停EPC读取
+                        mHandler.sendMessage(Message.obtain(mHandler, MSG_RESET_READ_STATUS));
+                        sendAdminLoginMessage(CommonUtils.bytesToHex(mScannedEPC));
+                        ConfigActivity.actionStart(mContext);
+                    }
+                    break;
+                default:
+                    mHandler.sendMessage(Message.obtain(mHandler, MSG_RESET_READ_STATUS));
+            }
+        } else {
+            mAdminCardScannedCount = 0;
+            if (++mReadNoneCount >= MAX_READ_NONE_COUNT) {
+                mHintContentTv.setText(mProductName);
+                mHintRootRl.setBackground(mContext.getDrawable(R.drawable.bg_r0_normal));
+                mRegisterBtn.setEnabled(false);
+                mHandler.sendMessage(Message.obtain(mHandler, MSG_RESET_READ_STATUS));
+                if (!mIsRegistering) {
+                    mTagStatusIv.setImageResource(R.drawable.ic_connection_abnormal);
+                    mTagStatusTv.setText("未检测到标签");
+//                    mTagStatusTv.setTextColor(mContext.getColor(R.color.black));
+                }
+            }
+        }
+    }
+
+    @Subscribe(threadMode = ThreadMode.MAIN)
+    public void onMessageEvent(ProductChoseMessage message) {
+        mProductName = message.product;
+        writeHint(mProductName);
+        //mTitleTv.setText("产品—" + mProductName);
     }
 
     @Override
@@ -119,38 +200,22 @@ public class R0Fragment extends BaseFragment implements InsHandler, QRCodeReader
         mMonitorStatusLl.setVisibility(View.GONE);
         mReaderStatusLl.setVisibility(View.VISIBLE);
 
-        updateConfigViews();
-        MyVars.registeredBuckets = mBuckets;
         mVibrator = (Vibrator) mContext.getSystemService(Context.VIBRATOR_SERVICE);
 
-        mAdapter = new RegisteredCountAdapter();
-        mRegisteredCountListRv.setLayoutManager(new GridLayoutManager(this.getContext(), 2));
-        mRegisteredCountListRv.setAdapter(mAdapter);
-
+        mBodyCodeIcl.setHeader(MyVars.config.getHeader());
+        mRegisteredCountNs.setNumber(0);
         mBodyCodeReaderQrv.setOnQRCodeReadListener(this);
         mBodyCodeReaderQrv.setQRDecodingEnabled(true);
-        mBodyCodeReaderQrv.setAutofocusInterval(500L);
-        //mBodyCodeReaderQrv.setTorchEnabled(true);
+        mBodyCodeReaderQrv.setAutofocusInterval(250L);
+        mBodyCodeReaderQrv.setTorchEnabled(true);
         mBodyCodeReaderQrv.setBackCamera();
+
+        ProductChooseActivity.actionStart(mContext);
     }
 
     @Override
     protected int getLayout() {
         return R.layout.fragment_r0;
-    }
-
-    @Override
-    public void sensorSignal(boolean isHigh) {
-
-    }
-
-    @Override
-    public void dealIns(byte[] ins) {
-        int command = ins[2] & 0xFF;
-        switch (command) {
-            default: // 其他指令（轮询或失败指令）的处理流程，因为需要操作UI使用Handler传递消息
-                mHandler.sendMessage(Message.obtain(mHandler, MSG_RECEIVED_FRAME_FROM_READER, ins));
-        }
     }
 
     @Override
@@ -168,6 +233,11 @@ public class R0Fragment extends BaseFragment implements InsHandler, QRCodeReader
         }
     }
 
+    @OnClick(R.id.tv_r0_title)
+    void onTitleTextViewClicked() {
+        ProductChooseActivity.actionStart(mContext);
+    }
+
     @OnClick(R.id.btn_r0_register)
     void onRegisterButtonClicked() {
         // 修改注册标志位，禁用界面按钮
@@ -180,7 +250,7 @@ public class R0Fragment extends BaseFragment implements InsHandler, QRCodeReader
         System.arraycopy(CommonUtils.generateEPCHeader(), 0, epc, 0, MyParams.EPC_HEADER_LENGTH);
         epc[MyParams.EPC_TYPE_INDEX] = MyParams.EPCType.BUCKET.getCode();
         epc[MyParams.EPC_TYPE_INDEX + 1] =
-                (byte) MyVars.config.getProductInfoByName(mProductNameSpn.getText().toString()).getCode();
+                (byte) MyVars.config.getProductInfoByName(mProductName).getCode();
         String bodyCode = mBodyCodeIcl.getCode().substring(3);
         for (int i = 0; i < bodyCode.length(); i++) {
             epc[MyParams.EPC_TYPE_INDEX + 3 + i] = (byte) bodyCode.charAt(i);
@@ -190,37 +260,25 @@ public class R0Fragment extends BaseFragment implements InsHandler, QRCodeReader
         MyVars.executor.execute(new WriteEPCTask());
     }
 
-    private void updateConfigViews() {
-        mBodyCodeIcl.setHeader(MyVars.config.getHeader());
-
-        mProductNameSpn.setAdapter(new ArrayAdapter<>(mContext, R.layout.item_common,
-                MyVars.config.getProductInfo()));
-
-        String curProductName = mProductNameSpn.getText().toString();
-        if (TextUtils.isEmpty(curProductName)
-                || MyVars.config.getProductInfoByName(curProductName) == null) {
-            if (MyVars.config.getProductInfo() != null && !MyVars.config.getProductInfo().isEmpty()) {
-                mProductNameSpn.setText(MyVars.config.getProductInfo().get(0).getName());
-            } else {
-                mProductNameSpn.setText("");
-            }
-        }
-    }
-
     private void writeTaskSuccess() {
-        mBuckets.add(0, mBucketToRegister);
+        mEPCs.add(mBucketToRegister.getEpcStr());
         mHandler.sendMessage(Message.obtain(mHandler, MSG_SUCCESS));
     }
 
-    private void writeTaskFailed() {
+    private void updateTaskSuccess() {
+        mEPCs.add(mBucketToRegister.getEpcStr());
+        mHandler.sendMessage(Message.obtain(mHandler, MSG_UPDATED));
+    }
+
+    private void writeTaskFailed(boolean isShowRemind) {
+        if (isShowRemind) {
+            ErrorRemindActivity.actionStart(mContext);
+        }
         mHandler.sendMessage(Message.obtain(mHandler, MSG_FAILED));
     }
 
-    private void writeHint(R0Hint hint) {
-        Message message = new Message();
-        message.what = MSG_UPDATE_HINT;
-        message.obj = hint;
-        mHandler.sendMessage(message);
+    private void writeHint(String content) {
+        mHandler.sendMessage(Message.obtain(mHandler, MSG_UPDATE_HINT, content));
     }
 
     private boolean canRegister() {
@@ -240,100 +298,39 @@ public class R0Fragment extends BaseFragment implements InsHandler, QRCodeReader
         public void handleMessage(Message msg) {
             R0Fragment outer = mOuter.get();
             switch (msg.what) {
-                case MSG_RECEIVED_FRAME_FROM_READER:
-                    byte[] data = (byte[]) msg.obj;
-                    outer.mIsUnregisteredEPCRead = false;
-                    if (!outer.mIsRegistering && data[2] == 0x22) { // 轮询成功的处理流程
-                        int pl = ((data[3] & 0xFF) << 8) + (data[4] & 0xFF);
-                        byte[] epc = Arrays.copyOfRange(data, 8, pl + 3);
-                        // 判定扫到的EPC是否为前一次扫到的
-                        if (Arrays.equals(epc, outer.mScannedEPC)) {
-                            outer.mReadCount++;
-                        } else {
-                            outer.mReadCount = 1;
-                            outer.mScannedEPC = epc;
-                        }
-                        MyParams.EPCType epcType = CommonUtils.validEPC(epc);
-                        switch (epcType) {
-                            case BUCKET: // 检测到注册桶标签，也允许注册
-                            case NONE: // 检测到未注册桶标签，允许注册
-                                outer.mTagStatusIv.setImageResource(R.drawable.ic_connection_normal);
-                                if (outer.mReadCount > CAN_REGISTER_READ_COUNT) {
-                                    outer.mIsUnregisteredEPCRead = true;
-                                    outer.mRegisterBtn.setEnabled(outer.canRegister());
-                                }
-                                break;
-                            case CARD_ADMIN:
-                                outer.mAdminCardScannedCount++;
-                                if (outer.mAdminCardScannedCount == MyParams.ADMIN_CARD_SCANNED_COUNT) { // 启动配置界面，并暂停EPC读取
-                                    outer.sendAdminLoginMessage(CommonUtils.bytesToHex(epc));
-                                    ConfigActivity.actionStart(outer.getContext());
-                                }
-                                break;
-                        }
-                        outer.mReadNoneCount = 0;
-                        //outer.mEpcTv.setBackgroundColor(outer.getResources().getColor(R.color.white));
-                        //outer.mEpcTv.setText(CommonUtils.bytesToHex(epc));
-                        //outer.mEpcTv.setText(CommonUtils.bytesToHex(epc) + epcType.getComment());
-                        //outer.mRssiTv.setText(data[5] + "dBm");
-                    }
-                    else if ((data[2] & 0xFF) == 0xFF){ // 命令帧执行失败的处理流程
-                        switch (data[5] & 0xFF) {
-                            case 0x15: // 轮询失败
-                                outer.mAdminCardScannedCount = 0;
-                                if (++outer.mReadNoneCount >= MAX_READ_NONE_COUNT) {
-                                    outer.mReadCount = 0;
-                                    outer.mScannedEPC = null;
-                                    outer.mIsUnregisteredEPCRead = false;
-                                    outer.mRegisterBtn.setEnabled(false);
-                                    if (!outer.mIsRegistering)
-                                        outer.mTagStatusIv.setImageResource(R.drawable.ic_connection_abnormal);
-                                }
-                                //outer.mEpcTv.setBackgroundColor(Color.parseColor(CommonUtils.generateGradientRedColor(outer.mReadNoneCount)));
-                                break;
-                            case 0x09: // 读时标签不在场区
-                            case 0x10: // 写时标签不在场区
-                            case 0x16: // Access Password错误
-                                Log.i(TAG, "标准错误: " + CommonUtils.bytesToHex(data));
-                                break;
-                            case 0xA4: // 读Locked
-                            case 0xB4: // 写Locked
-                                Log.i(TAG, "Locked");
-                                break;
-                        }
-                    }
-                    break;
                 case MSG_SUCCESS:
-                    outer.mAdapter.addRegisteredBucket(outer.mBucketToRegister);
+                    outer.mRegisteredCountNs.increaseNumber();
+                case MSG_UPDATED:
+                    outer.mHintRootRl.setBackground(outer.mContext.getDrawable(R.drawable.bg_r0_success));
+                    outer.mBodyCodeIcl.clear();
+                    outer.mIsBodyCodeWritten = false;
+//                    int bodyCode = Integer.valueOf(outer.mBodyCodeIcl.getCode().substring(3));
+//                    outer.mBodyCodeIcl.setCode(String.format("%05d", ++bodyCode));
+                    outer.mIsRegistering = false;
+                    outer.mRegisterBtn.setEnabled(false);
+                    outer.mHandler.sendMessage(Message.obtain(outer.mHandler, MSG_RESET_READ_STATUS));
+                    outer.playSound();
+                    //SpeechSynthesizer.getInstance().speak("注册成功");
+                    break;
+                case MSG_FAILED:
+                    outer.mHintRootRl.setBackground(outer.mContext.getDrawable(R.drawable.bg_r0_failed));
                     outer.mBodyCodeIcl.clear();
                     outer.mIsBodyCodeWritten = false;
                     outer.mIsRegistering = false;
-                    outer.mRegisterBtn.setEnabled(false);
-                    SpeechSynthesizer.getInstance().speak("注册成功");
-                    break;
-                case MSG_FAILED:
-                    outer.mIsRegistering = false;
                     outer.mRegisterBtn.setEnabled(outer.canRegister());
+                    outer.mHandler.sendMessage(Message.obtain(outer.mHandler, MSG_RESET_READ_STATUS));
                     SpeechSynthesizer.getInstance().speak("注册失败");
                     break;
+                case MSG_RESET_READ_STATUS:
+                    outer.mReadCount = 0;
+                    outer.mScannedEPC = null;
+                    outer.mBucketToRegister = null;
+                    outer.mIsUnregisteredEPCRead = false;
+                    break;
                 case MSG_UPDATE_HINT:
-                    R0Hint hint = (R0Hint) msg.obj;
-                    outer.mHintContentTv.setTextColor(hint.isSuccess ?
-                            outer.mContext.getColor(R.color.green) :
-                            outer.mContext.getColor(R.color.indian_red));
-                    outer.mHintContentTv.setText(hint.content);
+                    outer.mHintContentTv.setText((String) msg.obj);
                     break;
             }
-        }
-    }
-
-    private class R0Hint {
-        boolean isSuccess;
-        String content;
-
-        R0Hint(boolean isSuccess, String content) {
-            this.isSuccess = isSuccess;
-            this.content = content;
         }
     }
 
@@ -341,7 +338,7 @@ public class R0Fragment extends BaseFragment implements InsHandler, QRCodeReader
 
         @Override
         public void run() {
-            byte[] data = null;
+            byte[] data;
 
             // 这里出现过一个Bug，当桶EPC从16字节变为12字节时，PC的写入及检测流程始终失败，原因在于MASK的设置因为
             // 桶EPC的长度缩减而变失效了
@@ -349,19 +346,25 @@ public class R0Fragment extends BaseFragment implements InsHandler, QRCodeReader
                 mScannedEPC = Arrays.copyOf(mScannedEPC, MyParams.EPC_BUCKET_LENGTH);
             }
             try {
+                Log.i(TAG, "EPC Target:" + CommonUtils.bytesToHex(mBucketToRegister.getEpc()));
+                Log.i(TAG, "EPC Source:" + CommonUtils.bytesToHex(mScannedEPC));
+
                 // 设置Mask
-                MyVars.getReader().setMask(mScannedEPC);
+                MyVars.getReader().setMask(mScannedEPC, 2);
 
                 // 尝试读取TID
                 data = MyVars.getReader().sendCommandSync(InsHelper.getReadMemBank(
-                        CommonUtils.hexToBytes("00000000"), InsHelper.MemBankType.TID,
-                        MyParams.TID_START_INDEX, MyParams.TID_LENGTH), READ_MAX_TRY_COUNT);
+                        CommonUtils.hexToBytes("00000000"),
+                        InsHelper.MemBankType.TID,
+                        MyParams.TID_START_INDEX,
+                        MyParams.TID_READ_LENGTH));
+                Log.i(TAG, "TID Read: " + CommonUtils.bytesToHex(data));
                 if (data == null) {
-                    writeHint(new R0Hint(false, "注册失败,读取TID失败"));
-                    writeTaskFailed();
+                    writeHint("读取TID\n失败");
+                    writeTaskFailed(true);
                     return;
                 } else {
-                    writeHint(new R0Hint(true, "读取TID成功"));
+                    writeHint("读取TID\n成功");
                     mBucketToRegister.setTid(InsHelper.getReadContent(data));
                 }
 
@@ -387,31 +390,72 @@ public class R0Fragment extends BaseFragment implements InsHandler, QRCodeReader
 
                 // 写入PC
                 data = MyVars.getReader().sendCommandSync(InsHelper.getWriteMemBank(
-                        CommonUtils.hexToBytes("00000000"), InsHelper.MemBankType.EPC,
-                        1, CommonUtils.hexToBytes(MyParams.BUCKET_PC_CONTENT)), WRITE_PC_MAX_TRY_COUNT);
+                        CommonUtils.hexToBytes("00000000"),
+                        InsHelper.MemBankType.EPC,
+                        MyParams.PC_START_INDEX,
+                        CommonUtils.generatePC(MyParams.EPC_BUCKET_LENGTH)));
                 // 这里不能检查epc的长度，因为修改PC后返回的EPC是修改之前的长度，而实际长度可能会发生变化
+                Log.i(TAG, "PC Write: " + CommonUtils.bytesToHex(data));
                 if (data == null) {
-                    writeHint(new R0Hint(false, "注册失败,写入PC失败"));
-                    writeTaskFailed();
+                    writeHint("写入PC失败");
+                    writeTaskFailed(true);
                     return;
                 } else {
-                    writeHint(new R0Hint(true, "写入PC成功"));
+                    writeHint("写入PC成功");
+                }
+
+                // 校验PC
+                data = MyVars.getReader().sendCommandSync(InsHelper.getReadMemBank(
+                        CommonUtils.hexToBytes("00000000"),
+                        InsHelper.MemBankType.EPC,
+                        MyParams.PC_START_INDEX,
+                        1));
+                Log.i(TAG, "PC Check: " + CommonUtils.bytesToHex(data));
+                if (data == null || (InsHelper.getReadContent(data)[0] & 0xFF) >> 3
+                        != MyParams.EPC_BUCKET_LENGTH / 2) {
+                    writeHint( "PC校验失败");
+                    writeTaskFailed(true);
+                    return;
+                } else {
+                    writeHint("校验PC成功");
                 }
 
                 // 写入EPC
                 data = MyVars.getReader().sendCommandSync(InsHelper.getWriteMemBank(
-                        CommonUtils.hexToBytes("00000000"), InsHelper.MemBankType.EPC,
-                        2, mBucketToRegister.getEpc()), WRITE_EPC_MAX_TRY_COUNT);
+                        CommonUtils.hexToBytes("00000000"),
+                        InsHelper.MemBankType.EPC,
+                        MyParams.EPC_START_INDEX,
+                        mBucketToRegister.getEpc()));
+                Log.i(TAG, "EPC Write: " + CommonUtils.bytesToHex(data));
                 if (data == null) {
-                    writeHint(new R0Hint(false, "注册失败,写入EPC失败"));
-                    writeTaskFailed();
+                    writeHint("写入EPC\n失败");
+                    writeTaskFailed(true);
                     return;
                 } else {
-                    writeHint(new R0Hint(true, "写入EPC成功"));
+                    writeHint("写入EPC\n成功");
+                }
+
+                // 设置新Mask
+                MyVars.getReader().setMask(mBucketToRegister.getEpc(), 2);
+
+                // 校验EPC
+                data = MyVars.getReader().sendCommandSync(InsHelper.getReadMemBank(
+                        CommonUtils.hexToBytes("00000000"),
+                        InsHelper.MemBankType.EPC,
+                        MyParams.EPC_START_INDEX,
+                        MyParams.EPC_BUCKET_LENGTH / 2));
+                Log.i(TAG, "EPC Check: " + CommonUtils.bytesToHex(data));
+                if (data == null || !Arrays.equals(InsHelper.getReadContent(data), mBucketToRegister.getEpc())) {
+                    writeHint("EPC校验\n失败");
+                    writeTaskFailed(true);
+                    return;
+                } else {
+                    writeHint("校验EPC\n成功");
+                    mBucketToRegister.setTid(InsHelper.getReadContent(data));
                 }
 
                 // 尝试上报平台
-                MessageRegister message = new MessageRegister(mProductNameSpn.getText().toString());
+                MessageRegister message = new MessageRegister(mProductName);
                 message.addBucket(
                         CommonUtils.bytesToHex(mBucketToRegister.getTid()),
                         CommonUtils.bytesToHex(mBucketToRegister.getEpc()),
@@ -419,23 +463,45 @@ public class R0Fragment extends BaseFragment implements InsHandler, QRCodeReader
                 Response<Reply> responseR0 = NetHelper.getInstance().uploadR0Message(message).execute();
                 Reply replyR0 = responseR0.body();
                 if (!responseR0.isSuccessful()) {
-                    writeHint(new R0Hint(false, "注册失败,平台连接失败"));
-                    writeTaskFailed();
+                    writeHint("平台连接\n失败");
+                    writeTaskFailed(true);
                     return;
-                } else if (replyR0 == null || replyR0.getCode() != 200) {
-                    writeHint(new R0Hint(false, "注册失败,桶身码已使用"));
-                    writeTaskFailed();
+                } else if (replyR0 == null) {
+                    writeHint("平台无响应");
+                    writeTaskFailed(true);
                     return;
+                } else if (replyR0.getCode() != 200) {
+                    switch (replyR0.getCode()) {
+                        case 210:
+                            // TODO: 2018/8/20 如果是之前没有收到响应的桶是不是计数要+1
+                            writeHint("该桶已于" +
+                                    new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.CHINA)
+                                            .format(new Date(Long.valueOf(replyR0.getContent().toString()) * 1000)) + "注册");
+                            writeTaskFailed(false);
+                            return;
+                        case 211:
+                            writeHint("桶身码已使用,请联系运维");
+                            writeTaskFailed(false);
+                            return;
+                        case 215:
+                            writeHint("桶身码更新\n成功");
+                            updateTaskSuccess();
+                            return;
+                        default:
+                            writeHint(replyR0.getMessage() + ",请联系运维");
+                            writeTaskFailed(false);
+                            return;
+                    }
                 } else {
-                    writeHint(new R0Hint(true, "上报平台成功"));
+                    writeHint("上报平台\n成功");
                 }
             } catch (Exception e) {
                 e.printStackTrace();
-                writeHint(new R0Hint(false, "注册失败,网络通信失败"));
-                writeTaskFailed();
+                writeHint("网络通信\n失败");
+                writeTaskFailed(true);
                 return;
             }
-            writeHint(new R0Hint(true, mBucketToRegister.getBodyCode() + "注册成功"));
+            writeHint(mBucketToRegister.getBodyCode() + "\n注册成功");
             writeTaskSuccess();
         }
     }

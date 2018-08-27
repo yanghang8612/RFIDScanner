@@ -1,32 +1,46 @@
 package com.casc.rfidscanner.adapter;
 
-import android.support.annotation.Nullable;
-import android.support.v7.widget.CardView;
+import android.content.Context;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
 
-import com.casc.rfidscanner.MyApplication;
 import com.casc.rfidscanner.R;
 import com.casc.rfidscanner.bean.RefluxBill;
+import com.casc.rfidscanner.view.NumberSwitcher;
 import com.chad.library.adapter.base.BaseQuickAdapter;
 import com.chad.library.adapter.base.BaseViewHolder;
 
-import java.util.List;
+import java.util.ArrayList;
 
 public class RefluxBillAdapter extends BaseQuickAdapter<RefluxBill, BaseViewHolder> {
 
-    public RefluxBillAdapter(@Nullable List<RefluxBill> data) {
-        super(R.layout.item_reflux_bill, data);
+    private Context mContext;
+
+    public RefluxBillAdapter(Context context) {
+        super(R.layout.item_reflux_bill, new ArrayList<RefluxBill>());
+        this.mContext = context;
     }
 
     @Override
     protected void convert(BaseViewHolder helper, RefluxBill item) {
-        CardView root = helper.getView(R.id.cv_reflux_bill_root);
-        root.setCardBackgroundColor(item.isHighlight() ?
-                MyApplication.getInstance().getColor(R.color.powder_blue) :
-                MyApplication.getInstance().getColor(R.color.snow));
-        helper.setBackgroundRes(R.id.tv_reflux_bill_card_id,
-                item.isHighlight() ? R.drawable.bg_bill_card_highlight :
-                        R.drawable.bg_bill_card_normal);
+        RecyclerView goodsListView = helper.getView(R.id.rv_reflux_bill_goods);
+        if (goodsListView.getLayoutManager() == null) {
+            goodsListView.setLayoutManager(new LinearLayoutManager(mContext));
+        }
+        if (goodsListView.getAdapter() != item.getGoodsAdapter()) {
+            goodsListView.setAdapter(item.getGoodsAdapter());
+        }
+        goodsListView.getAdapter().notifyDataSetChanged();
+
+        ((NumberSwitcher) helper.getView(R.id.ns_reflux_count))
+                .setNumber(item.getRefluxCount());
         helper.setText(R.id.tv_reflux_bill_card_id, item.getCardID())
-                .setText(R.id.tv_reflux_count, String.valueOf(item.getRefluxCount()));
+                .addOnClickListener(R.id.btn_confirm_reflux);
+    }
+
+    public void showBill(RefluxBill bill) {
+        getData().clear();
+        if (bill != null) getData().add(bill);
+        notifyDataSetChanged();
     }
 }

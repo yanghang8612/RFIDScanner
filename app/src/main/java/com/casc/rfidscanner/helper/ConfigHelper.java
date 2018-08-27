@@ -17,19 +17,19 @@ public class ConfigHelper {
     private static final SharedPreferences SP =
             MyApplication.getInstance().getSharedPreferences(FILE_NAME, CONTEXT_MODEL);
 
-    public static String getParam(String key) {
+    public static String getString(String key) {
         if (!MyParams.CONFIG_DEFAULT_MAP.containsKey(key))
             throw new IllegalArgumentException("No matched key");
         String defaultValue = MyParams.CONFIG_DEFAULT_MAP.get(key);
         return SP.getString(key, defaultValue);
     }
 
-    public static int getIntegerParam(String key) {
-        return Integer.valueOf(getParam(key).replaceAll("[a-zA-Z]", ""));
+    public static int getInt(String key) {
+        return Integer.valueOf(getString(key).replaceAll("[a-zA-Z]", ""));
     }
 
-    public static boolean getBooleanParam(String key) {
-        return Boolean.valueOf(getParam(key));
+    public static boolean getBool(String key) {
+        return Boolean.valueOf(getString(key));
     }
 
     /**

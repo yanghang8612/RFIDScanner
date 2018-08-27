@@ -11,11 +11,11 @@ import android.os.CountDownTimer;
 import android.support.annotation.NonNull;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.support.v7.widget.Toolbar;
 import android.text.Editable;
 import android.text.TextWatcher;
-import android.util.Log;
+import android.view.MenuItem;
 import android.view.View;
-import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.LinearLayout;
@@ -62,8 +62,11 @@ public class ConfigActivity extends BaseActivity {
         context.startActivity(intent);
     }
 
+    @BindView(R.id.toolbar_config) Toolbar mToolbar;
     @BindView(R.id.spn_config_link) BetterSpinner mLinkSpn;
     @BindView(R.id.sw_config_sensor_switch) Switch mSensorSw;
+    @BindView(R.id.spn_config_rssi_threshold) BetterSpinner mRSSIThreshold;
+    @BindView(R.id.spn_config_min_reach_times) BetterSpinner mMinReachTimesSpn;
     @BindView(R.id.spn_config_reader_power) BetterSpinner mReaderPowerSpn;
     @BindView(R.id.spn_config_reader_q_value) BetterSpinner mReaderQValueSpn;
     @BindView(R.id.spn_config_tag_lifecycle) BetterSpinner mTagLifecycleSpn;
@@ -100,6 +103,9 @@ public class ConfigActivity extends BaseActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_config);
         ButterKnife.bind(this);
+        setSupportActionBar(mToolbar);
+        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        MyVars.getReader().pause();
         initViews();
 
         // 注册蓝牙广播监听器
@@ -169,6 +175,18 @@ public class ConfigActivity extends BaseActivity {
         mBLEAdapter.cancelDiscovery();
     }
 
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+            case android.R.id.home:
+                finish();
+                break;
+            default:
+                break;
+        }
+        return super.onOptionsItemSelected(item);
+    }
+
     private void initViews() {
         LinkType linkType = LinkType.getType();
         mLinkSpn.setText(linkType.comment);
@@ -186,64 +204,67 @@ public class ConfigActivity extends BaseActivity {
                 if (LinkType.R2.comment.equals(s.toString()) ||
                         LinkType.R6.comment.equals(s.toString())) {
                     mLineNameLl.setVisibility(View.VISIBLE);
-                    mLineNameMet.setText(ConfigHelper.getParam(MyParams.S_LINE_NAMME));
+                    mLineNameMet.setText(ConfigHelper.getString(MyParams.S_LINE_NAME));
                 } else {
                     mLineNameLl.setVisibility(View.GONE);
                 }
             }
         });
 
-        mSensorSw.setChecked(ConfigHelper.getBooleanParam(MyParams.S_SENSOR_SWITCH));
+        mSensorSw.setChecked(ConfigHelper.getBool(MyParams.S_SENSOR_SWITCH));
 
-        mReaderPowerSpn.setText(ConfigHelper.getParam(MyParams.S_POWER));
+        mRSSIThreshold.setText(ConfigHelper.getString(MyParams.S_RSSI_THRESHOLD));
+        mRSSIThreshold.setAdapter(new ArrayAdapter<>(this,
+                R.layout.item_config, getResources().getStringArray(R.array.rssi_threshold)));
+
+        mMinReachTimesSpn.setText(ConfigHelper.getString(MyParams.S_MIN_REACH_TIMES));
+        mMinReachTimesSpn.setAdapter(new ArrayAdapter<>(this,
+                R.layout.item_config, getResources().getStringArray(R.array.min_reach_times)));
+
+        mReaderPowerSpn.setText(ConfigHelper.getString(MyParams.S_POWER));
         mReaderPowerSpn.setAdapter(new ArrayAdapter<>(this,
                 R.layout.item_config, getResources().getStringArray(R.array.reader_power)));
 
-        mReaderQValueSpn.setText(ConfigHelper.getParam(MyParams.S_Q_VALUE));
+        mReaderQValueSpn.setText(ConfigHelper.getString(MyParams.S_Q_VALUE));
         mReaderQValueSpn.setAdapter(new ArrayAdapter<>(this,
                 R.layout.item_config, getResources().getStringArray(R.array.reader_q_value)));
 
-        mTagLifecycleSpn.setText(ConfigHelper.getParam(MyParams.S_TAG_LIFECYCLE));
+        mTagLifecycleSpn.setText(ConfigHelper.getString(MyParams.S_TAG_LIFECYCLE));
         mTagLifecycleSpn.setAdapter(new ArrayAdapter<>(this,
                 R.layout.item_config, getResources().getStringArray(R.array.tag_lifecycle)));
 
-        mBlankIntervalSpn.setText(ConfigHelper.getParam(MyParams.S_BLANK_INTERVAL));
+        mBlankIntervalSpn.setText(ConfigHelper.getString(MyParams.S_BLANK_INTERVAL));
         mBlankIntervalSpn.setAdapter(new ArrayAdapter<>(this,
                 R.layout.item_config, getResources().getStringArray(R.array.blank_interval)));
 
-        mDiscoveryIntervalSpn.setText(ConfigHelper.getParam(MyParams.S_DISCOVERY_INTERVAL));
+        mDiscoveryIntervalSpn.setText(ConfigHelper.getString(MyParams.S_DISCOVERY_INTERVAL));
         mDiscoveryIntervalSpn.setAdapter(new ArrayAdapter<>(this,
                 R.layout.item_config, getResources().getStringArray(R.array.discovery_interval)));
 
-        mLongitudeMet.setText(ConfigHelper.getParam(MyParams.S_LONGITUDE));
+        mLongitudeMet.setText(ConfigHelper.getString(MyParams.S_LONGITUDE));
         mLongitudeMet.addValidator(new RegexpValidator("范围或格式错误(2位小数)",
                 "^-?((0|1?[0-7]?[0-9]?)(([.][0-9]{1,2})?)|180(([.][0]{1,2})?))$"));
-        mLatitudeMet.setText(ConfigHelper.getParam(MyParams.S_LATITUDE));
+        mLatitudeMet.setText(ConfigHelper.getString(MyParams.S_LATITUDE));
         mLatitudeMet.addValidator(new RegexpValidator("范围或格式错误(2位小数)",
                 "^-?((0|[1-8]?[0-9]?)(([.][0-9]{2})?)|90(([.][0]{2})?))$"));
-        mHeightMet.setText(ConfigHelper.getParam(MyParams.S_HEIGHT));
+        mHeightMet.setText(ConfigHelper.getString(MyParams.S_HEIGHT));
         mHeightMet.addValidator(new RegexpValidator("格式错误(2位小数)",
                 "^-?(0|[0-9]+)[.][0-9]{2}$"));
 
         mLineNameLl.setVisibility(linkType == LinkType.R2 || linkType == LinkType.R6 ?
                 View.VISIBLE : View.GONE);
-        mLineNameMet.setText(ConfigHelper.getParam(MyParams.S_LINE_NAMME));
+        mLineNameMet.setText(ConfigHelper.getString(MyParams.S_LINE_NAME));
 
-        mReaderIDMet.setText(ConfigHelper.getParam(MyParams.S_READER_ID));
+        mReaderIDMet.setText(ConfigHelper.getString(MyParams.S_READER_ID));
         mReaderIDMet.addValidator(new RegexpValidator("24位读写器ID(字符仅含0-9、A-F)",
                 "^([0-9A-F]{24})$"));
-        mMainPlatformAddrMet.setText(ConfigHelper.getParam(MyParams.S_MAIN_PLATFORM_ADDR));
+        mMainPlatformAddrMet.setText(ConfigHelper.getString(MyParams.S_MAIN_PLATFORM_ADDR));
         mMainPlatformAddrMet.addValidator(new RegexpValidator("网址格式错误",
                 "^((([hH][tT][tT][pP][sS]?|[fF][tT][pP])\\:\\/\\/)?([\\w\\.\\-]+(\\:[\\w\\.\\&%\\$\\-]+)*@)?((([^\\s\\(\\)\\<\\>\\\\\\\"\\.\\[\\]\\,@;:]+)(\\.[^\\s\\(\\)\\<\\>\\\\\\\"\\.\\[\\]\\,@;:]+)*(\\.[a-zA-Z]{2,4}))|((([01]?\\d{1,2}|2[0-4]\\d|25[0-5])\\.){3}([01]?\\d{1,2}|2[0-4]\\d|25[0-5])))(\\b\\:(6553[0-5]|655[0-2]\\d|65[0-4]\\d{2}|6[0-4]\\d{3}|[1-5]\\d{4}|[1-9]\\d{0,3}|0)\\b)?((\\/[^\\/][\\w\\.\\,\\?\\'\\\\\\/\\+&%\\$#\\=~_\\-@]*)*[^\\.\\,\\?\\\"\\'\\(\\)\\[\\]!;<>{}\\s\\x7F-\\xFF])?)$"));
-        mMonitorAppAddrMet.setText(ConfigHelper.getParam(MyParams.S_MONITOR_APP_ADDR));
+        mMonitorAppAddrMet.setText(ConfigHelper.getString(MyParams.S_MONITOR_APP_ADDR));
         mMonitorAppAddrMet.addValidator(new RegexpValidator("网址格式错误",
                 "^((([hH][tT][tT][pP][sS]?|[fF][tT][pP])\\:\\/\\/)?([\\w\\.\\-]+(\\:[\\w\\.\\&%\\$\\-]+)*@)?((([^\\s\\(\\)\\<\\>\\\\\\\"\\.\\[\\]\\,@;:]+)(\\.[^\\s\\(\\)\\<\\>\\\\\\\"\\.\\[\\]\\,@;:]+)*(\\.[a-zA-Z]{2,4}))|((([01]?\\d{1,2}|2[0-4]\\d|25[0-5])\\.){3}([01]?\\d{1,2}|2[0-4]\\d|25[0-5])))(\\b\\:(6553[0-5]|655[0-2]\\d|65[0-4]\\d{2}|6[0-4]\\d{3}|[1-5]\\d{4}|[1-9]\\d{0,3}|0)\\b)?((\\/[^\\/][\\w\\.\\,\\?\\'\\\\\\/\\+&%\\$#\\=~_\\-@]*)*[^\\.\\,\\?\\\"\\'\\(\\)\\[\\]!;<>{}\\s\\x7F-\\xFF])?)$"));
-        mReaderMacTv.setText(ConfigHelper.getParam(MyParams.S_READER_MAC));
-    }
-
-    @OnClick(R.id.btn_config_resume)
-    public void onResumeButtonClicked() {
-        finish();
+        mReaderMacTv.setText(ConfigHelper.getString(MyParams.S_READER_MAC));
     }
 
     @OnClick(R.id.btn_config_save)
@@ -253,6 +274,8 @@ public class ConfigActivity extends BaseActivity {
             LinkType linkType = LinkType.getTypeByComment(mLinkSpn.getText().toString());
             ConfigHelper.setParam(MyParams.S_LINK, linkType.link);
             ConfigHelper.setParam(MyParams.S_SENSOR_SWITCH, String.valueOf(mSensorSw.isChecked()));
+            ConfigHelper.setParam(MyParams.S_RSSI_THRESHOLD, mRSSIThreshold.getText().toString());
+            ConfigHelper.setParam(MyParams.S_MIN_REACH_TIMES, mMinReachTimesSpn.getText().toString());
             ConfigHelper.setParam(MyParams.S_POWER, mReaderPowerSpn.getText().toString());
             ConfigHelper.setParam(MyParams.S_Q_VALUE, mReaderQValueSpn.getText().toString());
             ConfigHelper.setParam(MyParams.S_TAG_LIFECYCLE, mTagLifecycleSpn.getText().toString());
@@ -263,7 +286,7 @@ public class ConfigActivity extends BaseActivity {
             ConfigHelper.setParam(MyParams.S_LATITUDE, mLatitudeMet.getText().toString());
             ConfigHelper.setParam(MyParams.S_HEIGHT, mHeightMet.getText().toString());
 
-            if (!ConfigHelper.getParam(MyParams.S_READER_ID).equals(mReaderIDMet.getText().toString())) {
+            if (!ConfigHelper.getString(MyParams.S_READER_ID).equals(mReaderIDMet.getText().toString())) {
                 ConfigHelper.setParam(MyParams.S_READER_ID, mReaderIDMet.getText().toString());
                 NetHelper.getInstance().getConfig(new MessageConfig()).enqueue(new Callback<Reply>() {
                     @Override
@@ -282,13 +305,19 @@ public class ConfigActivity extends BaseActivity {
             } else {
                 ConfigHelper.setParam(MyParams.S_READER_ID, mReaderIDMet.getText().toString());
             }
-            ConfigHelper.setParam(MyParams.S_LINE_NAMME, mLineNameMet.getText().toString());
+            ConfigHelper.setParam(MyParams.S_LINE_NAME, mLineNameMet.getText().toString());
             ConfigHelper.setParam(MyParams.S_MAIN_PLATFORM_ADDR, mMainPlatformAddrMet.getText().toString());
             ConfigHelper.setParam(MyParams.S_MONITOR_APP_ADDR, mMonitorAppAddrMet.getText().toString());
             ConfigHelper.setParam(MyParams.S_READER_MAC, mReaderMacTv.getText().toString());
 
             finish();
         }
+    }
+
+    @OnClick(R.id.btn_clear_cache)
+    public void onClearCacheButtonClicked() {
+        MyVars.cache.clear();
+        showToast("清除成功");
     }
 
     @OnClick(R.id.btn_config_exit)

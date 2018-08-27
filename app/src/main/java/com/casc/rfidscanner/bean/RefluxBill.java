@@ -1,10 +1,10 @@
 package com.casc.rfidscanner.bean;
 
 import com.casc.rfidscanner.MyVars;
+import com.casc.rfidscanner.adapter.GoodsAdapter;
 import com.casc.rfidscanner.utils.CommonUtils;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -23,11 +23,14 @@ public class RefluxBill {
 
     private Map<String, Bucket> buckets = new LinkedHashMap<>();
 
+    private GoodsAdapter goodsAdapter;
+
     public RefluxBill(byte[] card) {
         this.card = card;
         this.cardID =
                 MyVars.config.getCompanySymbol() + "R"
                         + String.format("%03d", ((card[5] & 0xFF) << 8) + (card[6] & 0xFF));
+        this.goodsAdapter = new GoodsAdapter(goods, false);
     }
 
     public boolean isHighlight() {
@@ -68,6 +71,10 @@ public class RefluxBill {
 
     public List<Bucket> getBuckets() {
         return new ArrayList<>(buckets.values());
+    }
+
+    public GoodsAdapter getGoodsAdapter() {
+        return goodsAdapter;
     }
 
     public int getRefluxCount() {

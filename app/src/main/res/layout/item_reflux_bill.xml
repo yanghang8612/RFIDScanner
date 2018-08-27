@@ -3,11 +3,8 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:id="@+id/cv_reflux_bill_root"
     android:layout_width="match_parent"
-    android:layout_height="wrap_content"
-    android:layout_marginTop="8dp"
-    android:layout_marginBottom="8dp"
-    android:layout_marginStart="6dp"
-    android:layout_marginEnd="6dp"
+    android:layout_height="match_parent"
+    android:layout_margin="8dp"
     app:cardCornerRadius="8dp"
     app:cardElevation="4dp"
     app:cardBackgroundColor="@color/snow">
@@ -16,58 +13,118 @@
         android:orientation="vertical"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_marginStart="8dp"
-        android:layout_marginEnd="@dimen/item_reflux_bill_margin"
-        android:padding="@dimen/item_reflux_bill_padding">
+        android:layout_margin="@dimen/item_reflux_bill_margin">
 
         <LinearLayout
             android:orientation="horizontal"
             android:layout_width="match_parent"
             android:layout_height="wrap_content">
 
-            <TextView
-                android:theme="@style/AppTheme.BillText"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/card_id_label" />
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:gravity="start">
 
-            <TextView
-                android:id="@+id/tv_reflux_bill_card_id"
-                android:theme="@style/AppTheme.BillText"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:background="@drawable/bg_bill_card_normal"
-                android:text="HY1001" />
+                <TextView
+                    android:theme="@style/AppTheme.BillText"
+                    android:layout_width="wrap_content"
+                    android:layout_height="match_parent"
+                    android:text="@string/card_id_label" />
+
+                <TextView
+                    android:id="@+id/tv_reflux_bill_card_id"
+                    android:theme="@style/AppTheme.BillText"
+                    android:layout_width="wrap_content"
+                    android:layout_height="match_parent"
+                    android:background="@drawable/bg_bill_card_normal"
+                    android:text="HYR001" />
+
+            </LinearLayout>
 
         </LinearLayout>
+
+        <LinearLayout
+            android:theme="@style/AppTheme.BillText"
+            android:orientation="horizontal"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/item_reflux_bill_margin"
+            android:background="@drawable/bg_header">
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="2"
+                android:gravity="center"
+                android:text="产品名称" />
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:gravity="end"
+                android:text="数量" />
+
+        </LinearLayout>
+
+        <android.support.v7.widget.RecyclerView
+            android:id="@+id/rv_reflux_bill_goods"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1" />
 
         <LinearLayout
             android:orientation="horizontal"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:gravity="end">
+            android:paddingStart="@dimen/item_reflux_bill_padding"
+            android:paddingEnd="@dimen/item_reflux_bill_padding"
+            android:gravity="bottom">
+
+            <LinearLayout
+                android:orientation="vertical"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="2">
+
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content">
+
+                    <Button
+                        android:id="@+id/btn_confirm_reflux"
+                        android:theme="@style/ButtonPrimary"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="确认提交"
+                        android:textSize="30sp" />
+
+                </LinearLayout>
+
+            </LinearLayout>
 
             <LinearLayout
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:layout_weight="5" />
-
-            <TextView
-                android:theme="@style/AppTheme.BillText"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:text="@string/reflux_count_label" />
+                android:gravity="end">
 
-            <TextView
-                android:id="@+id/tv_reflux_count"
-                android:theme="@style/AppTheme.BigNumber"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:layout_marginStart="@dimen/r2_margin"
-                android:gravity="end"
-                android:text="@string/number_default_value" />
+                <TextView
+                    android:theme="@style/AppTheme.BillText"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="2"
+                    android:text="@string/reflux_count_label" />
+
+                <com.casc.rfidscanner.view.NumberSwitcher
+                    android:id="@+id/ns_reflux_count"
+                    android:theme="@style/AppTheme.BigNumber"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="3" />
+
+            </LinearLayout>
 
         </LinearLayout>
 

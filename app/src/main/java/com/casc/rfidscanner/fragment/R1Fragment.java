@@ -1,7 +1,5 @@
 package com.casc.rfidscanner.fragment;
 
-import android.os.Handler;
-import android.os.Message;
 import android.support.annotation.NonNull;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -14,26 +12,24 @@ import android.widget.TextView;
 
 import com.afollestad.materialdialogs.DialogAction;
 import com.afollestad.materialdialogs.MaterialDialog;
-import com.casc.rfidscanner.MyApplication;
 import com.casc.rfidscanner.MyParams;
 import com.casc.rfidscanner.MyVars;
 import com.casc.rfidscanner.R;
 import com.casc.rfidscanner.activity.ConfigActivity;
 import com.casc.rfidscanner.adapter.BucketAdapter;
-import com.casc.rfidscanner.backend.InsHandler;
 import com.casc.rfidscanner.bean.Bucket;
 import com.casc.rfidscanner.helper.NetHelper;
 import com.casc.rfidscanner.helper.param.MessageScrap;
 import com.casc.rfidscanner.helper.param.Reply;
 import com.casc.rfidscanner.message.ConfigUpdatedMessage;
 import com.casc.rfidscanner.message.MultiStatusMessage;
+import com.casc.rfidscanner.message.PollingResultMessage;
 import com.casc.rfidscanner.utils.CommonUtils;
 import com.weiwangcn.betterspinner.library.BetterSpinner;
 
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
 
-import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -50,16 +46,12 @@ import retrofit2.Response;
 /**
  * 桶报废Fragment
  */
-public class R1Fragment extends BaseFragment implements InsHandler {
+public class R1Fragment extends BaseFragment {
 
     private static final String TAG = R1Fragment.class.getSimpleName();
     private static final int CAN_SCRAP_READ_COUNT = 5;
     private static final int MAX_READ_NONE_COUNT = 3;
     // Constant for InnerHandler message.what
-    private static final int MSG_ENABLE_BUTTON = 0;
-    private static final int MSG_DISABLE_BUTTON = 1;
-    private static final int MSG_READ_BUCKET = 2;
-    private static final int MSG_READ_NO_BUCKET = 3;
 
     @BindView(R.id.iv_scrap_tag_status) ImageView mTagStatusIv;
     @BindView(R.id.tv_scrap_body_code) TextView mBodyCodeTv;
@@ -71,7 +63,7 @@ public class R1Fragment extends BaseFragment implements InsHandler {
     // 已报废桶列表
     private List<Bucket> mBuckets = new ArrayList<>();
 
-    //
+    // 已报废桶Map
     private Map<String, Bucket> mBucketsMap = new HashMap<>();
 
     // 已报废桶列表适配器
@@ -88,9 +80,6 @@ public class R1Fragment extends BaseFragment implements InsHandler {
 
     // 要报废的桶实例
     private Bucket mBucketToScrap;
-
-    // Fragment内部handler
-    private Handler mHandler = new InnerHandler(this);
 
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void onMessageEvent(MultiStatusMessage message) {
@@ -109,6 +98,56 @@ public class R1Fragment extends BaseFragment implements InsHandler {
         updateConfigViews();
     }
 
+    @Subscribe(threadMode = ThreadMode.MAIN)
+    public void onMessageEvent(PollingResultMessage message) {
+        if (message.isRead) {
+            MyParams.EPCType epcType = CommonUtils.validEPC(message.epc);
+            switch (epcType) {
+                case BUCKET:
+                    mReadNoneCount = 0;
+                    if (Arrays.equals(message.epc, mScannedEPC)) {
+                        mReadCount += 1;
+                    } else {
+                        mReadCount = 0;
+                        mScannedEPC = message.epc;
+                        String epcStr = CommonUtils.bytesToHex(mScannedEPC);
+                        if (mBucketsMap.containsKey(epcStr)) {
+                            mBucketToScrap = mBucketsMap.get(epcStr);
+                        } else {
+                            mBucketToScrap = new Bucket(mScannedEPC);
+                            mBucketsMap.put(epcStr, mBucketToScrap);
+                        }
+                    }
+                    if (mReadCount > CAN_SCRAP_READ_COUNT) {
+                        mIsBucketEPCRead = true;
+                        mTagStatusIv.setImageResource(R.drawable.ic_connection_normal);
+                        mBodyCodeTv.setText(mBucketToScrap.getBodyCode()
+                                + (mBucketToScrap.isScraped() ? "(已报废)" : ""));
+                        mProductNameTv.setText(mBucketToScrap.getName());
+                        mConfirmScrapBtn.setEnabled(canScrap());
+                    }
+                    break;
+                case CARD_ADMIN:
+                    if (++mAdminCardScannedCount == MyParams.ADMIN_CARD_SCANNED_COUNT) {
+                        sendAdminLoginMessage(CommonUtils.bytesToHex(mScannedEPC));
+                        ConfigActivity.actionStart(getContext());
+                    }
+                    break;
+            }
+        } else {
+            mAdminCardScannedCount = 0;
+            if (++mReadNoneCount > MAX_READ_NONE_COUNT) {
+                mReadCount = 0;
+                mScannedEPC = null;
+                mIsBucketEPCRead = false;
+                mConfirmScrapBtn.setEnabled(false);
+                mTagStatusIv.setImageResource(R.drawable.ic_connection_abnormal);
+                mBodyCodeTv.setText("");
+                mProductNameTv.setText("");
+            }
+        }
+    }
+
     @Override
     protected void initFragment() {
         mMonitorStatusLl.setVisibility(View.GONE);
@@ -125,60 +164,6 @@ public class R1Fragment extends BaseFragment implements InsHandler {
         return R.layout.fragment_r1;
     }
 
-    @Override
-    public void sensorSignal(boolean isHigh) {
-
-    }
-
-    @Override
-    public void dealIns(byte[] ins) {
-        int command = ins[2] & 0xFF;
-        switch (command) {
-            case 0x22: // 轮询成功的处理流程
-                int pl = ((ins[3] & 0xFF) << 8) + (ins[4] & 0xFF);
-                byte[] epc = Arrays.copyOfRange(ins, 8, pl + 3);
-                MyParams.EPCType epcType = CommonUtils.validEPC(epc);
-                switch (epcType) {
-                    case BUCKET:
-                        mReadNoneCount = 0;
-                        if (Arrays.equals(epc, mScannedEPC)) {
-                            mReadCount += 1;
-                        } else {
-                            mReadCount = 0;
-                            mScannedEPC = epc;
-                            String epcStr = CommonUtils.bytesToHex(mScannedEPC);
-                            if (mBucketsMap.containsKey(epcStr)) {
-                                mBucketToScrap = mBucketsMap.get(epcStr);
-                            } else {
-                                mBucketToScrap = new Bucket(mScannedEPC);
-                                mBucketsMap.put(epcStr, mBucketToScrap);
-                            }
-                        }
-                        if (mReadCount > CAN_SCRAP_READ_COUNT) {
-                            mIsBucketEPCRead = true;
-                            mHandler.sendMessage(Message.obtain(mHandler, MSG_READ_BUCKET));
-                        }
-                        break;
-                    case CARD_ADMIN:
-                        mAdminCardScannedCount++;
-                        if (mAdminCardScannedCount == MyParams.ADMIN_CARD_SCANNED_COUNT) {
-                            sendAdminLoginMessage(CommonUtils.bytesToHex(epc));
-                            ConfigActivity.actionStart(getContext());
-                        }
-                        break;
-                    default:
-                        mHandler.sendMessage(Message.obtain(mHandler, MSG_READ_NO_BUCKET));
-                }
-                break;
-            default: // 命令帧执行失败的处理流程
-                switch (ins[5] & 0xFF) {
-                    case 0x15: // 轮询失败
-                        mHandler.sendMessage(Message.obtain(mHandler, MSG_READ_NO_BUCKET));
-                        break;
-                }
-        }
-    }
-
     @OnClick(R.id.btn_confirm_scrap)
     public void onButtonClicked(View view) {
         new MaterialDialog.Builder(Objects.requireNonNull(getContext()))
@@ -192,6 +177,7 @@ public class R1Fragment extends BaseFragment implements InsHandler {
                 .onPositive(new MaterialDialog.SingleButtonCallback() {
                     @Override
                     public void onClick(@NonNull final MaterialDialog dialog, @NonNull DialogAction which) {
+                        // TODO: 2018/8/9 disablecode可能为空，bug
                         MessageScrap message = new MessageScrap();
                         message.addBucket("", mBucketToScrap.getEpcStr(),
                                 MyVars.config.getDisableInfoByWord(mScrapReasonSpn.getText().toString()).getCode());
@@ -239,47 +225,6 @@ public class R1Fragment extends BaseFragment implements InsHandler {
                 mScrapReasonSpn.setText(MyVars.config.getDisableInfo().get(0).getWord());
             } else {
                 mScrapReasonSpn.setText("");
-            }
-        }
-    }
-
-    private static class InnerHandler extends Handler {
-
-        private WeakReference<R1Fragment> mOuter;
-
-        InnerHandler(R1Fragment fragment) {
-            this.mOuter = new WeakReference<>(fragment);
-        }
-
-        @Override
-        public void handleMessage(Message msg) {
-            R1Fragment outer = mOuter.get();
-            switch (msg.what) {
-                case MSG_ENABLE_BUTTON:
-                    outer.mConfirmScrapBtn.setEnabled(true);
-                    break;
-                case MSG_DISABLE_BUTTON:
-                    outer.mConfirmScrapBtn.setEnabled(false);
-                    break;
-                case MSG_READ_BUCKET:
-                    outer.mTagStatusIv.setImageResource(R.drawable.ic_connection_normal);
-                    outer.mBodyCodeTv.setText(outer.mBucketToScrap.getBodyCode()
-                            + (outer.mBucketToScrap.isScraped() ? "(已报废)" : ""));
-                    outer.mProductNameTv.setText(outer.mBucketToScrap.getName());
-                    outer.mConfirmScrapBtn.setEnabled(outer.canScrap());
-                    break;
-                case MSG_READ_NO_BUCKET:
-                    outer.mAdminCardScannedCount = 0;
-                    if (++outer.mReadNoneCount > MAX_READ_NONE_COUNT) {
-                        outer.mReadCount = 0;
-                        outer.mScannedEPC = null;
-                        outer.mIsBucketEPCRead = false;
-                        outer.mConfirmScrapBtn.setEnabled(false);
-                        outer.mTagStatusIv.setImageResource(R.drawable.ic_connection_abnormal);
-                        outer.mBodyCodeTv.setText("");
-                        outer.mProductNameTv.setText("");
-                    }
-                    break;
             }
         }
     }

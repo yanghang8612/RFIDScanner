@@ -45,11 +45,11 @@ public class NetHelper {
     private NetHelper() {
         this.netInterface = new Retrofit.Builder()
                 .addConverterFactory(GsonConverterFactory.create())
-                .baseUrl(ConfigHelper.getParam(MyParams.S_MAIN_PLATFORM_ADDR))
+                .baseUrl(ConfigHelper.getString(MyParams.S_MAIN_PLATFORM_ADDR))
                 .client(new OkHttpClient.Builder()
-                        .connectTimeout(MyParams.NET_CONNECT_TIMEOUT, TimeUnit.MILLISECONDS)
-                        .writeTimeout(MyParams.NET_RW_TIMEOUT, TimeUnit.MILLISECONDS)
-                        .readTimeout(MyParams.NET_RW_TIMEOUT, TimeUnit.MILLISECONDS)
+                        .connectTimeout(MyParams.NET_CONNECT_TIMEOUT, TimeUnit.SECONDS)
+                        .writeTimeout(MyParams.NET_RW_TIMEOUT, TimeUnit.SECONDS)
+                        .readTimeout(MyParams.NET_RW_TIMEOUT, TimeUnit.SECONDS)
                         .build())
                 .build()
                 .create(NetInterface.class);
@@ -61,42 +61,42 @@ public class NetHelper {
 
     public Call<Reply> checkBodyCodeAndTID(MessageQuery query) {
         return netInterface.checkBodyCodeAndTID(
-                ConfigHelper.getParam(MyParams.S_MAIN_PLATFORM_ADDR) + "/api/message/bucket/query",
+                ConfigHelper.getString(MyParams.S_MAIN_PLATFORM_ADDR) + "/api/message/bucket/query",
                 CommonUtils.generateRequestHeader("02"),
                 CommonUtils.generateRequestBody(query));
     }
 
     public Call<Reply> uploadR0Message(MessageRegister r0) {
         return netInterface.uploadR0Message(
-                ConfigHelper.getParam(MyParams.S_MAIN_PLATFORM_ADDR) + "/api/message/bucket/register",
+                ConfigHelper.getString(MyParams.S_MAIN_PLATFORM_ADDR) + "/api/message/bucket/register",
                 CommonUtils.generateRequestHeader("02"),
                 CommonUtils.generateRequestBody(r0));
     }
 
     public Call<Reply> uploadR1Message(MessageScrap r1) {
         return netInterface.uploadR1Message(
-                ConfigHelper.getParam(MyParams.S_MAIN_PLATFORM_ADDR) + "/api/message/bucket/scrap",
+                ConfigHelper.getString(MyParams.S_MAIN_PLATFORM_ADDR) + "/api/message/bucket/scrap",
                 CommonUtils.generateRequestHeader("02"),
                 CommonUtils.generateRequestBody(r1));
     }
 
     public Call<Reply> uploadCommonMessage(MessageCommon common) {
         return netInterface.uploadCommonMessage(
-                ConfigHelper.getParam(MyParams.S_MAIN_PLATFORM_ADDR) + "/api/message/bucket/common",
+                ConfigHelper.getString(MyParams.S_MAIN_PLATFORM_ADDR) + "/api/message/bucket/common",
                 CommonUtils.generateRequestHeader("02"),
                 CommonUtils.generateRequestBody(common));
     }
 
     public Call<Reply> uploadDeliveryMessage(MessageDelivery delivery) {
         return netInterface.uploadDeliveryMessage(
-                ConfigHelper.getParam(MyParams.S_MAIN_PLATFORM_ADDR) + "/api/message/bucket/elecformout",
+                ConfigHelper.getString(MyParams.S_MAIN_PLATFORM_ADDR) + "/api/message/bucket/elecformout",
                 CommonUtils.generateRequestHeader("02"),
                 CommonUtils.generateRequestBody(delivery));
     }
 
     public Call<Reply> uploadRefluxMessage(MessageReflux reflux) {
         return netInterface.uploadRefluxMessage(
-                ConfigHelper.getParam(MyParams.S_MAIN_PLATFORM_ADDR) + "/api/message/bucket/elecformin",
+                ConfigHelper.getString(MyParams.S_MAIN_PLATFORM_ADDR) + "/api/message/bucket/elecformin",
                 CommonUtils.generateRequestHeader("02"),
                 CommonUtils.generateRequestBody(reflux));
     }
@@ -118,70 +118,81 @@ public class NetHelper {
                 break;
         }
         return netInterface.uploadDealerMessage(
-                ConfigHelper.getParam(MyParams.S_MAIN_PLATFORM_ADDR) + "/api/dealermessage/bucket/" + path,
+                ConfigHelper.getString(MyParams.S_MAIN_PLATFORM_ADDR) + "/api/dealermessage/bucket/" + path,
                 CommonUtils.generateRequestHeader("03"),
                 CommonUtils.generateRequestBody(dealer));
     }
 
     public Call<Reply> getConfig(MessageConfig config) {
         return netInterface.getConfig(
-                ConfigHelper.getParam(MyParams.S_MAIN_PLATFORM_ADDR) + "/api/device/parameter",
+                ConfigHelper.getString(MyParams.S_MAIN_PLATFORM_ADDR) + "/api/device/parameter",
                 CommonUtils.generateRequestHeader("02"),
                 CommonUtils.generateRequestBody(config));
     }
 
     public Call<Reply> sendHeartbeat() {
         return netInterface.sendHeartbeat(
-                ConfigHelper.getParam(MyParams.S_MAIN_PLATFORM_ADDR) + "/api/message/heartbeat",
+                ConfigHelper.getString(MyParams.S_MAIN_PLATFORM_ADDR) + "/api/message/heartbeat",
                 CommonUtils.generateRequestHeader("02"));
     }
 
     public Call<Reply> uploadCardRegMessage(MessageCardReg card) {
         return netInterface.uploadCardRegMessage(
-                ConfigHelper.getParam(MyParams.S_MAIN_PLATFORM_ADDR) + "/api/device/card/register",
+                ConfigHelper.getString(MyParams.S_MAIN_PLATFORM_ADDR) + "/api/device/card/register",
                 CommonUtils.generateRequestHeader("02"),
                 CommonUtils.generateRequestBody(card));
     }
 
     public Call<Reply> uploadAdminLoginInfo(RequestBody login) {
         return netInterface.uploadAdminLoginInfo(
-                ConfigHelper.getParam(MyParams.S_MAIN_PLATFORM_ADDR) + "/api/message/bucket/login",
+                ConfigHelper.getString(MyParams.S_MAIN_PLATFORM_ADDR) + "/api/message/bucket/login",
                 CommonUtils.generateRequestHeader("02"), login);
     }
 
     public void reportHeartbeat() {
         netInterface.reportHeartbeat(
-                ConfigHelper.getParam(MyParams.S_MONITOR_APP_ADDR) + "/heartbeat",
-                ConfigHelper.getParam(MyParams.S_LINE_NAMME))
+                ConfigHelper.getString(MyParams.S_MONITOR_APP_ADDR) + "/heartbeat",
+                ConfigHelper.getString(MyParams.S_LINE_NAME))
                 .enqueue(new BillCallback());
     }
 
     public void reportBillDelivery(MessageBillDelivery bill) {
         netInterface.reportBillDelivery(
-                ConfigHelper.getParam(MyParams.S_MONITOR_APP_ADDR) + "/bill_delivery",
-                ConfigHelper.getParam(MyParams.S_LINE_NAMME),
+                ConfigHelper.getString(MyParams.S_MONITOR_APP_ADDR) + "/bill_delivery",
+                ConfigHelper.getString(MyParams.S_LINE_NAME),
                 CommonUtils.generateRequestBody(bill)).enqueue(new BillCallback());
     }
 
     public void reportBillReflux(MessageBillDelivery bill) {
         netInterface.reportBillReflux(
-                ConfigHelper.getParam(MyParams.S_MONITOR_APP_ADDR) + "/bill_reflux",
-                ConfigHelper.getParam(MyParams.S_LINE_NAMME),
+                ConfigHelper.getString(MyParams.S_MONITOR_APP_ADDR) + "/bill_reflux",
+                ConfigHelper.getString(MyParams.S_LINE_NAME),
                 CommonUtils.generateRequestBody(bill)).enqueue(new BillCallback());
     }
 
     public void reportBillBucket(MessageBillBucket bucket) {
         netInterface.reportBillBucket(
-                ConfigHelper.getParam(MyParams.S_MONITOR_APP_ADDR) + "/bill_bucket",
-                ConfigHelper.getParam(MyParams.S_LINE_NAMME),
+                ConfigHelper.getString(MyParams.S_MONITOR_APP_ADDR) + "/bill_bucket",
+                ConfigHelper.getString(MyParams.S_LINE_NAME),
                 CommonUtils.generateRequestBody(bucket)).enqueue(new BillCallback());
     }
 
     public void reportBillComplete(MessageBillComplete message) {
         netInterface.reportBillComplete(
-                ConfigHelper.getParam(MyParams.S_MONITOR_APP_ADDR) + "/bill_complete",
-                ConfigHelper.getParam(MyParams.S_LINE_NAMME),
+                ConfigHelper.getString(MyParams.S_MONITOR_APP_ADDR) + "/bill_complete",
+                ConfigHelper.getString(MyParams.S_LINE_NAME),
                 CommonUtils.generateRequestBody(message)).enqueue(new BillCallback());
+    }
+
+    public Call<String> traceBucket() {
+        return netInterface.traceBucket(
+                "https://wx.iwiot.net/api/app/trace",
+                CommonUtils.generateRequestBody(new Content()));
+    }
+
+    class Content {
+        String bodycode = "AHY00001";
+        String userid = "";
     }
 
     private class BillCallback implements Callback<Reply> {

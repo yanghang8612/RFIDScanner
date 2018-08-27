@@ -1,9 +1,7 @@
 package com.casc.rfidscanner.adapter;
 
 import android.support.annotation.Nullable;
-import android.util.Log;
 import android.view.View;
-import android.widget.TextView;
 
 import com.casc.rfidscanner.MyApplication;
 import com.casc.rfidscanner.R;
@@ -34,7 +32,7 @@ public class GoodsAdapter extends BaseQuickAdapter<Goods, BaseViewHolder> {
         ((NumberSwitcher) helper.getView(R.id.ns_goods_cur_count))
                 .setNumber(item.getCurCount());
         ((NumberSwitcher) helper.getView(R.id.ns_goods_cur_count))
-                .setTextColor(item.getCurCount() > item.getTotalCount() ?
+                .setTextColor(item.getCurCount() > item.getTotalCount() && item.getTotalCount() != -1 ?
                         MyApplication.getInstance().getColor(R.color.indian_red) :
                         MyApplication.getInstance().getColor(R.color.black));
         helper.setText(R.id.tv_goods_name, item.getName())

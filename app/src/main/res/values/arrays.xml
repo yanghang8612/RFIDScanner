@@ -4,7 +4,7 @@
         <item>桶注册</item>
         <item>桶报废</item>
         <item>桶筛选</item>
-        <item>成品注册</item>
+        <item>成品下线</item>
         <item>成品出库</item>
         <item>空桶回流</item>
         <item>经销商库存管理</item>
@@ -64,6 +64,26 @@
         <item>24dBm</item>
         <item>25dBm</item>
         <item>26dBm</item>
+    </string-array>
+    <string-array name="rssi_threshold">
+        <item>-10dBm</item>
+        <item>-15dBm</item>
+        <item>-20dBm</item>
+        <item>-25dBm</item>
+        <item>-30dBm</item>
+        <item>-35dBm</item>
+        <item>-40dBm</item>
+        <item>-45dBm</item>
+        <item>-50dBm</item>
+        <item>-55dBm</item>
+        <item>-60dBm</item>
+    </string-array>
+    <string-array name="min_reach_times">
+        <item>1</item>
+        <item>2</item>
+        <item>3</item>
+        <item>4</item>
+        <item>5</item>
     </string-array>
     <string-array name="reader_q_value">
         <item>0</item>

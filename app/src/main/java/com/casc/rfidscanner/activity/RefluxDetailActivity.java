@@ -15,7 +15,6 @@ import android.widget.ViewFlipper;
 
 import com.afollestad.materialdialogs.DialogAction;
 import com.afollestad.materialdialogs.MaterialDialog;
-import com.casc.rfidscanner.MyApplication;
 import com.casc.rfidscanner.MyVars;
 import com.casc.rfidscanner.R;
 import com.casc.rfidscanner.adapter.BucketAdapter;
@@ -86,14 +85,8 @@ public class RefluxDetailActivity extends BaseActivity {
         mBucketsRv.setLayoutManager(new LinearLayoutManager(this));
         mBucketsRv.setAdapter(mBucketAdapter);
 
-        if (!MyVars.config.getDealerInfo().isEmpty())
-            mDealerSpn.setText(MyVars.config.getDealerInfo().get(0));
-
         mDealerSpn.setAdapter(new ArrayAdapter<>(this, R.layout.item_specify,
                 MyVars.config.getDealerInfo()));
-
-        if (!MyVars.config.getDriverInfo().isEmpty())
-            mDriverSpn.setText(MyVars.config.getDriverInfo().get(0));
 
         mDriverSpn.setAdapter(new ArrayAdapter<>(this, R.layout.item_specify,
                 MyVars.config.getDriverInfo()));

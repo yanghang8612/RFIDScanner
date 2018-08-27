@@ -178,10 +178,7 @@ public class TagCache {
         @Override
         public void run() {
             synchronized (TagCache.this) {
-                long lifecycle = Long.valueOf(
-                        ConfigHelper.getParam(MyParams.S_TAG_LIFECYCLE)
-                                .replace("Min", "")) * 60 * 1000;
-
+                long lifecycle = ConfigHelper.getInt(MyParams.S_TAG_LIFECYCLE) * 60 * 1000;
                 Iterator<Map.Entry<String, Tag>> it = cache.entrySet().iterator();
                 while (it.hasNext()) {
                     Map.Entry<String, Tag> item = it.next();

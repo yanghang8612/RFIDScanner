@@ -55,7 +55,7 @@ public class Card {
         this.comment = type;
         switch (type) {
             case "出库专用卡":
-                this.pc = CommonUtils.hexToBytes(MyParams.DELIVERY_PC_CONTENT);
+                this.pc = CommonUtils.generatePC(MyParams.EPC_DELIVERY_CARD_LENGTH);
                 this.epc = new byte[MyParams.EPC_DELIVERY_CARD_LENGTH];
                 this.type = String.valueOf(MyParams.EPCType.CARD_DELIVERY.getCode());
                 System.arraycopy(CommonUtils.generateEPCHeader(), 0, this.epc, 0, MyParams.EPC_HEADER_LENGTH);
@@ -64,7 +64,7 @@ public class Card {
                 epc[MyParams.EPC_TYPE_INDEX + 2] = (byte) (Integer.valueOf(bodyCode.substring(4)) & 0xFF);
                 break;
             case "运维专用卡":
-                this.pc = CommonUtils.hexToBytes(MyParams.ADMIN_PC_CONTENT);
+                this.pc = CommonUtils.generatePC(MyParams.EPC_ADMIN_CARD_LENGTH);
                 this.epc = new byte[MyParams.EPC_ADMIN_CARD_LENGTH];
                 this.type = String.valueOf(MyParams.EPCType.CARD_ADMIN.getCode());
                 System.arraycopy(CommonUtils.generateEPCHeader(), 0, this.epc, 0, MyParams.EPC_HEADER_LENGTH);
@@ -74,7 +74,7 @@ public class Card {
                 System.arraycopy(BigInteger.valueOf(this.life).toByteArray(), 0, epc, MyParams.EPC_TYPE_INDEX + 3, 4);
                 break;
             case "回流专用卡":
-                this.pc = CommonUtils.hexToBytes(MyParams.REFLUX_PC_CONTENT);
+                this.pc = CommonUtils.generatePC(MyParams.EPC_REFLUX_CARD_LENGTH);
                 this.epc = new byte[MyParams.EPC_REFLUX_CARD_LENGTH];
                 this.type = String.valueOf(MyParams.EPCType.CARD_REFLUX.getCode());
                 System.arraycopy(CommonUtils.generateEPCHeader(), 0, this.epc, 0, MyParams.EPC_HEADER_LENGTH);

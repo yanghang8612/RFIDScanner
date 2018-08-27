@@ -29,10 +29,10 @@ public class MessageDealer {
 
     public MessageDealer(String stage, String counterparty, String driver) {
         this.stage = stage;
-        this.reader_TID = ConfigHelper.getParam(MyParams.S_READER_ID);
-        this.longitude = Double.valueOf(ConfigHelper.getParam(MyParams.S_LONGITUDE));
-        this.latitude = Double.valueOf(ConfigHelper.getParam(MyParams.S_LATITUDE));
-        this.height = Double.valueOf(ConfigHelper.getParam(MyParams.S_HEIGHT));
+        this.reader_TID = ConfigHelper.getString(MyParams.S_READER_ID);
+        this.longitude = Double.valueOf(ConfigHelper.getString(MyParams.S_LONGITUDE));
+        this.latitude = Double.valueOf(ConfigHelper.getString(MyParams.S_LATITUDE));
+        this.height = Double.valueOf(ConfigHelper.getString(MyParams.S_HEIGHT));
         this.time = System.currentTimeMillis() / 1000 - (MyParams.DELAY * (14 - Integer.valueOf(stage)));
         this.counterparty = counterparty;
         this.driver = driver;

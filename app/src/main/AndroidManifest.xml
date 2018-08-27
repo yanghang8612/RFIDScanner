@@ -94,8 +94,20 @@
             android:name=".activity.DialogActivity"
             android:screenOrientation="landscape"
             android:theme="@style/AppTheme.LightTransparent" />
-        <service
-            android:name=".service.HttpService" />
+        <activity
+            android:name=".activity.BillConfirmActivity"
+            android:screenOrientation="landscape"
+            android:theme="@style/AppTheme.LightTransparent" />
+        <activity
+            android:name=".activity.ProductChooseActivity"
+            android:screenOrientation="landscape"
+            android:theme="@style/AppTheme.LightTransparent" />
+        <activity
+            android:name=".activity.ErrorRemindActivity"
+            android:screenOrientation="landscape"
+            android:theme="@style/AppTheme.LightTransparent"/>
+
+        <service android:name=".service.HttpService" />
     </application>
 
 </manifest>

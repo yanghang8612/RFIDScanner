@@ -3,6 +3,7 @@ package com.casc.rfidscanner.bean;
 import android.text.TextUtils;
 
 import com.casc.rfidscanner.MyParams;
+import com.casc.rfidscanner.adapter.DMBillAdapter;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -17,7 +18,11 @@ public class Client {
 
     private boolean isDataIncoming;
 
+    private int completeCount;
+
     private List<DeliveryBill> bills = new ArrayList<>();
+
+    private DMBillAdapter adapter = new DMBillAdapter(bills);
 
     public Client(String name, String ipStr) {
         this.name = name;
@@ -53,11 +58,29 @@ public class Client {
         isDataIncoming = dataIncoming;
     }
 
+    public int getCompleteCount() {
+        return completeCount;
+    }
+
     public List<DeliveryBill> getBills() {
         return bills;
     }
 
     public void addBill(DeliveryBill bill) {
         bills.add(bill);
+    }
+
+    public void removeBill(DeliveryBill bill) {
+        bills.remove(bill);
+        completeCount += 1;
+    }
+
+    public DMBillAdapter getAdapter() {
+        return adapter;
+    }
+
+    public void moveToFirst(DeliveryBill bill) {
+        bills.remove(bill);
+        bills.add(0, bill);
     }
 }

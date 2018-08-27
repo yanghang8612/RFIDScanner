@@ -1,9 +1,7 @@
 package com.casc.rfidscanner.view;
 
 import android.content.Context;
-import android.content.res.TypedArray;
 import android.graphics.Color;
-import android.support.annotation.IntegerRes;
 import android.text.TextUtils;
 import android.util.AttributeSet;
 import android.view.Gravity;
@@ -67,6 +65,19 @@ public class NumberSwitcher extends TextSwitcher {
             super.setText(String.valueOf(newNumber));
         } else {
             super.setCurrentText(String.valueOf(newNumber));
+        }
+    }
+
+    public int getNumber() {
+        String curText = ((TextView) getCurrentView()).getText().toString();
+        return TextUtils.isEmpty(curText) ? -1 : Integer.valueOf(curText);
+    }
+
+    public void increaseNumber() {
+        String oldText = ((TextView) getCurrentView()).getText().toString();
+        int oldNumber = TextUtils.isEmpty(oldText) ? -1 : Integer.valueOf(oldText);
+        if (oldNumber >= 0) {
+            setNumber(oldNumber + 1);
         }
     }
 }

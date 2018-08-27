@@ -208,15 +208,19 @@
 
                     <TextView
                         android:theme="@style/AppTheme.BigText"
-                        android:layout_width="wrap_content"
+                        android:layout_width="0dp"
                         android:layout_height="wrap_content"
+                        android:layout_weight="2"
+                        android:gravity="center"
                         android:text="@string/uploaded_bill_count_label" />
 
                     <TextView
                         android:id="@+id/tv_rn_uploaded_bill_count"
                         android:theme="@style/AppTheme.BigText"
-                        android:layout_width="wrap_content"
+                        android:layout_width="0dp"
                         android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:gravity="center"
                         android:text="@string/number_default_value" />
 
                 </LinearLayout>
@@ -229,15 +233,19 @@
 
                     <TextView
                         android:theme="@style/AppTheme.BigText"
-                        android:layout_width="wrap_content"
+                        android:layout_width="0dp"
                         android:layout_height="wrap_content"
+                        android:layout_weight="2"
+                        android:gravity="center"
                         android:text="@string/stored_bill_count_label" />
 
                     <TextView
                         android:id="@+id/tv_rn_stored_bill_count"
                         android:theme="@style/AppTheme.BigText"
-                        android:layout_width="wrap_content"
+                        android:layout_width="0dp"
                         android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:gravity="center"
                         android:text="@string/number_default_value"/>
 
                 </LinearLayout>

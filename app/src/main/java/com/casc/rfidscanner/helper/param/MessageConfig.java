@@ -8,6 +8,6 @@ public class MessageConfig {
     private String reader_TID;
 
     public MessageConfig() {
-        this.reader_TID = ConfigHelper.getParam(MyParams.S_READER_ID);
+        this.reader_TID = ConfigHelper.getString(MyParams.S_READER_ID);
     }
 }

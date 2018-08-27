@@ -1,22 +1,18 @@
 package com.casc.rfidscanner.fragment;
 
-import android.app.Activity;
 import android.content.Context;
 import android.media.AudioAttributes;
 import android.media.SoundPool;
 import android.os.Bundle;
 import android.support.annotation.CallSuper;
-import android.support.annotation.IntegerRes;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.annotation.StringRes;
 import android.support.v4.app.Fragment;
-import android.support.v7.app.AppCompatActivity;
-import android.text.TextUtils;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
@@ -26,9 +22,7 @@ import android.widget.Toast;
 import com.casc.rfidscanner.MyParams;
 import com.casc.rfidscanner.MyVars;
 import com.casc.rfidscanner.R;
-import com.casc.rfidscanner.activity.BaseActivity;
 import com.casc.rfidscanner.activity.ConfigActivity;
-import com.casc.rfidscanner.backend.InsHandler;
 import com.casc.rfidscanner.bean.LinkType;
 import com.casc.rfidscanner.helper.NetHelper;
 import com.casc.rfidscanner.helper.param.MessageAdminLogin;
@@ -57,11 +51,9 @@ import retrofit2.Response;
 /**
  * 各阶段Fragment的基类
  */
-public abstract class BaseFragment extends Fragment implements InsHandler {
+public abstract class BaseFragment extends Fragment {
 
     private static final String TAG = BaseFragment.class.getSimpleName();
-
-    protected static final int MSG_RECEIVED_FRAME_FROM_READER = 0xBB;
 
     @BindView(R.id.ll_connection_status) LinearLayout mConnectionStatusLl;
     @BindView(R.id.ll_monitor_status) LinearLayout mMonitorStatusLl;
@@ -163,8 +155,7 @@ public abstract class BaseFragment extends Fragment implements InsHandler {
         mSoundID = mSoundPool.load(getContext(), R.raw.timer, 1);
         mToast = Toast.makeText(mContext, "", Toast.LENGTH_SHORT);
         EventBus.getDefault().register(this);
-        MyVars.usbReader.setHandler(this);
-        MyVars.bleReader.setHandler(this);
+        Log.i(TAG, "onCreate");
     }
 
     @Override
@@ -188,16 +179,11 @@ public abstract class BaseFragment extends Fragment implements InsHandler {
     @Override
     public void onResume() {
         super.onResume();
+        mAdminCardScannedCount = 0;
         if (LinkType.getType().isNeedReader)
             MyVars.getReader().start();
         else
             MyVars.getReader().stop();
-    }
-
-    @Override
-    public void onPause() {
-        super.onPause();
-        MyVars.getReader().pause();
     }
 
     @Override
@@ -207,6 +193,7 @@ public abstract class BaseFragment extends Fragment implements InsHandler {
         EventBus.getDefault().unregister(this);
         MyVars.fragmentExecutor.shutdown();
         MyVars.cache.clear();
+        Log.i(TAG, "onDestroy");
     }
 
     // 派生类必须重写该abstract方法，以实现自己的Fragment初始化逻辑
@@ -269,7 +256,6 @@ public abstract class BaseFragment extends Fragment implements InsHandler {
                 mBackdoorCount = 0;
             }
             if (mBackdoorCount == 10) {
-                MyVars.getReader().pause();
                 ConfigActivity.actionStart(getContext());
             }
         }

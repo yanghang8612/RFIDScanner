@@ -4,10 +4,7 @@
     android:id="@+id/cv_deliver_bill_root"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:layout_marginTop="8dp"
-    android:layout_marginBottom="8dp"
-    android:layout_marginStart="6dp"
-    android:layout_marginEnd="6dp"
+    android:layout_margin="8dp"
     app:cardCornerRadius="8dp"
     app:cardElevation="4dp"
     app:cardBackgroundColor="@color/snow">
@@ -21,8 +18,7 @@
         <LinearLayout
             android:orientation="horizontal"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:padding="@dimen/item_delivery_bill_padding">
+            android:layout_height="wrap_content">
 
             <LinearLayout
                 android:layout_width="0dp"
@@ -42,7 +38,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="match_parent"
                     android:background="@drawable/bg_bill_card_normal"
-                    android:text="HY1001" />
+                    android:text="HYC001" />
 
             </LinearLayout>
 
@@ -117,39 +113,46 @@
             android:orientation="horizontal"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:padding="@dimen/item_delivery_bill_padding"
-            android:gravity="center">
+            android:paddingStart="@dimen/item_delivery_bill_padding"
+            android:paddingEnd="@dimen/item_delivery_bill_padding"
+            android:gravity="bottom">
 
             <LinearLayout
+                android:orientation="vertical"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:gravity="bottom">
+                android:layout_weight="1">
 
-                <Button
-                    android:id="@+id/btn_state_delivery"
-                    android:theme="@style/ButtonGrey"
+                <LinearLayout
                     android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="出库模式"
-                    android:textSize="32sp" />
+                    android:layout_height="wrap_content">
 
-                <Button
-                    android:visibility="gone"
-                    android:id="@+id/btn_state_back"
-                    android:theme="@style/ButtonRed"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="退库模式"
-                    android:textSize="32sp" />
+                    <Button
+                        android:id="@+id/btn_state_delivery"
+                        android:theme="@style/ButtonGrey"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="出库模式"
+                        android:textSize="30sp" />
 
-                <Button
-                    android:id="@+id/btn_confirm_delivery"
-                    android:theme="@style/ButtonPrimary"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="确认提交"
-                    android:textSize="32sp" />
+                    <Button
+                        android:visibility="gone"
+                        android:id="@+id/btn_state_back"
+                        android:theme="@style/ButtonRed"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="退库模式"
+                        android:textSize="30sp" />
+
+                    <Button
+                        android:id="@+id/btn_confirm_delivery"
+                        android:theme="@style/ButtonPrimary"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="确认提交"
+                        android:textSize="30sp" />
+
+                </LinearLayout>
 
             </LinearLayout>
 

@@ -13,34 +13,26 @@ public interface TagReader {
     int STATE_CONNECTED = 2;
 
     /**
-     * 设置读写器返回帧的解析Handler
-     *
-     */
-    void setHandler(InsHandler handler);
-
-    /**
      * 向读写器下发指定次数的指令，非阻塞
      *
      * @param cmd 指令byte数组
-     * @param times 指令执行次数
      */
-    void sendCommand(byte[] cmd, int times);
+    void sendCommand(byte[] cmd);
 
     /**
      * 向读写器下发指定次数的指令，阻塞
      *
      * @param cmd 指令byte数组
-     * @param maxTryCount 指令最大尝试次数
      * @return 执行完毕后读写器返回的结果，若无正确结果则返回null
      */
-    byte[] sendCommandSync(byte[] cmd, int maxTryCount);
+    byte[] sendCommandSync(byte[] cmd);
 
     /**
      * 设置读写器的MASK
      *
      * @param mask 要设置的MASK值
      */
-    void setMask(byte[] mask);
+    void setMask(byte[] mask, int mode);
 
     /**
      * 检测读写器连接状态
@@ -72,7 +64,7 @@ public interface TagReader {
     void stop();
 
     /**
-     * 停止读写器工作，断开一切连接，并终止所有读写线程
+     * 停止读写器工作，且断开连接，并终止所有读写线程
      */
     void shutdown();
 }

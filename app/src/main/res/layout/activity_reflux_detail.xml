@@ -113,7 +113,7 @@
                     android:layout_weight="1" />
 
                 <LinearLayout
-                    android:orientation="vertical"
+                    android:orientation="horizontal"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:paddingStart="8dp"
@@ -125,18 +125,19 @@
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
                         android:paddingStart="@dimen/reflux_detail_padding"
-                        android:gravity="center|end">
+                        android:gravity="start">
 
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:gravity="end"
                             android:text="@string/driver_label" />
 
                         <com.weiwangcn.betterspinner.library.BetterSpinner
                             android:id="@+id/spn_reflux_driver"
                             android:layout_width="wrap_content"
-                            android:layout_height="wrap_content" />
+                            android:layout_height="wrap_content"
+                            android:minWidth="100dp"
+                            android:text="其他" />
 
                     </LinearLayout>
 
@@ -145,18 +146,19 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
-                        android:gravity="center|end">
+                        android:gravity="start">
 
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:gravity="end"
                             android:text="@string/dealer_label" />
 
                         <com.weiwangcn.betterspinner.library.BetterSpinner
                             android:id="@+id/spn_reflux_dealer"
                             android:layout_width="wrap_content"
-                            android:layout_height="wrap_content" />
+                            android:layout_height="wrap_content"
+                            android:minWidth="200dp"
+                            android:text="其他" />
 
                     </LinearLayout>
 

@@ -66,6 +66,9 @@ public interface NetInterface {
     Call<Reply> reportBillComplete(@Url String url, @Query("line") String line, @Body RequestBody message);
 
     @POST
+    Call<String> traceBucket(@Url String url, @Body RequestBody body);
+
+    @POST
     @FormUrlEncoded
     Call<Reply> cacheData(@Url String url, @Field("stage") String stage, @Field("path") String path, @Field("content") String content);
 }

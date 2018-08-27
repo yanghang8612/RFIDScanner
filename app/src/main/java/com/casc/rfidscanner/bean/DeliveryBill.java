@@ -1,21 +1,15 @@
 package com.casc.rfidscanner.bean;
 
-import android.text.TextUtils;
-
 import com.casc.rfidscanner.MyVars;
 import com.casc.rfidscanner.adapter.GoodsAdapter;
 import com.casc.rfidscanner.utils.CommonUtils;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Calendar;
-import java.util.Collections;
-import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 
 public class DeliveryBill {
 
@@ -34,11 +28,9 @@ public class DeliveryBill {
     private static final int SPEC_LENGTH = 20;
     private static final int SPEC_INDEX = 9 + 6 + 10 + 4;
 
-    private boolean isHighlight, isBacking, isComplete;
+    private boolean isBacking, isComplete;
 
     private long updatedTime = System.currentTimeMillis();
-
-    private Client client;
 
     private byte[] card;
 
@@ -103,20 +95,12 @@ public class DeliveryBill {
         }
     }
 
-    public boolean isHighlight() {
-        return isHighlight;
+    public boolean isBacking() {
+        return isBacking;
     }
 
-    public void setHighlight(boolean highlight) {
-        isHighlight = highlight;
-    }
-
-    public long getUpdatedTime() {
-        return updatedTime;
-    }
-
-    public void setUpdatedTime(long updatedTime) {
-        this.updatedTime = updatedTime;
+    public void setBacking(boolean backing) {
+        isBacking = backing;
     }
 
     public boolean isComplete() {
@@ -127,12 +111,12 @@ public class DeliveryBill {
         isComplete = complete;
     }
 
-    public Client getClient() {
-        return client;
+    public long getUpdatedTime() {
+        return updatedTime;
     }
 
-    public void setClient(Client client) {
-        this.client = client;
+    public void setUpdatedTime(long updatedTime) {
+        this.updatedTime = updatedTime;
     }
 
     public byte[] getCard() {
@@ -185,6 +169,10 @@ public class DeliveryBill {
 
     public List<Bucket> getBuckets() {
         return new ArrayList<>(buckets.values());
+    }
+
+    public GoodsAdapter getGoodsAdapter() {
+        return goodsAdapter;
     }
 
     public int getDeliveryCount() {
@@ -250,17 +238,5 @@ public class DeliveryBill {
                 return goods;
         }
         return null;
-    }
-
-    public GoodsAdapter getGoodsAdapter() {
-        return goodsAdapter;
-    }
-
-    public boolean isBacking() {
-        return isBacking;
-    }
-
-    public void setBacking(boolean backing) {
-        isBacking = backing;
     }
 }

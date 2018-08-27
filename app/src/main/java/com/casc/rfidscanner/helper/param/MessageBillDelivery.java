@@ -1,11 +1,8 @@
 package com.casc.rfidscanner.helper.param;
 
-import com.casc.rfidscanner.MyParams;
-import com.casc.rfidscanner.MyVars;
 import com.casc.rfidscanner.bean.Bucket;
 import com.casc.rfidscanner.bean.Client;
 import com.casc.rfidscanner.bean.DeliveryBill;
-import com.casc.rfidscanner.helper.ConfigHelper;
 
 import java.util.ArrayList;
 import java.util.List;

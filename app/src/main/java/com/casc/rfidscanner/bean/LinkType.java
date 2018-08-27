@@ -19,7 +19,7 @@ public enum LinkType {
     R2("02", true, R2Fragment.class, "空桶回流"),
     M2("M2", false, R2MonitorFragment.class, "回流监控"),
     R3("03", true, R3Fragment.class, "桶筛选"),
-    R4("04", true, R4Fragment.class, "成品注册"),
+    R4("04", true, R4Fragment.class, "成品下线"),
     R6("06", true, R6Fragment.class, "成品出库"),
     M6("M6", false, R6MonitorFragment.class, "出库监控"),
     RN("0N", true, RNFragment.class, "经销商库存管理"),
@@ -38,7 +38,7 @@ public enum LinkType {
     }
 
     public static LinkType getType() {
-        return getType(ConfigHelper.getParam(MyParams.S_LINK));
+        return getType(ConfigHelper.getString(MyParams.S_LINK));
     }
 
     public static LinkType getType(String link) {

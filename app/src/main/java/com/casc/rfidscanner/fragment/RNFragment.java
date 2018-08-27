@@ -1,8 +1,6 @@
 package com.casc.rfidscanner.fragment;
 
 import android.graphics.Canvas;
-import android.os.Handler;
-import android.os.Message;
 import android.support.annotation.NonNull;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -21,14 +19,15 @@ import com.casc.rfidscanner.MyVars;
 import com.casc.rfidscanner.R;
 import com.casc.rfidscanner.activity.ConfigActivity;
 import com.casc.rfidscanner.adapter.RNBucketAdapter;
-import com.casc.rfidscanner.backend.InsHandler;
 import com.casc.rfidscanner.bean.RNBucket;
 import com.casc.rfidscanner.helper.ConfigHelper;
 import com.casc.rfidscanner.helper.NetHelper;
 import com.casc.rfidscanner.helper.param.MessageDealer;
 import com.casc.rfidscanner.helper.param.Reply;
+import com.casc.rfidscanner.message.AbnormalBucketMessage;
 import com.casc.rfidscanner.message.BillStoredMessage;
 import com.casc.rfidscanner.message.BillUploadedMessage;
+import com.casc.rfidscanner.message.PollingResultMessage;
 import com.casc.rfidscanner.utils.CommonUtils;
 import com.chad.library.adapter.base.callback.ItemDragAndSwipeCallback;
 import com.chad.library.adapter.base.listener.OnItemSwipeListener;
@@ -38,9 +37,7 @@ import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
 
-import java.lang.ref.WeakReference;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -56,13 +53,9 @@ import retrofit2.Response;
  * 水站库存管理Fragment
  */
 
-public class RNFragment extends BaseFragment implements InsHandler {
+public class RNFragment extends BaseFragment {
 
     private static final String TAG = RNFragment.class.getSimpleName();
-    private static final int BUCKET_FOUND_READ_COUNT = 5;
-    // Constant for InnerHandler message.what
-    private static final int MSG_INCREASE_SCANNED_COUNT = 0;
-    private static final int MSG_UPDATE_BUCKET_LIST = 1;
 
     @BindView(R.id.spn_rn_link) BetterSpinner mRNLinkSpn;
     @BindView(R.id.act_rn_driver) AutoCompleteTextView mRNDriverAct;
@@ -82,12 +75,7 @@ public class RNFragment extends BaseFragment implements InsHandler {
 
     private String mReadEPC;
 
-    private int mReadCount;
-
     private String[] mLinks;
-
-    // Fragment内部handler
-    private Handler mHandler = new InnerHandler(this);
 
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void onMessageEvent(BillStoredMessage message) {
@@ -102,15 +90,70 @@ public class RNFragment extends BaseFragment implements InsHandler {
         increaseCount(mUploadedBillCountTv);
     }
 
+    @Subscribe(threadMode = ThreadMode.MAIN)
+    public void onMessageEvent(AbnormalBucketMessage message) {
+//        String content = message.isReadNone ?
+//                "未发现桶标签" : "发现弱标签：" + message.weakBodyCode;
+//        mHints.add(0, new Hint(content));
+//        mHintAdapter.notifyDataSetChanged();
+    }
+
+    @Subscribe(threadMode = ThreadMode.MAIN)
+    public void onMessageEvent(PollingResultMessage message) {
+        if (message.isRead) {
+            switch (CommonUtils.getEPCType(message.epc)) {
+                case BUCKET:
+                    String epcStr = CommonUtils.bytesToHex(message.epc);
+                    if (!mBucketsMap.containsKey(epcStr)) {
+                        RNBucket bucket = new RNBucket(message.epc);
+                        mBuckets.add(0, bucket);
+                        mBucketsMap.put(epcStr, bucket);
+                        increaseCount(mBucketCountTv);
+                        playSound();
+                    } else {
+                        if (mReadEPC != null) {
+                            mBucketsMap.get(mReadEPC).setHighlight(false);
+                        }
+                        mBucketsMap.get(epcStr).setHighlight(true);
+                    }
+                    mReadEPC = epcStr;
+                    mAdapter.notifyDataSetChanged();
+                    break;
+                case CARD_ADMIN:
+                    if (++mAdminCardScannedCount == MyParams.ADMIN_CARD_SCANNED_COUNT) {
+                        sendAdminLoginMessage(CommonUtils.bytesToHex(message.epc));
+                        ConfigActivity.actionStart(getContext());
+                    }
+                    break;
+                default:
+                    if (mBucketsMap.containsKey(mReadEPC)) {
+                        mBucketsMap.get(mReadEPC).setHighlight(false);
+                        mAdapter.notifyDataSetChanged();
+                    }
+                    mReadEPC = null;
+            }
+        } else {
+            mAdminCardScannedCount = 0;
+            if (mBucketsMap.containsKey(mReadEPC)) {
+                mBucketsMap.get(mReadEPC).setHighlight(false);
+                mAdapter.notifyDataSetChanged();
+            }
+            mReadEPC = null;
+        }
+    }
+
     @Override
     protected void initFragment() {
+        mMonitorStatusLl.setVisibility(View.GONE);
+        mReaderStatusLl.setVisibility(View.VISIBLE);
+
         mStoredBillCountTv.setText(String.valueOf(MyVars.cache.getStoredDealerBill()));
         mLinks = getResources().getStringArray(R.array.rn_link);
         mRNLinkSpn.setText(mLinks[0]);
         mRNLinkSpn.setAdapter(new ArrayAdapter<>(mContext, R.layout.item_rn_link, mLinks));
         ArrayAdapter<String> mDriverAdapter = new ArrayAdapter<>(mContext,
                 android.R.layout.simple_dropdown_item_1line,
-                Objects.requireNonNull(ConfigHelper.getParam(MyParams.S_DRIVER_HISTORY).split(",")));
+                Objects.requireNonNull(ConfigHelper.getString(MyParams.S_DRIVER_HISTORY).split(",")));
         mRNDriverAct.setAdapter(mDriverAdapter);
         mRNDriverAct.setOnFocusChangeListener(new View.OnFocusChangeListener() {
             @Override
@@ -121,7 +164,7 @@ public class RNFragment extends BaseFragment implements InsHandler {
         });
         ArrayAdapter<String> mCounterAdapter = new ArrayAdapter<>(mContext,
                 android.R.layout.simple_dropdown_item_1line,
-                Objects.requireNonNull(ConfigHelper.getParam(MyParams.S_COUNTER_HISTORY).split(",")));
+                Objects.requireNonNull(ConfigHelper.getString(MyParams.S_COUNTER_HISTORY).split(",")));
         mRNCounterAct.setAdapter(mCounterAdapter);
         mRNCounterAct.setOnFocusChangeListener(new View.OnFocusChangeListener() {
             @Override
@@ -150,7 +193,6 @@ public class RNFragment extends BaseFragment implements InsHandler {
                 mBucketsMap.remove(epcStr);
                 if (epcStr.equals(mReadEPC)) {
                     mReadEPC = null;
-                    mReadCount = 0;
                 }
                 decreaseCount(mBucketCountTv);
             }
@@ -167,76 +209,6 @@ public class RNFragment extends BaseFragment implements InsHandler {
     @Override
     protected int getLayout() {
         return R.layout.fragment_rn;
-    }
-
-    @Override
-    public void sensorSignal(boolean isHigh) {
-
-    }
-
-    @Override
-    public void dealIns(byte[] ins) {
-        int command = ins[2] & 0xFF;
-        switch (command) {
-            case 0x22: // 轮询成功的处理流程
-                int pl = ((ins[3] & 0xFF) << 8) + (ins[4] & 0xFF);
-                byte[] epc = Arrays.copyOfRange(ins, 8, pl + 3);
-                MyParams.EPCType epcType = CommonUtils.getEPCType(epc);
-                switch (epcType) {
-                    case BUCKET:
-                        String epcStr = CommonUtils.bytesToHex(epc);
-                        if (epcStr.equals(mReadEPC)) {
-                            mReadCount++;
-                            if (mReadCount == BUCKET_FOUND_READ_COUNT) {
-                                playSound();
-                                if (!mBucketsMap.containsKey(epcStr)) {
-                                    RNBucket bucket = new RNBucket(epc);
-                                    mBuckets.add(0, bucket);
-                                    mBucketsMap.put(epcStr, bucket);
-                                    mHandler.sendMessage(Message.obtain(mHandler, MSG_INCREASE_SCANNED_COUNT));
-                                } else {
-                                    mBucketsMap.get(epcStr).setHighlight(true);
-                                }
-                                mHandler.sendMessage(Message.obtain(mHandler, MSG_UPDATE_BUCKET_LIST));
-                            }
-                        } else {
-                            if (mReadEPC != null && mBucketsMap.get(mReadEPC) != null) {
-                                mBucketsMap.get(mReadEPC).setHighlight(false);
-                                mHandler.sendMessage(Message.obtain(mHandler, MSG_UPDATE_BUCKET_LIST));
-                            }
-                            mReadEPC = epcStr;
-                            mReadCount = 1;
-                        }
-                        break;
-                    case CARD_ADMIN:
-                        mAdminCardScannedCount++;
-                        if (mAdminCardScannedCount == MyParams.ADMIN_CARD_SCANNED_COUNT) {
-                            sendAdminLoginMessage(CommonUtils.bytesToHex(epc));
-                            ConfigActivity.actionStart(getContext());
-                        }
-                        break;
-                    default:
-                        if (mReadEPC != null && mBucketsMap.get(mReadEPC) != null) {
-                            mBucketsMap.get(mReadEPC).setHighlight(false);
-                            mHandler.sendMessage(Message.obtain(mHandler, MSG_UPDATE_BUCKET_LIST));
-                        }
-                        mReadEPC = null;
-                        mReadCount = 0;
-                }
-                break;
-            default: // 命令帧执行失败的处理流程
-                switch (ins[5] & 0xFF) {
-                    case 0x15: // 轮询失败
-                        mAdminCardScannedCount = 0;
-                        if (mReadEPC != null && mBucketsMap.get(mReadEPC) != null) {
-                            mBucketsMap.get(mReadEPC).setHighlight(false);
-                            mHandler.sendMessage(Message.obtain(mHandler, MSG_UPDATE_BUCKET_LIST));
-                        }
-                        mReadEPC = null;
-                        mReadCount = 0;
-                        break;
-                }
-        }
     }
 
     @OnClick(R.id.btn_rn_clear)
@@ -327,7 +299,7 @@ public class RNFragment extends BaseFragment implements InsHandler {
     }
 
     private void saveHistory(AutoCompleteTextView input, String keyword) {
-        String history = ConfigHelper.getParam(keyword);
+        String history = ConfigHelper.getString(keyword);
         String newWord = input.getText().toString();
         if (!TextUtils.isEmpty(newWord) && !history.contains(newWord + ",")) {
             ConfigHelper.setParam(keyword, history + newWord + ",");
@@ -342,28 +314,5 @@ public class RNFragment extends BaseFragment implements InsHandler {
         mBucketsMap.clear();
         mBucketCountTv.setText("0");
         mReadEPC = null;
-        mReadCount = 0;
-    }
-
-    private static class InnerHandler extends Handler {
-
-        private WeakReference<RNFragment> mOuter;
-
-        InnerHandler(RNFragment fragment) {
-            this.mOuter = new WeakReference<>(fragment);
-        }
-
-        @Override
-        public void handleMessage(Message msg) {
-            RNFragment outer = mOuter.get();
-            switch (msg.what) {
-                case MSG_INCREASE_SCANNED_COUNT:
-                    outer.increaseCount(outer.mBucketCountTv);
-                    break;
-                case MSG_UPDATE_BUCKET_LIST:
-                    outer.mAdapter.notifyDataSetChanged();
-                    break;
-            }
-        }
     }
 }

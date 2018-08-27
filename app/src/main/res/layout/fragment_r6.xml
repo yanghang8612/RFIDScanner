@@ -37,7 +37,6 @@
     <android.support.v7.widget.RecyclerView
         android:id="@+id/rv_delivery_bill"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:layout_margin="@dimen/r6_margin" />
+        android:layout_height="match_parent" />
 
 </LinearLayout>

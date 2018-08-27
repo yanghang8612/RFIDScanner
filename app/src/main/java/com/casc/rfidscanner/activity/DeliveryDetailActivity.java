@@ -3,7 +3,6 @@ package com.casc.rfidscanner.activity;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
-import android.support.annotation.NonNull;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.text.TextUtils;
@@ -14,15 +13,11 @@ import android.widget.Button;
 import android.widget.TextView;
 import android.widget.ViewFlipper;
 
-import com.afollestad.materialdialogs.DialogAction;
-import com.afollestad.materialdialogs.MaterialDialog;
-import com.casc.rfidscanner.MyApplication;
 import com.casc.rfidscanner.MyVars;
 import com.casc.rfidscanner.R;
 import com.casc.rfidscanner.adapter.BucketAdapter;
 import com.casc.rfidscanner.adapter.GoodsAdapter;
 import com.casc.rfidscanner.bean.DeliveryBill;
-import com.casc.rfidscanner.message.BillFinishedMessage;
 import com.casc.rfidscanner.message.BillUpdatedMessage;
 import com.weiwangcn.betterspinner.library.BetterSpinner;
 
@@ -155,44 +150,44 @@ public class DeliveryDetailActivity extends BaseActivity {
         mContentVf.showPrevious();
     }
 
-    @OnClick(R.id.btn_detail_confirm)
-    void onConfirmButtonClicked() {
-        if (!mBill.isComplete()) {
-            showToast("出库尚未完成");
-        } else {
-            String content;
-            if (mBill.getDeliveryCount() < mBill.getTotalCount())
-                content = "出库货物（不足）提货单数量，仍确认出库吗？";
-            else if (mBill.getDeliveryCount() > mBill.getTotalCount())
-                content = "出库货物（超过）提货单数量，仍确认出库吗？";
-            else
-                content = "出库货物：" + mBill.getDeliveryCount() + "（桶），确认出库吗？";
-            new MaterialDialog.Builder(this)
-                    .title("提示信息")
-                    .content(content)
-                    .positiveText("确认")
-                    .positiveColorRes(R.color.white)
-                    .btnSelector(R.drawable.md_btn_postive, DialogAction.POSITIVE)
-                    .negativeText("取消")
-                    .negativeColorRes(R.color.gray)
-                    .onPositive(new MaterialDialog.SingleButtonCallback() {
-                        @Override
-                        public void onClick(@NonNull MaterialDialog dialog, @NonNull DialogAction which) {
-                            BillFinishedMessage message = new BillFinishedMessage();
-                            message.dealer = mDealerSpn.getText().toString();
-                            message.driver = mDriverSpn.getText().toString();
-                            EventBus.getDefault().post(message);
-                            dialog.dismiss();
-                            finish();
-                        }
-                    })
-                    .onNegative(new MaterialDialog.SingleButtonCallback() {
-                        @Override
-                        public void onClick(@NonNull MaterialDialog dialog, @NonNull DialogAction which) {
-                            dialog.dismiss();
-                        }
-                    })
-                    .show();
-        }
-    }
+//    @OnClick(R.id.btn_detail_confirm)
+//    void onConfirmButtonClicked() {
+//        if (!mBill.isComplete()) {
+//            showToast("出库尚未完成");
+//        } else {
+//            String content;
+//            if (mBill.getDeliveryCount() < mBill.getTotalCount())
+//                content = "出库货物（不足）提货单数量，仍确认出库吗？";
+//            else if (mBill.getDeliveryCount() > mBill.getTotalCount())
+//                content = "出库货物（超过）提货单数量，仍确认出库吗？";
+//            else
+//                content = "出库货物：" + mBill.getDeliveryCount() + "（桶），确认出库吗？";
+//            new MaterialDialog.Builder(this)
+//                    .title("提示信息")
+//                    .content(content)
+//                    .positiveText("确认")
+//                    .positiveColorRes(R.color.white)
+//                    .btnSelector(R.drawable.md_btn_postive, DialogAction.POSITIVE)
+//                    .negativeText("取消")
+//                    .negativeColorRes(R.color.gray)
+//                    .onPositive(new MaterialDialog.SingleButtonCallback() {
+//                        @Override
+//                        public void onClick(@NonNull MaterialDialog dialog, @NonNull DialogAction which) {
+//                            BillFinishedMessage message = new BillFinishedMessage();
+//                            message.dealer = mDealerSpn.getText().toString();
+//                            message.driver = mDriverSpn.getText().toString();
+//                            EventBus.getDefault().post(message);
+//                            dialog.dismiss();
+//                            finish();
+//                        }
+//                    })
+//                    .onNegative(new MaterialDialog.SingleButtonCallback() {
+//                        @Override
+//                        public void onClick(@NonNull MaterialDialog dialog, @NonNull DialogAction which) {
+//                            dialog.dismiss();
+//                        }
+//                    })
+//                    .show();
+//        }
+//    }
 }
