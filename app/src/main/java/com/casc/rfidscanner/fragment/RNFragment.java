@@ -101,7 +101,7 @@ public class RNFragment extends BaseFragment {
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void onMessageEvent(PollingResultMessage message) {
         if (message.isRead) {
-            switch (CommonUtils.getEPCType(message.epc)) {
+            switch (CommonUtils.validEPC(message.epc)) {
                 case BUCKET:
                     String epcStr = CommonUtils.bytesToHex(message.epc);
                     if (!mBucketsMap.containsKey(epcStr)) {
@@ -147,7 +147,7 @@ public class RNFragment extends BaseFragment {
         mMonitorStatusLl.setVisibility(View.GONE);
         mReaderStatusLl.setVisibility(View.VISIBLE);
 
-        mStoredBillCountTv.setText(String.valueOf(MyVars.cache.getStoredDealerBill()));
+        mStoredBillCountTv.setText(String.valueOf(MyVars.cache.getStoredDealerMessageCount()));
         mLinks = getResources().getStringArray(R.array.rn_link);
         mRNLinkSpn.setText(mLinks[0]);
         mRNLinkSpn.setAdapter(new ArrayAdapter<>(mContext, R.layout.item_rn_link, mLinks));

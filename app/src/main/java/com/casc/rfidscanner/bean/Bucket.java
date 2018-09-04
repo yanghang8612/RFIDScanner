@@ -1,13 +1,12 @@
 package com.casc.rfidscanner.bean;
 
+import com.casc.rfidscanner.MyParams;
 import com.casc.rfidscanner.MyVars;
 import com.casc.rfidscanner.utils.CommonUtils;
 
 import java.util.Arrays;
 
 public class Bucket {
-
-    private boolean isScraped;
 
     private byte[] epc;
 
@@ -39,11 +38,11 @@ public class Bucket {
     }
 
     public boolean isScraped() {
-        return isScraped;
+        return epc[MyParams.EPC_TYPE_INDEX] == MyParams.EPCType.BUCKET_SCRAPED.getCode();
     }
 
     public void setScraped() {
-        isScraped = true;
+        epc[MyParams.EPC_TYPE_INDEX] = MyParams.EPCType.BUCKET_SCRAPED.getCode();
     }
 
     public byte[] getEpc() {

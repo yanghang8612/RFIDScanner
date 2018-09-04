@@ -7,7 +7,8 @@ import android.util.Pair;
 
 import com.casc.rfidscanner.MyParams;
 import com.casc.rfidscanner.MyVars;
-import com.casc.rfidscanner.dao.BaseDao;
+import com.casc.rfidscanner.bean.LinkType;
+import com.casc.rfidscanner.dao.MessageDao;
 import com.casc.rfidscanner.helper.ConfigHelper;
 import com.casc.rfidscanner.helper.DBHelper;
 import com.casc.rfidscanner.helper.NetHelper;
@@ -41,31 +42,31 @@ public class TagCache {
     // 缓存map，key为epc，value为Tag类型的实例
     private final Map<String, Tag> cache = new HashMap<>();
 
-    private final BaseDao tagDao;
+    private final MessageDao tagDao;
 
-    private final BaseDao deliveryDao;
+    private final MessageDao deliveryDao;
 
-    private final BaseDao refluxDao;
+    private final MessageDao refluxDao;
 
-    private final BaseDao dealerDao;
+    private final MessageDao dealerDao;
 
-    private final BaseDao loginDao;
+    private final MessageDao loginDao;
 
     private int scannedCount = 0, uploadCount = 0, storedCount;
 
-    public TagCache(Context context) {
-        this.tagDao = new BaseDao(DBHelper.TABLE_NAME_TAG, context);
-        this.deliveryDao = new BaseDao(DBHelper.TABLE_NAME_DELIVERY, context);
-        this.refluxDao = new BaseDao(DBHelper.TABLE_NAME_REFLUX, context);
-        this.dealerDao = new BaseDao(DBHelper.TABLE_NAME_DEALER, context);
-        this.loginDao = new BaseDao(DBHelper.TABLE_NAME_LOGIN, context);
+    public TagCache() {
+        this.tagDao = new MessageDao(DBHelper.TABLE_NAME_TAG_MESSAGE);
+        this.deliveryDao = new MessageDao(DBHelper.TABLE_NAME_DELIVERY_MESSAGE);
+        this.refluxDao = new MessageDao(DBHelper.TABLE_NAME_REFLUX_MESSAGE);
+        this.dealerDao = new MessageDao(DBHelper.TABLE_NAME_DEALER_MESSAGE);
+        this.loginDao = new MessageDao(DBHelper.TABLE_NAME_LOGIN_MESSAGE);
         MyVars.executor.scheduleWithFixedDelay(new LifecycleCheckTask(), 0, 100, TimeUnit.MILLISECONDS);
         MyVars.executor.scheduleWithFixedDelay(new StoredUploadTask(), 3000, 500, TimeUnit.MILLISECONDS); // 延迟5秒开始，便于界面有时间显示
-        this.storedCount = (int) tagDao.count();
+        this.storedCount = (int) tagDao.rowCount();
     }
 
     public synchronized long getStoredCount() {
-        return tagDao.count();
+        return tagDao.rowCount();
     }
 
     public void clear() {
@@ -95,32 +96,24 @@ public class TagCache {
         }
     }
 
-    public synchronized long getStoredDeliveryBillCount() {
-        return deliveryDao.count();
-    }
-
     public synchronized void storeDeliveryBill(MessageDelivery bill) {
-        deliveryDao.save(new Gson().toJson(bill));
-    }
-
-    public synchronized long getStoredRefluxBill() {
-        return refluxDao.count();
+        deliveryDao.insert(new Gson().toJson(bill));
     }
 
     public synchronized void storeRefluxBill(MessageReflux bill) {
-        refluxDao.save(new Gson().toJson(bill));
-    }
-
-    public synchronized long getStoredDealerBill() {
-        return dealerDao.count();
+        refluxDao.insert(new Gson().toJson(bill));
     }
 
     public synchronized void storeDealerBill(MessageDealer bill) {
-        dealerDao.save(new Gson().toJson(bill));
+        dealerDao.insert(new Gson().toJson(bill));
     }
 
     public synchronized void storeLoginInfo(String login) {
-        loginDao.save(login);
+        loginDao.insert(login);
+    }
+
+    public synchronized long getStoredDealerMessageCount() {
+        return dealerDao.rowCount();
     }
 
     private void upload(String tid, final String epc) {
@@ -133,7 +126,7 @@ public class TagCache {
                         Reply body = response.body();
                         if (!response.isSuccessful() || body == null || body.getCode() != 200) {
                             synchronized (TagCache.this) {
-                                tagDao.save(new Gson().toJson(common));
+                                tagDao.insert(new Gson().toJson(common));
                             }
                             cache.get(epc).status = TagStatus.STORED;
                             EventBus.getDefault().post(new TagCountChangedMessage(scannedCount, uploadCount, ++storedCount));
@@ -147,7 +140,7 @@ public class TagCache {
                     @Override
                     public void onFailure(@NonNull Call<Reply> call, @NonNull Throwable t) {
                         synchronized (TagCache.this) {
-                            tagDao.save(new Gson().toJson(common));
+                            tagDao.insert(new Gson().toJson(common));
                         }
                         cache.get(epc).status = TagStatus.STORED;
                         EventBus.getDefault().post(new TagCountChangedMessage(scannedCount, uploadCount, ++storedCount));
@@ -202,59 +195,72 @@ public class TagCache {
         public void run() {
             synchronized (TagCache.this) {
                 //Log.i(TAG, String.valueOf(deliveryDao.count()));
-                if (tagDao.count() != 0) {
-                    final Pair<Integer, String> tag = tagDao.findOne();
-                    try {
-                        Response<Reply> response = NetHelper.getInstance()
-                                .uploadCommonMessage(new Gson().fromJson(tag.second, MessageCommon.class))
-                                .execute();
-                        Reply body = response.body();
-                        if (response.isSuccessful() && body != null && body.getCode() == 200) {
-                            tagDao.delete(tag.first);
-                            EventBus.getDefault().post(new TagCountChangedMessage(scannedCount, ++uploadCount, --storedCount));
+                switch (LinkType.getType()) {
+                    case R3:
+                    case R4:
+                    case R7:
+                        if (tagDao.rowCount() != 0) {
+                            final Pair<Integer, String> tag = tagDao.findOne();
+                            try {
+                                Response<Reply> response = NetHelper.getInstance()
+                                        .uploadCommonMessage(new Gson().fromJson(tag.second, MessageCommon.class))
+                                        .execute();
+                                Reply body = response.body();
+                                if (response.isSuccessful() && body != null && body.getCode() == 200) {
+                                    tagDao.deleteById(tag.first);
+                                    EventBus.getDefault().post(new TagCountChangedMessage(scannedCount, ++uploadCount, --storedCount));
+                                }
+                            } catch (IOException ignored) {}
                         }
-                    } catch (IOException ignored) {}
-                }
-                if (deliveryDao.count() != 0) {
-                    final Pair<Integer, String> delivery = deliveryDao.findOne();
-                    try {
-                        Response<Reply> response = NetHelper.getInstance()
-                                .uploadDeliveryMessage(new Gson().fromJson(delivery.second, MessageDelivery.class))
-                                .execute();
-                        Reply body = response.body();
-                        if (response.isSuccessful() && body != null && body.getCode() == 200) {
-                            deliveryDao.delete(delivery.first);
-                            EventBus.getDefault().post(new BillUploadedMessage(true));
+                        break;
+                    case R2:
+                        if (refluxDao.rowCount() != 0) {
+                            final Pair<Integer, String> reflux = refluxDao.findOne();
+                            try {
+                                Response<Reply> response = NetHelper.getInstance()
+                                        .uploadRefluxMessage(new Gson().fromJson(reflux.second, MessageReflux.class))
+                                        .execute();
+                                Reply body = response.body();
+                                if (response.isSuccessful() && body != null && body.getCode() == 200) {
+                                    refluxDao.deleteById(reflux.first);
+                                    EventBus.getDefault().post(new BillUploadedMessage(true));
+                                }
+                            } catch (IOException ignored) {}
                         }
-                    } catch (IOException ignored) {}
-                }
-                if (refluxDao.count() != 0) {
-                    final Pair<Integer, String> reflux = refluxDao.findOne();
-                    try {
-                        Response<Reply> response = NetHelper.getInstance()
-                                .uploadRefluxMessage(new Gson().fromJson(reflux.second, MessageReflux.class))
-                                .execute();
-                        Reply body = response.body();
-                        if (response.isSuccessful() && body != null && body.getCode() == 200) {
-                            refluxDao.delete(reflux.first);
-                            EventBus.getDefault().post(new BillUploadedMessage(true));
+                        break;
+                    case R6:
+                        if (deliveryDao.rowCount() != 0) {
+                            final Pair<Integer, String> delivery = deliveryDao.findOne();
+                            try {
+                                Response<Reply> response = NetHelper.getInstance()
+                                        .uploadDeliveryMessage(new Gson().fromJson(delivery.second, MessageDelivery.class))
+                                        .execute();
+                                Reply body = response.body();
+                                if (response.isSuccessful() && body != null && body.getCode() == 200) {
+                                    deliveryDao.deleteById(delivery.first);
+                                    EventBus.getDefault().post(new BillUploadedMessage(true));
+                                }
+                            } catch (IOException ignored) {}
                         }
-                    } catch (IOException ignored) {}
-                }
-                if (dealerDao.count() != 0) {
-                    final Pair<Integer, String> dealer = dealerDao.findOne();
-                    try {
-                        Response<Reply> response = NetHelper.getInstance()
-                                .uploadDealerMessage(new Gson().fromJson(dealer.second, MessageDealer.class))
-                                .execute();
-                        Reply body = response.body();
-                        if (response.isSuccessful() && body != null && body.getCode() == 200) {
-                            dealerDao.delete(dealer.first);
-                            EventBus.getDefault().post(new BillUploadedMessage(true));
+                        break;
+                    case RN:
+                        if (dealerDao.rowCount() != 0) {
+                            final Pair<Integer, String> dealer = dealerDao.findOne();
+                            try {
+                                Response<Reply> response = NetHelper.getInstance()
+                                        .uploadDealerMessage(new Gson().fromJson(dealer.second, MessageDealer.class))
+                                        .execute();
+                                Reply body = response.body();
+                                if (response.isSuccessful() && body != null && body.getCode() == 200) {
+                                    dealerDao.deleteById(dealer.first);
+                                    EventBus.getDefault().post(new BillUploadedMessage(true));
+                                }
+                            } catch (IOException ignored) {}
                         }
-                    } catch (IOException ignored) {}
+                        break;
                 }
-                if (loginDao.count() != 0) {
+
+                if (loginDao.rowCount() != 0) {
                     final Pair<Integer, String> login = loginDao.findOne();
                     try {
                         Response<Reply> response = NetHelper.getInstance()
@@ -262,7 +268,7 @@ public class TagCache {
                                 .execute();
                         Reply body = response.body();
                         if (response.isSuccessful() && body != null && body.getCode() == 200) {
-                            loginDao.delete(login.first);
+                            loginDao.deleteById(login.first);
                         }
                     } catch (IOException ignored) {}
                 }

@@ -25,6 +25,10 @@ public class RefluxBill {
 
     private GoodsAdapter goodsAdapter;
 
+    public RefluxBill(String card) {
+        this(CommonUtils.hexToBytes(card));
+    }
+
     public RefluxBill(byte[] card) {
         this.card = card;
         this.cardID =

@@ -76,7 +76,7 @@
     </style>
 
     <style name="AppTheme.KeyboardText">
-        <item name="android:textSize">@dimen/r0_keyboard_text_size</item>
+        <item name="android:textSize">24sp</item>
         <item name="android:textColor">@color/black</item>
     </style>
 

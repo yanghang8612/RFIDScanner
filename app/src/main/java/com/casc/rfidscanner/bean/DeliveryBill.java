@@ -50,6 +50,10 @@ public class DeliveryBill {
 
     private GoodsAdapter goodsAdapter;
 
+    public DeliveryBill(String card) {
+        this(CommonUtils.hexToBytes(card));
+    }
+
     public DeliveryBill(byte[] card) {
         // 解析出库专用卡EPC
         this.card = card;
@@ -58,6 +62,10 @@ public class DeliveryBill {
         cardNo += (card[6] & 0xFF);
         this.cardID = MyVars.config.getCompanySymbol() + "C" + String.format("%03d", cardNo);
         this.goodsAdapter = new GoodsAdapter(goods, true);
+    }
+
+    public DeliveryBill(String card, String bill) {
+        this(CommonUtils.hexToBytes(card), CommonUtils.hexToBytes(bill));
     }
 
     public DeliveryBill(byte[] card, byte[] bill) {
@@ -180,7 +188,7 @@ public class DeliveryBill {
     }
 
     public boolean addBucket(String bucketEPC) {
-        return addBucket(new Bucket(bucketEPC));
+        return !buckets.containsKey(bucketEPC) && addBucket(new Bucket(bucketEPC));
     }
 
     public boolean addBucket(Bucket bucket) {

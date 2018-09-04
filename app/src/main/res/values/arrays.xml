@@ -3,6 +3,7 @@
     <string-array name="link">
         <item>桶注册</item>
         <item>桶报废</item>
+        <item>桶上线</item>
         <item>桶筛选</item>
         <item>成品下线</item>
         <item>成品出库</item>

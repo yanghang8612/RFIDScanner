@@ -23,6 +23,7 @@ import com.casc.rfidscanner.bean.Bucket;
 import com.casc.rfidscanner.helper.ConfigHelper;
 import com.casc.rfidscanner.helper.InsHelper;
 import com.casc.rfidscanner.helper.NetHelper;
+import com.casc.rfidscanner.helper.param.MessageQuery;
 import com.casc.rfidscanner.helper.param.MessageRegister;
 import com.casc.rfidscanner.helper.param.Reply;
 import com.casc.rfidscanner.message.ConfigUpdatedMessage;
@@ -64,18 +65,20 @@ public class R0Fragment extends BaseFragment implements QRCodeReaderView.OnQRCod
     private static final int MSG_RESET_READ_STATUS = 3;
     private static final int MSG_UPDATE_HINT = 4;
 
-    @BindView(R.id.tv_r0_title) TextView mTitleTv;
-    @BindView(R.id.icl_body_code) InputCodeLayout mBodyCodeIcl;
+    @BindView(R.id.icl_r0_body_code) InputCodeLayout mBodyCodeIcl;
     @BindView(R.id.ns_r0_registered_count) NumberSwitcher mRegisteredCountNs;
     @BindView(R.id.btn_r0_register) Button mRegisterBtn;
-    @BindView(R.id.qrv_body_code_reader) QRCodeReaderView mBodyCodeReaderQrv;
+    @BindView(R.id.qrv_r0_body_code_reader) QRCodeReaderView mBodyCodeReaderQrv;
     @BindView(R.id.rl_r0_hint_root) RelativeLayout mHintRootRl;
-    @BindView(R.id.iv_tag_status) ImageView mTagStatusIv;
-    @BindView(R.id.tv_tag_status) TextView mTagStatusTv;
+    @BindView(R.id.iv_r0_tag_status) ImageView mTagStatusIv;
+    @BindView(R.id.tv_r0_tag_status) TextView mTagStatusTv;
     @BindView(R.id.tv_r0_hint_content) TextView mHintContentTv;
 
     // 已注册桶列表
     private Set<String> mEPCs = new HashSet<>();
+
+    // 未收到平台响应的桶列表
+    private Set<String> mFailed = new HashSet<>();
 
     // 注册状态的标志符
     private boolean mIsRegistering;
@@ -192,7 +195,6 @@ public class R0Fragment extends BaseFragment implements QRCodeReaderView.OnQRCod
     public void onMessageEvent(ProductChoseMessage message) {
         mProductName = message.product;
         writeHint(mProductName);
-        //mTitleTv.setText("产品—" + mProductName);
     }
 
     @Override
@@ -368,25 +370,19 @@ public class R0Fragment extends BaseFragment implements QRCodeReaderView.OnQRCod
                     mBucketToRegister.setTid(InsHelper.getReadContent(data));
                 }
 
-//                // 通过向平台发送TID与桶身码的参数，根据返回结果判定是否重复注册
-//                MessageQuery messageQuery = new MessageQuery(CommonUtils.bytesToHex(mBucketToRegister.getTid()),
-//                        mBucketToRegister.getBodyCode());
-//                Response<Reply> queryResponse = NetHelper.getInstance().checkBodyCodeAndTID(messageQuery).execute();
-//                if (!queryResponse.isSuccessful()) {
-//                    writeHint(new R0Hint(false, "注册失败,平台连接失败"));
-//                    writeTaskFailed();
-//                    return;
-//                } else if (queryResponse.body() != null && queryResponse.body().getCode() == 210) {
-//                    writeHint(new R0Hint(false, "注册失败,标签TID已注册"));
-//                    writeTaskFailed();
-//                    return;
-//                } else if (queryResponse.body() != null && queryResponse.body().getCode() == 211) {
-//                    writeHint(new R0Hint(false, "注册失败," + mBucketToRegister.getBodyCode() + "已注册"));
-//                    writeTaskFailed();
-//                    return;
-//                } else {
-//                    writeHint(new R0Hint(true, "检验重复注册成功"));
-//                }
+                // 通过向平台发送TID与桶身码的参数，根据返回结果判定是否重复注册
+                String bodyCode = "";
+                if (CommonUtils.validEPC(mScannedEPC) == MyParams.EPCType.BUCKET) {
+                    bodyCode = new Bucket(mScannedEPC).getBodyCode();
+                }
+                MessageQuery messageQuery = new MessageQuery(
+                        CommonUtils.bytesToHex(mBucketToRegister.getTid()), bodyCode);
+                Response<Reply> queryResponse = NetHelper.getInstance().checkBodyCodeAndTID(messageQuery).execute();
+                if (!queryResponse.isSuccessful()) {
+                    writeHint("注册失败,平台连接失败");
+                    writeTaskFailed(true);
+                    return;
+                }
 
                 // 写入PC
                 data = MyVars.getReader().sendCommandSync(InsHelper.getWriteMemBank(
@@ -451,7 +447,7 @@ public class R0Fragment extends BaseFragment implements QRCodeReaderView.OnQRCod
                     return;
                 } else {
                     writeHint("校验EPC\n成功");
-                    mBucketToRegister.setTid(InsHelper.getReadContent(data));
+                    //mBucketToRegister.setTid(InsHelper.getReadContent(data));
                 }
 
                 // 尝试上报平台
@@ -462,22 +458,22 @@ public class R0Fragment extends BaseFragment implements QRCodeReaderView.OnQRCod
                         mBucketToRegister.getBodyCode());
                 Response<Reply> responseR0 = NetHelper.getInstance().uploadR0Message(message).execute();
                 Reply replyR0 = responseR0.body();
-                if (!responseR0.isSuccessful()) {
-                    writeHint("平台连接\n失败");
-                    writeTaskFailed(true);
-                    return;
-                } else if (replyR0 == null) {
-                    writeHint("平台无响应");
+                if (!responseR0.isSuccessful() || replyR0 == null) {
+                    writeHint("平台内部\n错误");
                     writeTaskFailed(true);
                     return;
                 } else if (replyR0.getCode() != 200) {
                     switch (replyR0.getCode()) {
                         case 210:
-                            // TODO: 2018/8/20 如果是之前没有收到响应的桶是不是计数要+1
                             writeHint("该桶已于" +
                                     new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.CHINA)
                                             .format(new Date(Long.valueOf(replyR0.getContent().toString()) * 1000)) + "注册");
-                            writeTaskFailed(false);
+                            if (mFailed.contains(mBucketToRegister.getEpcStr())) {
+                                mFailed.remove(mBucketToRegister.getEpcStr());
+                                writeTaskSuccess();
+                            } else {
+                                writeTaskFailed(false);
+                            }
                             return;
                         case 211:
                             writeHint("桶身码已使用,请联系运维");
@@ -487,7 +483,16 @@ public class R0Fragment extends BaseFragment implements QRCodeReaderView.OnQRCod
                             writeHint("桶身码更新\n成功");
                             updateTaskSuccess();
                             return;
+                        case 216:
+                            writeHint("该桶身码已\n报废");
+                            writeTaskFailed(false);
+                            return;
+                        case 217:
+                            writeHint("桶产品信息\n修改成功");
+                            updateTaskSuccess();
+                            return;
                         default:
+                            Log.i(TAG, String.valueOf(replyR0.getCode()));
                             writeHint(replyR0.getMessage() + ",请联系运维");
                             writeTaskFailed(false);
                             return;
@@ -499,6 +504,7 @@ public class R0Fragment extends BaseFragment implements QRCodeReaderView.OnQRCod
                 e.printStackTrace();
                 writeHint("网络通信\n失败");
                 writeTaskFailed(true);
+                mFailed.add(mBucketToRegister.getEpcStr());
                 return;
             }
             writeHint(mBucketToRegister.getBodyCode() + "\n注册成功");

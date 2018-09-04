@@ -15,6 +15,7 @@ import com.casc.rfidscanner.activity.ConfigActivity;
 import com.casc.rfidscanner.adapter.RefluxBillAdapter;
 import com.casc.rfidscanner.bean.Bucket;
 import com.casc.rfidscanner.bean.RefluxBill;
+import com.casc.rfidscanner.dao.RefluxBillDao;
 import com.casc.rfidscanner.helper.NetHelper;
 import com.casc.rfidscanner.helper.param.MessageReflux;
 import com.casc.rfidscanner.helper.param.Reply;
@@ -64,6 +65,8 @@ public class R2Fragment extends BaseFragment {
     // 当前正在回流的回流单
     private RefluxBill mCurBill;
 
+    private RefluxBillDao mBillDao;
+
     // 同时回流提示标识符，卡EPC编码解析错误标识符
     private boolean mIsErrorNoticed;
 
@@ -102,6 +105,7 @@ public class R2Fragment extends BaseFragment {
         showToast("提交成功");
         mBills.remove(mCurBill);
         mBillsMap.remove(mCurBill.getCardStr());
+        mBillDao.remove(mCurBill);
         mCurBill = mBills.isEmpty() ? null : mBills.get(0);
         EventBus.getDefault().post(new BillUpdatedMessage());
     }
@@ -130,6 +134,7 @@ public class R2Fragment extends BaseFragment {
                     } else {
                         if (mCurBill.addBucket(new Bucket(message.epc))){
                             playSound();
+                            mBillDao.insertBucket(mCurBill.getCardStr(), epcStr);
                             EventBus.getDefault().post(new BillUpdatedMessage());
                         }
                     }
@@ -146,6 +151,7 @@ public class R2Fragment extends BaseFragment {
                         mCurBill = new RefluxBill(message.epc);
                         mBills.add(0, mCurBill);
                         mBillsMap.put(mCurBill.getCardStr(), mCurBill);
+                        mBillDao.insert(mCurBill);
                         EventBus.getDefault().post(new BillUpdatedMessage());
                         SpeechSynthesizer.getInstance().speak("刷卡成功，" + mCurBill.getCardNum() + "开始回收");
                     }
@@ -167,6 +173,15 @@ public class R2Fragment extends BaseFragment {
         mMonitorStatusLl.setVisibility(View.GONE);
         mReaderStatusLl.setVisibility(View.VISIBLE);
 
+        mBillDao = new RefluxBillDao();
+        if (mBillDao.rowCount() > 0) {
+            mBills.addAll(mBillDao.getAllBills());
+            for (RefluxBill bill : mBills) {
+                mBillsMap.put(bill.getCardStr(), bill);
+            }
+            mCurBill = mBills.get(0);
+        }
+
         mBillAdapter = new RefluxBillAdapter(mContext);
         mBillAdapter.setOnItemChildClickListener(new BaseQuickAdapter.OnItemChildClickListener() {
             @Override
@@ -184,6 +199,7 @@ public class R2Fragment extends BaseFragment {
         layoutManager.setOrientation(LinearLayoutManager.HORIZONTAL);
         mBillView.setLayoutManager(layoutManager);
         mBillView.setAdapter(mBillAdapter);
+        EventBus.getDefault().post(new BillUpdatedMessage());
         MyVars.fragmentExecutor.scheduleWithFixedDelay(new BillNoOperationCheckTask(), 0, 1, TimeUnit.SECONDS);
     }
 

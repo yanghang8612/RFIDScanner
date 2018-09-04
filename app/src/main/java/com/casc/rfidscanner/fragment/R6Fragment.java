@@ -1,5 +1,6 @@
 package com.casc.rfidscanner.fragment;
 
+import android.database.Cursor;
 import android.support.annotation.NonNull;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -18,6 +19,7 @@ import com.casc.rfidscanner.adapter.DeliveryBillAdapter;
 import com.casc.rfidscanner.bean.Bucket;
 import com.casc.rfidscanner.bean.DeliveryBill;
 import com.casc.rfidscanner.bean.LinkType;
+import com.casc.rfidscanner.dao.DeliveryBillDao;
 import com.casc.rfidscanner.helper.ConfigHelper;
 import com.casc.rfidscanner.helper.InsHelper;
 import com.casc.rfidscanner.helper.NetHelper;
@@ -78,6 +80,8 @@ public class R6Fragment extends BaseFragment {
 
     // 当前正在出库的出库单
     private DeliveryBill mCurBill, mReadBill;
+
+    private DeliveryBillDao mBillDao;
 
     // 错误已提示标识
     private boolean mIsErrorNoticed;
@@ -141,6 +145,7 @@ public class R6Fragment extends BaseFragment {
                 new MessageBillComplete(mCurBill.getCardID()));
         mBills.remove(mCurBill);
         mBillsMap.remove(mCurBill.getCardStr());
+        mBillDao.remove(mCurBill);
         mCurBill = mBills.isEmpty() ? null : mBills.get(0);
         EventBus.getDefault().post(new BillUpdatedMessage());
     }
@@ -170,6 +175,7 @@ public class R6Fragment extends BaseFragment {
                         if (mCurBill.isBacking()) {
                             if (mCurBill.removeBucket(epcStr)) {
                                 playSound();
+                                mBillDao.updateBuckets(mCurBill);
                                 EventBus.getDefault().post(new BillUpdatedMessage());
                                 NetHelper.getInstance().reportBillBucket(
                                         new MessageBillBucket(mCurBill.getCardID(),
@@ -178,6 +184,7 @@ public class R6Fragment extends BaseFragment {
                         } else {
                             if (mCurBill.addBucket(epcStr)) {
                                 playSound();
+                                mBillDao.insertBucket(mCurBill.getCardStr(), epcStr);
                                 EventBus.getDefault().post(new BillUpdatedMessage());
                                 NetHelper.getInstance().reportBillBucket(
                                         new MessageBillBucket(mCurBill.getCardID(),
@@ -213,6 +220,7 @@ public class R6Fragment extends BaseFragment {
                             mCurBill = new DeliveryBill(message.epc);
                             mBills.add(0, mCurBill);
                             mBillsMap.put(mCurBill.getCardStr(), mCurBill);
+                            mBillDao.insert(mCurBill);
                             EventBus.getDefault().post(new BillUpdatedMessage());
                             SpeechSynthesizer.getInstance().speak("刷卡成功，" + mCurBill.getCardNum() + "开始补单");
                             NetHelper.getInstance().reportBillDelivery(new MessageBillDelivery(mCurBill));
@@ -243,6 +251,7 @@ public class R6Fragment extends BaseFragment {
                 mReadBill = null;
                 mBills.add(0, mCurBill);
                 mBillsMap.put(mCurBill.getCardStr(), mCurBill);
+                mBillDao.insert(mCurBill);
                 EventBus.getDefault().post(new BillUpdatedMessage());
                 SpeechSynthesizer.getInstance().speak("刷卡成功，" + mCurBill.getCardNum() + "开始出库");
                 NetHelper.getInstance().reportBillDelivery(new MessageBillDelivery(mCurBill));
@@ -277,6 +286,15 @@ public class R6Fragment extends BaseFragment {
         mMonitorStatusLl.setVisibility(View.GONE);
         mReaderStatusLl.setVisibility(View.VISIBLE);
 
+        mBillDao = new DeliveryBillDao();
+        if (mBillDao.rowCount() > 0) {
+            mBills.addAll(mBillDao.getAllBills());
+            for (DeliveryBill bill : mBills) {
+                mBillsMap.put(bill.getCardStr(), bill);
+            }
+            mCurBill = mBills.get(0);
+        }
+
         mBillAdapter = new DeliveryBillAdapter(mContext);
         mBillAdapter.setOnItemChildClickListener(new BaseQuickAdapter.OnItemChildClickListener() {
             @Override
@@ -300,6 +318,7 @@ public class R6Fragment extends BaseFragment {
         layoutManager.setOrientation(LinearLayoutManager.HORIZONTAL);
         mBillView.setLayoutManager(layoutManager);
         mBillView.setAdapter(mBillAdapter);
+        EventBus.getDefault().post(new BillUpdatedMessage());
         MyVars.fragmentExecutor.scheduleWithFixedDelay(new BillNoOperationCheckTask(), 0, 1, TimeUnit.SECONDS);
 //        mBills.add(new DeliveryBill(
 //                CommonUtils.hexToBytes("314159510100030000000000"),

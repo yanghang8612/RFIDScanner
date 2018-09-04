@@ -60,7 +60,7 @@ public class MyApplication extends Application {
         MyVars.executor = Executors.newScheduledThreadPool(10);
         MyVars.usbReader = new USBReaderImpl(this);
         MyVars.bleReader = new BLEReaderImpl(this);
-        MyVars.cache = new TagCache(this);
+        MyVars.cache = new TagCache();
 
         // 初始化Speech相关授权及参数
 

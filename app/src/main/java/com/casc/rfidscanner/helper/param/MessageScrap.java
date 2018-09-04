@@ -33,6 +33,10 @@ public class MessageScrap {
         bucket_info.add(new Bucket(tid, epc, code));
     }
 
+    public void addBucket(String bodycode, int code) {
+        bucket_info.add(new Bucket(bodycode, code));
+    }
+
     // 桶信息的内部类
     private class Bucket {
 
@@ -44,10 +48,21 @@ public class MessageScrap {
 
         private int disablecode;
 
+        private String bodycode;
+
+        private Bucket(String bodycode, int code) {
+            this("", "", bodycode, code);
+        }
+
         private Bucket(String tid, String epc, int code) {
+            this(tid, epc, "", code);
+        }
+
+        private Bucket(String tid, String epc, String bodycode, int code) {
             this.bucket_TID = tid;
-            this.bucket_time = System.currentTimeMillis() / 1000 - (MyParams.DELAY * (10 - Integer.valueOf(stage)));
             this.bucket_epc = epc;
+            this.bodycode = bodycode;
+            this.bucket_time = System.currentTimeMillis() / 1000 - (MyParams.DELAY * (10 - Integer.valueOf(stage)));
             this.disablecode = code;
         }
     }

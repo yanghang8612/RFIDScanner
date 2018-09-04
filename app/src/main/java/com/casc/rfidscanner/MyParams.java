@@ -109,9 +109,9 @@ public class MyParams {
      */
 //    public static final int DELAY = 2 * 60 * 60;
     public static final int DELAY = 0;
-    public static final boolean ENABLE_BACKDOOR = false;
+    public static final boolean ENABLE_BACKDOOR = true;
     public static final boolean PRINT_COMMAND = false;
-    public static final boolean PRINT_JSON = false;
+    public static final boolean PRINT_JSON = true;
 
     /**
      * EPC各种类型
@@ -119,9 +119,10 @@ public class MyParams {
     public enum EPCType {
         NONE((byte) 0xFF, "(UNKOWN)"),
         BUCKET((byte) 0x00, "(已注册桶)"),
+        BUCKET_SCRAPED((byte) 0x04, "(报废桶)"),
         CARD_DELIVERY((byte) 0x01, "(出库专用卡)"),
         CARD_ADMIN((byte) 0x02, "(运维专用卡)"),
-        CARD_REFLUX((byte) 0x03, "(回流专用卡)");
+        CARD_REFLUX((byte) 0x03, "(运维专用卡)");
 
         private byte code;
         private String comment;

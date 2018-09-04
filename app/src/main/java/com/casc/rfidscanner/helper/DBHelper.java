@@ -5,6 +5,8 @@ import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.util.Log;
 
+import com.casc.rfidscanner.MyApplication;
+
 public class DBHelper extends SQLiteOpenHelper {
 
     public static final String TAG = DBHelper.class.getName();
@@ -12,22 +14,28 @@ public class DBHelper extends SQLiteOpenHelper {
     private final static int VERSION = 1;
     private final static String DB_NAME = "RFIDScanner.db";
 
-    public static final String TABLE_NAME_TAG = "tagTable";
-    public static final String TABLE_NAME_DELIVERY = "deliveryTable";
-    public static final String TABLE_NAME_REFLUX = "refluxTable";
-    public static final String TABLE_NAME_DEALER = "dealerTable";
-    public static final String TABLE_NAME_LOGIN = "loginTable";
+    public static final String TABLE_NAME_TAG_MESSAGE = "tagMessageTable";
+    public static final String TABLE_NAME_DELIVERY_MESSAGE = "deliveryMessageTable";
+    public static final String TABLE_NAME_REFLUX_MESSAGE = "refluxMessageTable";
+    public static final String TABLE_NAME_DEALER_MESSAGE = "dealerMessageTable";
+    public static final String TABLE_NAME_LOGIN_MESSAGE = "loginMessageTable";
+    public static final String TABLE_NAME_DELIVERY_BILL = "deliveryBillTable";
+    public static final String TABLE_NAME_REFLUX_BILL = "refluxBillTable";
 
-    private static String CREATE_TBL_TAG =
-            "CREATE TABLE if not exists " + TABLE_NAME_TAG + "(_id integer primary key autoincrement, content text)";
-    private static String CREATE_TBL_DELIVERY =
-            "CREATE TABLE if not exists " + TABLE_NAME_DELIVERY + "(_id integer primary key autoincrement, content text)";
-    private static String CREATE_TBL_REFLUX =
-            "CREATE TABLE if not exists " + TABLE_NAME_REFLUX + "(_id integer primary key autoincrement, content text)";
-    private static String CREATE_TBL_DEALER =
-            "CREATE TABLE if not exists " + TABLE_NAME_DEALER + "(_id integer primary key autoincrement, content text)";
-    private static String CREATE_TBL_LOGIN =
-            "CREATE TABLE if not exists " + TABLE_NAME_LOGIN + "(_id integer primary key autoincrement, content text)";
+    private static String CREATE_TBL_TAG_MESSAGE =
+            "CREATE TABLE if not exists " + TABLE_NAME_TAG_MESSAGE + "(id integer primary key autoincrement, content text)";
+    private static String CREATE_TBL_DELIVERY_MESSAGE =
+            "CREATE TABLE if not exists " + TABLE_NAME_DELIVERY_MESSAGE + "(id integer primary key autoincrement, content text)";
+    private static String CREATE_TBL_REFLUX_MESSAGE =
+            "CREATE TABLE if not exists " + TABLE_NAME_REFLUX_MESSAGE + "(id integer primary key autoincrement, content text)";
+    private static String CREATE_TBL_DEALER_MESSAGE =
+            "CREATE TABLE if not exists " + TABLE_NAME_DEALER_MESSAGE + "(id integer primary key autoincrement, content text)";
+    private static String CREATE_TBL_LOGIN_MESSAGE =
+            "CREATE TABLE if not exists " + TABLE_NAME_LOGIN_MESSAGE + "(id integer primary key autoincrement, content text)";
+    private static String CREATE_TBL_DELIVERY_BILL =
+            "CREATE TABLE if not exists " + TABLE_NAME_DELIVERY_BILL + "(id integer primary key autoincrement, card varchar(24), bill varchar(48), buckets text)";
+    private static String CREATE_TBL_REFLUX_BILL =
+            "CREATE TABLE if not exists " + TABLE_NAME_REFLUX_BILL + "(id integer primary key autoincrement, card varchar(24), buckets text)";
 
     private static DBHelper mInstance = null;
 
@@ -39,9 +47,9 @@ public class DBHelper extends SQLiteOpenHelper {
         this(context, DB_NAME, null, VERSION);
     }
 
-    public synchronized static DBHelper getInstance(Context context) {
+    public synchronized static DBHelper getInstance() {
         if (mInstance == null) {
-            mInstance = new DBHelper(context);
+            mInstance = new DBHelper(MyApplication.getInstance());
         }
         return mInstance;
     }
@@ -50,11 +58,13 @@ public class DBHelper extends SQLiteOpenHelper {
     @Override
     public void onCreate(SQLiteDatabase db) {
         Log.i(TAG, "======Create Database START( DB_NAME = " + DB_NAME + ", VERSION = " + VERSION + ")");
-        db.execSQL(CREATE_TBL_TAG);
-        db.execSQL(CREATE_TBL_DELIVERY);
-        db.execSQL(CREATE_TBL_REFLUX);
-        db.execSQL(CREATE_TBL_DEALER);
-        db.execSQL(CREATE_TBL_LOGIN);
+        db.execSQL(CREATE_TBL_TAG_MESSAGE);
+        db.execSQL(CREATE_TBL_DELIVERY_MESSAGE);
+        db.execSQL(CREATE_TBL_REFLUX_MESSAGE);
+        db.execSQL(CREATE_TBL_DEALER_MESSAGE);
+        db.execSQL(CREATE_TBL_LOGIN_MESSAGE);
+        db.execSQL(CREATE_TBL_DELIVERY_BILL);
+        db.execSQL(CREATE_TBL_REFLUX_BILL);
     }
 
     //数据库文件版本号发生变化时调用

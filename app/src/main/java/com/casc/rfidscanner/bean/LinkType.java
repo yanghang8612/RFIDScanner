@@ -8,8 +8,10 @@ import com.casc.rfidscanner.fragment.R2Fragment;
 import com.casc.rfidscanner.fragment.R2MonitorFragment;
 import com.casc.rfidscanner.fragment.R3Fragment;
 import com.casc.rfidscanner.fragment.R4Fragment;
+import com.casc.rfidscanner.fragment.R5Fragment;
 import com.casc.rfidscanner.fragment.R6Fragment;
 import com.casc.rfidscanner.fragment.R6MonitorFragment;
+import com.casc.rfidscanner.fragment.R7Fragment;
 import com.casc.rfidscanner.fragment.RNFragment;
 import com.casc.rfidscanner.helper.ConfigHelper;
 
@@ -20,8 +22,10 @@ public enum LinkType {
     M2("M2", false, R2MonitorFragment.class, "回流监控"),
     R3("03", true, R3Fragment.class, "桶筛选"),
     R4("04", true, R4Fragment.class, "成品下线"),
+    R5("05", true, R5Fragment.class, "成品打垛"),
     R6("06", true, R6Fragment.class, "成品出库"),
     M6("M6", false, R6MonitorFragment.class, "出库监控"),
+    R7("07", true, R7Fragment.class, "桶上线"),
     RN("0N", true, RNFragment.class, "经销商库存管理"),
     Card("Card", true, CardFragment.class, "专用卡注册");
 

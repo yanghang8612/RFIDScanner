@@ -1,23 +1,33 @@
 package com.casc.rfidscanner.fragment;
 
+import android.content.Context;
+import android.graphics.PointF;
+import android.os.Handler;
+import android.os.Message;
+import android.os.Vibrator;
 import android.support.annotation.NonNull;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.text.TextUtils;
+import android.util.Log;
 import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.ImageView;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import com.afollestad.materialdialogs.DialogAction;
 import com.afollestad.materialdialogs.MaterialDialog;
+import com.baidu.tts.client.SpeechSynthesizer;
 import com.casc.rfidscanner.MyParams;
 import com.casc.rfidscanner.MyVars;
 import com.casc.rfidscanner.R;
 import com.casc.rfidscanner.activity.ConfigActivity;
+import com.casc.rfidscanner.activity.ErrorRemindActivity;
 import com.casc.rfidscanner.adapter.BucketAdapter;
 import com.casc.rfidscanner.bean.Bucket;
+import com.casc.rfidscanner.helper.InsHelper;
 import com.casc.rfidscanner.helper.NetHelper;
 import com.casc.rfidscanner.helper.param.MessageScrap;
 import com.casc.rfidscanner.helper.param.Reply;
@@ -25,17 +35,23 @@ import com.casc.rfidscanner.message.ConfigUpdatedMessage;
 import com.casc.rfidscanner.message.MultiStatusMessage;
 import com.casc.rfidscanner.message.PollingResultMessage;
 import com.casc.rfidscanner.utils.CommonUtils;
+import com.casc.rfidscanner.view.InputCodeLayout;
+import com.casc.rfidscanner.view.NumberSwitcher;
+import com.dlazaro66.qrcodereaderview.QRCodeReaderView;
 import com.weiwangcn.betterspinner.library.BetterSpinner;
 
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
 
+import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 
 import butterknife.BindView;
 import butterknife.OnClick;
@@ -46,56 +62,62 @@ import retrofit2.Response;
 /**
  * 桶报废Fragment
  */
-public class R1Fragment extends BaseFragment {
+public class R1Fragment extends BaseFragment implements QRCodeReaderView.OnQRCodeReadListener {
 
     private static final String TAG = R1Fragment.class.getSimpleName();
-    private static final int CAN_SCRAP_READ_COUNT = 5;
-    private static final int MAX_READ_NONE_COUNT = 3;
-    // Constant for InnerHandler message.what
+    private static final int CAN_SCRAP_READ_COUNT = 50;
+    private static final int MAX_READ_NONE_COUNT = 20;
+    // Constant for InnerHandler message.
+    private static final int MSG_SUCCESS = 0;
+    private static final int MSG_FAILED = 1;
+    private static final int MSG_RESET_READ_STATUS = 2;
+    private static final int MSG_UPDATE_HINT = 3;
 
-    @BindView(R.id.iv_scrap_tag_status) ImageView mTagStatusIv;
-    @BindView(R.id.tv_scrap_body_code) TextView mBodyCodeTv;
-    @BindView(R.id.tv_scrap_product_name) TextView mProductNameTv;
+    @BindView(R.id.icl_r1_body_code) InputCodeLayout mBodyCodeIcl;
     @BindView(R.id.spn_scrap_reason) BetterSpinner mScrapReasonSpn;
-    @BindView(R.id.btn_confirm_scrap) Button mConfirmScrapBtn;
-    @BindView(R.id.rv_scrap_products) RecyclerView mScrapProductsRv;
+    @BindView(R.id.btn_r1_scrap) Button mScrapBtn;
+    @BindView(R.id.qrv_r1_body_code_reader) QRCodeReaderView mBodyCodeReaderQrv;
+    @BindView(R.id.iv_r1_tag_status) ImageView mTagStatusIv;
+    @BindView(R.id.tv_r1_tag_status) TextView mTagStatusTv;
+    @BindView(R.id.tv_r1_hint_content) TextView mHintContentTv;
 
-    // 已报废桶列表
-    private List<Bucket> mBuckets = new ArrayList<>();
-
-    // 已报废桶Map
-    private Map<String, Bucket> mBucketsMap = new HashMap<>();
-
-    // 已报废桶列表适配器
-    private BucketAdapter mAdapter;
+    // 报废状态的标志符
+    private boolean mIsScraping;
 
     // 当前读取的EPC
-    private byte[] mScannedEPC;
+    private byte[] mScannedEPC, mReadTID;
 
     // 读取到和未读取到EPC的计数器
     private int mReadCount, mReadNoneCount;
 
     // 报废所必需的相关元素标志位
-    private boolean mIsBucketEPCRead, mIsAllConnectionsReady;
+    private boolean mIsBucketEPCRead, mIsNetworkReady, mIsBodyCodeWritten;
 
-    // 要报废的桶实例
-    private Bucket mBucketToScrap;
+    // 系统震动辅助类
+    private Vibrator mVibrator;
+
+    // Fragment内部handler
+    private Handler mHandler = new InnerHandler(this);
 
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void onMessageEvent(MultiStatusMessage message) {
         super.onMessageEvent(message);
-        if (message.readerStatus && message.networkStatus && message.platformStatus) {
-            mIsAllConnectionsReady = true;
-            mConfirmScrapBtn.setEnabled(canScrap());
+        if (message.networkStatus && message.platformStatus) {
+            mIsNetworkReady = true;
+            mScrapBtn.setEnabled(canScrap());
         } else {
-            mIsAllConnectionsReady = false;
-            mConfirmScrapBtn.setEnabled(false);
+            mIsNetworkReady = false;
+            mScrapBtn.setEnabled(false);
+        }
+        if (!message.readerStatus) {
+            mTagStatusIv.setImageResource(R.drawable.ic_connection_abnormal);
         }
     }
 
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void onMessageEvent(ConfigUpdatedMessage message) {
         updateConfigViews();
+        mBodyCodeIcl.setHeader(MyVars.config.getHeader());
     }
 
     @Subscribe(threadMode = ThreadMode.MAIN)
@@ -105,26 +127,17 @@ public class R1Fragment extends BaseFragment {
             switch (epcType) {
                 case BUCKET:
                     mReadNoneCount = 0;
+                    mTagStatusIv.setImageResource(R.drawable.ic_connection_normal);
                     if (Arrays.equals(message.epc, mScannedEPC)) {
                         mReadCount += 1;
                     } else {
                         mReadCount = 0;
                         mScannedEPC = message.epc;
-                        String epcStr = CommonUtils.bytesToHex(mScannedEPC);
-                        if (mBucketsMap.containsKey(epcStr)) {
-                            mBucketToScrap = mBucketsMap.get(epcStr);
-                        } else {
-                            mBucketToScrap = new Bucket(mScannedEPC);
-                            mBucketsMap.put(epcStr, mBucketToScrap);
-                        }
+                        mIsBucketEPCRead = false;
                     }
-                    if (mReadCount > CAN_SCRAP_READ_COUNT) {
+                    if (mReadCount >= CAN_SCRAP_READ_COUNT) {
                         mIsBucketEPCRead = true;
-                        mTagStatusIv.setImageResource(R.drawable.ic_connection_normal);
-                        mBodyCodeTv.setText(mBucketToScrap.getBodyCode()
-                                + (mBucketToScrap.isScraped() ? "(已报废)" : ""));
-                        mProductNameTv.setText(mBucketToScrap.getName());
-                        mConfirmScrapBtn.setEnabled(canScrap());
+                        mTagStatusTv.setText("标签信号正常");
                     }
                     break;
                 case CARD_ADMIN:
@@ -137,13 +150,11 @@ public class R1Fragment extends BaseFragment {
         } else {
             mAdminCardScannedCount = 0;
             if (++mReadNoneCount > MAX_READ_NONE_COUNT) {
-                mReadCount = 0;
-                mScannedEPC = null;
-                mIsBucketEPCRead = false;
-                mConfirmScrapBtn.setEnabled(false);
-                mTagStatusIv.setImageResource(R.drawable.ic_connection_abnormal);
-                mBodyCodeTv.setText("");
-                mProductNameTv.setText("");
+                mHandler.sendMessage(Message.obtain(mHandler, MSG_RESET_READ_STATUS));
+                if (!mIsScraping) {
+                    mTagStatusIv.setImageResource(R.drawable.ic_connection_abnormal);
+                    mTagStatusTv.setText("未检测到标签");
+                }
             }
         }
     }
@@ -153,10 +164,16 @@ public class R1Fragment extends BaseFragment {
         mMonitorStatusLl.setVisibility(View.GONE);
         mReaderStatusLl.setVisibility(View.VISIBLE);
 
+        mVibrator = (Vibrator) mContext.getSystemService(Context.VIBRATOR_SERVICE);
+
+        mBodyCodeIcl.setHeader(MyVars.config.getHeader());
+        mBodyCodeReaderQrv.setOnQRCodeReadListener(this);
+        mBodyCodeReaderQrv.setQRDecodingEnabled(true);
+        mBodyCodeReaderQrv.setAutofocusInterval(250L);
+        mBodyCodeReaderQrv.setTorchEnabled(true);
+        mBodyCodeReaderQrv.setBackCamera();
+
         updateConfigViews();
-        mAdapter = new BucketAdapter(mBuckets);
-        mScrapProductsRv.setLayoutManager(new LinearLayoutManager(getContext()));
-        mScrapProductsRv.setAdapter(mAdapter);
     }
 
     @Override
@@ -164,11 +181,26 @@ public class R1Fragment extends BaseFragment {
         return R.layout.fragment_r1;
     }
 
-    @OnClick(R.id.btn_confirm_scrap)
-    public void onButtonClicked(View view) {
+    @Override
+    public void onQRCodeRead(String text, PointF[] points) {
+        mVibrator.vibrate(50);
+        String[] result = text.split("=");
+        if (result.length == 2 && result[1].length() == MyParams.BODY_CODE_LENGTH
+                && result[1].startsWith(MyVars.config.getHeader())) {
+            mBodyCodeIcl.setCode(result[1].substring(MyVars.config.getHeader().length()));
+            mIsBodyCodeWritten = true;
+            mScrapBtn.setEnabled(canScrap());
+//            if (mRegisterBtn.isEnabled()) {
+//                onRegisterButtonClicked();
+//            }
+        }
+    }
+
+    @OnClick(R.id.btn_r1_scrap)
+    public void onButtonClicked() {
         new MaterialDialog.Builder(Objects.requireNonNull(getContext()))
                 .title("提示信息")
-                .content("桶身码：" + mBodyCodeTv.getText() + "\n" + "报废原因：" + mScrapReasonSpn.getText())
+                .content("桶身码：" + mBodyCodeIcl.getCode() + "\n" + "报废原因：" + mScrapReasonSpn.getText())
                 .positiveText("确认报废")
                 .positiveColorRes(R.color.white)
                 .btnSelector(R.drawable.md_btn_postive, DialogAction.POSITIVE)
@@ -177,27 +209,10 @@ public class R1Fragment extends BaseFragment {
                 .onPositive(new MaterialDialog.SingleButtonCallback() {
                     @Override
                     public void onClick(@NonNull final MaterialDialog dialog, @NonNull DialogAction which) {
-                        // TODO: 2018/8/9 disablecode可能为空，bug
-                        MessageScrap message = new MessageScrap();
-                        message.addBucket("", mBucketToScrap.getEpcStr(),
-                                MyVars.config.getDisableInfoByWord(mScrapReasonSpn.getText().toString()).getCode());
-                        NetHelper.getInstance().uploadR1Message(message).enqueue(new Callback<Reply>() {
-                            @Override
-                            public void onResponse(@NonNull Call<Reply> call, @NonNull Response<Reply> response) {
-                                if (response.isSuccessful()) {
-                                    mBucketToScrap.setScraped();
-                                    mBuckets.add(mBucketToScrap);
-                                    mAdapter.notifyDataSetChanged();
-                                }
-                                dialog.dismiss();
-                            }
-
-                            @Override
-                            public void onFailure(@NonNull Call<Reply> call, @NonNull Throwable t) {
-
-                            }
-                        });
-
+                        mIsScraping = true;
+                        mScrapBtn.setEnabled(false);
+                        mHintContentTv.setText("");
+                        MyVars.fragmentExecutor.execute(new ScrapTask());
                     }
                 })
                 .onNegative(new MaterialDialog.SingleButtonCallback() {
@@ -209,9 +224,21 @@ public class R1Fragment extends BaseFragment {
                 .show();
     }
 
+    private void writeTaskSuccess() {
+        mHandler.sendMessage(Message.obtain(mHandler, MSG_SUCCESS));
+    }
+
+    private void writeTaskFailed() {
+        mHandler.sendMessage(Message.obtain(mHandler, MSG_FAILED));
+    }
+
+    private void writeHint(String content) {
+        mHandler.sendMessage(Message.obtain(mHandler, MSG_UPDATE_HINT, content));
+    }
+
     private boolean canScrap() {
-        return MyVars.getReader().isConnected() && mIsBucketEPCRead && mIsAllConnectionsReady
-                && mBucketToScrap != null && !mBucketToScrap.isScraped();
+        return ((MyVars.getReader().isConnected() && mIsBucketEPCRead) || mIsBodyCodeWritten) &&
+                mIsNetworkReady;
     }
 
     private void updateConfigViews() {
@@ -226,6 +253,127 @@ public class R1Fragment extends BaseFragment {
             } else {
                 mScrapReasonSpn.setText("");
             }
+        }
+    }
+
+    private static class InnerHandler extends Handler {
+
+        private WeakReference<R1Fragment> mOuter;
+
+        InnerHandler(R1Fragment fragment) {
+            this.mOuter = new WeakReference<>(fragment);
+        }
+
+        @Override
+        public void handleMessage(Message msg) {
+            R1Fragment outer = mOuter.get();
+            switch (msg.what) {
+                case MSG_SUCCESS:
+                    outer.mBodyCodeIcl.clear();
+                    outer.mIsBodyCodeWritten = false;
+                    outer.mIsScraping = false;
+                    outer.mHandler.sendMessage(Message.obtain(outer.mHandler, MSG_RESET_READ_STATUS));
+                    outer.playSound();
+                    //SpeechSynthesizer.getInstance().speak("注册成功");
+                    break;
+                case MSG_FAILED:
+                    outer.mBodyCodeIcl.clear();
+                    outer.mIsBodyCodeWritten = false;
+                    outer.mIsScraping = false;
+                    outer.mHandler.sendMessage(Message.obtain(outer.mHandler, MSG_RESET_READ_STATUS));
+                    SpeechSynthesizer.getInstance().speak("报废失败");
+                    break;
+                case MSG_RESET_READ_STATUS:
+                    outer.mReadCount = 0;
+                    outer.mScannedEPC = null;
+                    outer.mReadTID = null;
+                    outer.mIsBucketEPCRead = false;
+                    outer.mScrapBtn.setEnabled(outer.canScrap());
+                    break;
+                case MSG_UPDATE_HINT:
+                    outer.mHintContentTv.setText((String) msg.obj);
+                    break;
+            }
+        }
+    }
+
+    private class ScrapTask implements Runnable {
+
+        @Override
+        public void run() {
+            byte[] data;
+            try {
+                MessageScrap message = new MessageScrap();
+                if (mIsBucketEPCRead) {
+                    if (mScannedEPC.length > MyParams.EPC_BUCKET_LENGTH) {
+                        mScannedEPC = Arrays.copyOf(mScannedEPC, MyParams.EPC_BUCKET_LENGTH);
+                    }
+
+                    // 设置Mask
+                    MyVars.getReader().setMask(mScannedEPC, 2);
+
+                    // 尝试读取TID
+                    data = MyVars.getReader().sendCommandSync(InsHelper.getReadMemBank(
+                            CommonUtils.hexToBytes("00000000"),
+                            InsHelper.MemBankType.TID,
+                            MyParams.TID_START_INDEX,
+                            MyParams.TID_READ_LENGTH));
+                    Log.i(TAG, "TID Read: " + CommonUtils.bytesToHex(data));
+                    if (data == null) {
+                        writeHint("读取TID\n失败");
+                        writeTaskFailed();
+                        return;
+                    } else {
+                        writeHint("读取TID\n成功");
+                        mReadTID = InsHelper.getReadContent(data);
+                    }
+
+                    // 写入EPC
+                    byte[] modifiedEPC = new byte[]{MyParams.EPCType.BUCKET_SCRAPED.getCode(),
+                            mScannedEPC[MyParams.EPC_TYPE_INDEX + 1]};
+                    data = MyVars.getReader().sendCommandSync(InsHelper.getWriteMemBank(
+                            CommonUtils.hexToBytes("00000000"),
+                            InsHelper.MemBankType.EPC,
+                            MyParams.EPC_START_INDEX + MyParams.EPC_TYPE_INDEX / 2,
+                            modifiedEPC));
+                    Log.i(TAG, "EPC Write: " + CommonUtils.bytesToHex(data));
+                    if (data == null) {
+                        writeHint("写入EPC\n失败");
+                        writeTaskFailed();
+                        return;
+                    } else {
+                        writeHint("写入EPC\n成功");
+                    }
+
+                    message.addBucket(CommonUtils.bytesToHex(mReadTID),
+                            CommonUtils.bytesToHex(mScannedEPC),
+                            MyVars.config.getDisableInfoByWord(mScrapReasonSpn.getText().toString()).getCode());
+                } else {
+                    message.addBucket(mBodyCodeIcl.getCode(),
+                            MyVars.config.getDisableInfoByWord(mScrapReasonSpn.getText().toString()).getCode());
+                }
+
+                // 尝试上报平台
+                Response<Reply> responseR1 = NetHelper.getInstance().uploadR1Message(message).execute();
+                Reply replyR1 = responseR1.body();
+                if (!responseR1.isSuccessful() || replyR1 == null) {
+                    writeHint("平台内部\n错误");
+                    writeTaskFailed();
+                    return;
+                } else if (replyR1.getCode() != 200) {
+                    writeHint("平台连接\n失败");
+                    writeTaskFailed();
+                } else {
+                    writeHint("上报平台\n成功");
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+                writeHint("网络通信\n失败");
+                writeTaskFailed();
+                return;
+            }
+            writeHint((mIsBucketEPCRead ? new Bucket(mScannedEPC).getBodyCode() : mBodyCodeIcl.getCode()) + "报废成功");
+            writeTaskSuccess();
         }
     }
 }

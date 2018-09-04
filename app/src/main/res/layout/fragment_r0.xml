@@ -44,33 +44,12 @@
         android:layout_margin="@dimen/r0_content_margin">
 
         <LinearLayout
-            android:visibility="gone"
-            android:orientation="horizontal"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content">
-
-            <TextView
-                android:theme="@style/AppTheme.BigText"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center"
-                android:text="产品：" />
-
-            <com.weiwangcn.betterspinner.library.BetterSpinner
-                android:id="@+id/spn_product_name"
-                android:theme="@style/AppTheme.BigText"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content" />
-
-        </LinearLayout>
-
-        <LinearLayout
             android:orientation="horizontal"
             android:layout_width="match_parent"
             android:layout_height="wrap_content">
 
             <com.casc.rfidscanner.view.InputCodeLayout
-                android:id="@+id/icl_body_code"
+                android:id="@+id/icl_r0_body_code"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
@@ -140,7 +119,7 @@
             android:layout_height="match_parent">
 
             <com.dlazaro66.qrcodereaderview.QRCodeReaderView
-                android:id="@+id/qrv_body_code_reader"
+                android:id="@+id/qrv_r0_body_code_reader"
                 android:layout_width="0dp"
                 android:layout_height="match_parent"
                 android:layout_weight="1"
@@ -161,14 +140,14 @@
                     android:layout_alignParentBottom="true">
 
                     <ImageView
-                        android:id="@+id/iv_tag_status"
+                        android:id="@+id/iv_r0_tag_status"
                         android:layout_width="48dp"
                         android:layout_height="48dp"
                         android:layout_gravity="center"
                         android:src="@drawable/ic_connection_abnormal" />
 
                     <TextView
-                        android:id="@+id/tv_tag_status"
+                        android:id="@+id/tv_r0_tag_status"
                         android:theme="@style/AppTheme.LargeText"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"

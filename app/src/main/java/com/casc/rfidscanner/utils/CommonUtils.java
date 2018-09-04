@@ -47,9 +47,11 @@ public class CommonUtils {
         return result;
     }
 
-    public static EPCType getEPCType(byte[] epc) {
+    private static EPCType getEPCType(byte[] epc) {
         if (epc.length == MyParams.EPC_BUCKET_LENGTH && epc[MyParams.EPC_TYPE_INDEX] == EPCType.BUCKET.getCode()) {
             return EPCType.BUCKET;
+        } else if (epc.length == MyParams.EPC_BUCKET_LENGTH && epc[MyParams.EPC_TYPE_INDEX] == EPCType.BUCKET_SCRAPED.getCode()) {
+            return EPCType.BUCKET_SCRAPED;
         } else if (epc.length == MyParams.EPC_DELIVERY_CARD_LENGTH && epc[MyParams.EPC_TYPE_INDEX] == EPCType.CARD_DELIVERY.getCode()) {
             return EPCType.CARD_DELIVERY;
         } else if (epc.length == MyParams.EPC_ADMIN_CARD_LENGTH && epc[MyParams.EPC_TYPE_INDEX] == EPCType.CARD_ADMIN.getCode()) {

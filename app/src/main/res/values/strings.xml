@@ -8,8 +8,10 @@
     <string name="r2_monitor_title">回流监控</string>
     <string name="r3_title">桶筛选</string>
     <string name="r4_title">成品下线</string>
+    <string name="r5_title">成品打垛</string>
     <string name="r6_title">成品出库</string>
     <string name="r6_monitor_title">出库监控</string>
+    <string name="r7_title">桶上线</string>
     <string name="rn_title">经销商库存管理</string>
     <string name="card_title">专用卡注册</string>
     <string name="config_title">配置管理</string>
@@ -42,6 +44,7 @@
     <string name="registered_count_label">已注册数量：</string>
     <string name="body_code_label">桶身码：</string>
     <string name="register_button_text">注册</string>
+    <string name="scrap_button_text">报废</string>
     <string name="scanning_status_label">扫描状态：</string>
     <string name="delivery_count_label">总出库</string>
     <string name="reflux_count_label">总回收</string>
