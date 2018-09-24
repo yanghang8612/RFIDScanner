@@ -28,7 +28,26 @@ public class DeliveryBill {
     private static final int SPEC_LENGTH = 20;
     private static final int SPEC_INDEX = 9 + 6 + 10 + 4;
 
-    private boolean isBacking, isComplete;
+    private enum BillState {
+
+        IS_STACK32("3"), IS_STACK48("4"), IS_SINGLE("1"), IS_BACK("2");
+
+        final String flag;
+
+        BillState(String flag) {
+            this.flag = flag;
+        }
+
+        public static BillState getStateByFlag(String flag) {
+            for (BillState state : BillState.values()) {
+                if (state.flag.equals(flag))
+                    return state;
+            }
+            throw new IllegalArgumentException("No matched state type");
+        }
+    }
+
+    private BillState state = BillState.IS_STACK32;
 
     private long updatedTime = System.currentTimeMillis();
 
@@ -103,20 +122,36 @@ public class DeliveryBill {
         }
     }
 
-    public boolean isBacking() {
-        return isBacking;
+    public boolean isStack32() {
+        return state == BillState.IS_STACK32;
     }
 
-    public void setBacking(boolean backing) {
-        isBacking = backing;
+    public void setStack32() {
+        state = BillState.IS_STACK32;
     }
 
-    public boolean isComplete() {
-        return isComplete;
+    public boolean isStack48() {
+        return state == BillState.IS_STACK48;
     }
 
-    public void setComplete(boolean complete) {
-        isComplete = complete;
+    public void setStack48() {
+        state = BillState.IS_STACK48;
+    }
+
+    public boolean isSingle() {
+        return state == BillState.IS_SINGLE;
+    }
+
+    public void setSingle() {
+        state = BillState.IS_SINGLE;
+    }
+
+    public boolean isBack() {
+        return state == BillState.IS_BACK;
+    }
+
+    public void setBack() {
+        state = BillState.IS_BACK;
     }
 
     public long getUpdatedTime() {
@@ -184,43 +219,44 @@ public class DeliveryBill {
     }
 
     public int getDeliveryCount() {
-        return buckets.size();
+        int deliveryCount = 0;
+        for (Goods goods : goods) {
+            deliveryCount += goods.getCurCount();
+        }
+        return deliveryCount;
     }
 
-    public boolean addBucket(String bucketEPC) {
-        return !buckets.containsKey(bucketEPC) && addBucket(new Bucket(bucketEPC));
+    public Bucket addBucket(byte[] epc) {
+        String epcStr = CommonUtils.bytesToHex(epc);
+        if (state == BillState.IS_STACK32 || state == BillState.IS_STACK48) {
+            String key1 = BillState.IS_STACK32.flag + epcStr;
+            String key2 = BillState.IS_STACK48.flag + epcStr;
+            if (!buckets.containsKey(key1) && !buckets.containsKey(key2)) {
+                Bucket bucket = new Bucket(epc, state.flag);
+                buckets.put(state.flag + epcStr, bucket);
+                addMatchedGoods(bucket);
+                return bucket;
+            }
+
+        } else {
+            String key = state.flag + epcStr;
+            if (!buckets.containsKey(key)) {
+                Bucket bucket = new Bucket(epc, state.flag);
+                buckets.put(key, bucket);
+                addMatchedGoods(bucket);
+                return bucket;
+            }
+        }
+        return null;
     }
 
     public boolean addBucket(Bucket bucket) {
-        if (!buckets.containsKey(bucket.getEpcStr())) {
-            buckets.put(bucket.getEpcStr(), bucket);
-            Goods matchedGoods = findMatchedGoods(bucket);
-            if (matchedGoods == null) {
-                matchedGoods = new Goods(bucket.getProductInfo(), 0);
-                goods.add(matchedGoods);
-            }
-            matchedGoods.addCurCount();
+        if (!buckets.containsKey(bucket.getKey())) {
+            buckets.put(bucket.getKey(), bucket);
+            addMatchedGoods(bucket);
             return true;
         }
         return false;
-    }
-
-    public boolean removeBucket(String bucketEPC) {
-        if (buckets.containsKey(bucketEPC)) {
-            Bucket bucket = buckets.remove(bucketEPC);
-            Goods matchedGoods = findMatchedGoods(bucket);
-            if (matchedGoods != null) {
-                matchedGoods.minusCurCount();
-                if (matchedGoods.getCurCount() == 0 && matchedGoods.getTotalCount() == 0)
-                    goods.remove(matchedGoods);
-            }
-            return true;
-        }
-        return false;
-    }
-
-    public boolean removeBucket(Bucket bucket) {
-        return removeBucket(bucket.getEpcStr());
     }
 
     public boolean checkBill() {
@@ -237,14 +273,30 @@ public class DeliveryBill {
             if (goods.getTotalCount() == 0)
                 return false;
         }
-        return buckets.size() <= totalCount;
+        return getDeliveryCount() <= totalCount;
     }
 
-    private Goods findMatchedGoods(Bucket bucket) {
+    private void addMatchedGoods(Bucket bucket) {
         for (Goods goods : goods) {
-            if (goods.isBucketMatched(bucket))
-                return goods;
+            if (goods.getCode() == bucket.getCode()) {
+                switch (BillState.getStateByFlag(bucket.getFlag())) {
+                    case IS_STACK32:
+                        goods.addStack32();
+                        break;
+                    case IS_STACK48:
+                        goods.addStack48();
+                        break;
+                    case IS_SINGLE:
+                        goods.addSingle();
+                        break;
+                    case IS_BACK:
+                        goods.addBack();
+                        break;
+                }
+                return;
+            }
         }
-        return null;
+        goods.add(new Goods(bucket.getProductInfo(), 0));
+        addMatchedGoods(bucket);
     }
 }

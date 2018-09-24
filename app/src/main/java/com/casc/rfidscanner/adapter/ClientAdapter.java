@@ -12,9 +12,7 @@ import android.view.animation.LinearInterpolator;
 import com.casc.rfidscanner.MyVars;
 import com.casc.rfidscanner.R;
 import com.casc.rfidscanner.activity.DeliveryDetailActivity;
-import com.casc.rfidscanner.activity.MainActivity;
 import com.casc.rfidscanner.bean.Client;
-import com.casc.rfidscanner.utils.ActivityCollector;
 import com.chad.library.adapter.base.BaseQuickAdapter;
 import com.chad.library.adapter.base.BaseViewHolder;
 
@@ -49,10 +47,8 @@ public class ClientAdapter extends BaseQuickAdapter<Client, BaseViewHolder> {
             item.getAdapter().setOnItemClickListener(new BaseQuickAdapter.OnItemClickListener() {
                 @Override
                 public void onItemClick(BaseQuickAdapter adapter, View view, int position) {
-                    if (ActivityCollector.getTopActivity() instanceof MainActivity) {
-                        MyVars.deliveryBillToShow = item.getBills().get(position);
-                        DeliveryDetailActivity.actionStart(mContext);
-                    }
+                    MyVars.deliveryBillToShow = item.getBills().get(position);
+                    DeliveryDetailActivity.actionStart(mContext);
                 }
             });
             billList.setAdapter(item.getAdapter());

@@ -47,11 +47,12 @@ import butterknife.BindView;
 import butterknife.OnClick;
 import retrofit2.Response;
 
+/**
+ * 专用卡注册Fragment
+ */
 public class CardFragment extends BaseFragment {
 
     private static final String TAG = CardFragment.class.getSimpleName();
-    private static final int READ_MAX_TRY_COUNT = 5;
-    private static final int WRITE_MAX_TRY_COUNT = 3;
     private static final int CAN_REGISTER_READ_COUNT = 20;
     // Constant for InnerHandler message.what
     private static final int MSG_UPDATE_HINT = 0;
@@ -199,9 +200,9 @@ public class CardFragment extends BaseFragment {
                 mRegisterBtn.setEnabled(canRegister());
             }
         });
-        mCardRv.setLayoutManager(new LinearLayoutManager(getContext()));
+        mCardRv.setLayoutManager(new LinearLayoutManager(mContext));
         mCardRv.setAdapter(mCardAdapter);
-        mHintRv.setLayoutManager(new LinearLayoutManager(getContext()));
+        mHintRv.setLayoutManager(new LinearLayoutManager(mContext));
         mHintRv.setAdapter(mHintAdapter);
     }
 
@@ -262,21 +263,21 @@ public class CardFragment extends BaseFragment {
 
     @OnClick(R.id.btn_card_back)
     void onCardBackClicked() {
-         ConfigActivity.actionStart(getContext());
+         ConfigActivity.actionStart(mContext);
     }
 
     private void writeTaskSuccess() {
         mCards.add(0, mCardToRegister);
-        mHandler.sendMessage(Message.obtain(mHandler, MSG_SUCCESS));
+        Message.obtain(mHandler, MSG_SUCCESS).sendToTarget();
     }
 
     private void writeTaskFailed() {
-        mHandler.sendMessage(Message.obtain(mHandler, MSG_FAILED));
+        Message.obtain(mHandler, MSG_FAILED).sendToTarget();
     }
 
     private void writeHint(String content) {
         mHints.add(0, new Hint(content));
-        mHandler.sendMessage(Message.obtain(mHandler, MSG_UPDATE_HINT));
+        Message.obtain(mHandler, MSG_UPDATE_HINT).sendToTarget();
     }
 
     private boolean canRegister() {

@@ -110,7 +110,7 @@ public class MyParams {
 //    public static final int DELAY = 2 * 60 * 60;
     public static final int DELAY = 0;
     public static final boolean ENABLE_BACKDOOR = true;
-    public static final boolean PRINT_COMMAND = false;
+    public static final boolean PRINT_COMMAND = true;
     public static final boolean PRINT_JSON = true;
 
     /**

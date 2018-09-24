@@ -13,6 +13,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * 空桶回流监控Fragment
+ */
 public class R2MonitorFragment extends BaseFragment {
 
     private static final String TAG = R2MonitorFragment.class.getSimpleName();

@@ -6,7 +6,6 @@ import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.helper.ItemTouchHelper;
 import android.text.TextUtils;
-import android.util.Log;
 import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.AutoCompleteTextView;
@@ -52,7 +51,6 @@ import retrofit2.Response;
 /**
  * 水站库存管理Fragment
  */
-
 public class RNFragment extends BaseFragment {
 
     private static final String TAG = RNFragment.class.getSimpleName();
@@ -122,7 +120,7 @@ public class RNFragment extends BaseFragment {
                 case CARD_ADMIN:
                     if (++mAdminCardScannedCount == MyParams.ADMIN_CARD_SCANNED_COUNT) {
                         sendAdminLoginMessage(CommonUtils.bytesToHex(message.epc));
-                        ConfigActivity.actionStart(getContext());
+                        ConfigActivity.actionStart(mContext);
                     }
                     break;
                 default:
@@ -147,7 +145,7 @@ public class RNFragment extends BaseFragment {
         mMonitorStatusLl.setVisibility(View.GONE);
         mReaderStatusLl.setVisibility(View.VISIBLE);
 
-        mStoredBillCountTv.setText(String.valueOf(MyVars.cache.getStoredDealerMessageCount()));
+        mStoredBillCountTv.setText(String.valueOf(MyVars.cache.getStoredDealerBillCount()));
         mLinks = getResources().getStringArray(R.array.rn_link);
         mRNLinkSpn.setText(mLinks[0]);
         mRNLinkSpn.setAdapter(new ArrayAdapter<>(mContext, R.layout.item_rn_link, mLinks));
@@ -202,7 +200,7 @@ public class RNFragment extends BaseFragment {
         ItemTouchHelper itemTouchHelper = new ItemTouchHelper(itemDragAndSwipeCallback);
         itemTouchHelper.attachToRecyclerView(mBucketsRv);
 
-        mBucketsRv.setLayoutManager(new GridLayoutManager(getContext(), 3));
+        mBucketsRv.setLayoutManager(new GridLayoutManager(mContext, 3));
         mBucketsRv.setAdapter(mAdapter);
     }
 
@@ -213,7 +211,6 @@ public class RNFragment extends BaseFragment {
 
     @OnClick(R.id.btn_rn_clear)
     void onClearButtonClicked() {
-        //DialogActivity.actionStart(getContext(), "");
         new MaterialDialog.Builder(mContext)
                 .title("提示信息")
                 .content("确认清空当前扫描桶列表吗？")
@@ -266,25 +263,28 @@ public class RNFragment extends BaseFragment {
                         for (RNBucket bucket : mBuckets) {
                             dealer.addBucket(System.currentTimeMillis() / 1000, bucket.getEpc());
                         }
-                        NetHelper.getInstance().uploadDealerMessage(dealer).enqueue(new Callback<Reply>() {
-                            @Override
-                            public void onResponse(@NonNull Call<Reply> call, @NonNull Response<Reply> response) {
-                                Reply body = response.body();
-                                Log.i(TAG, body.toString());
-                                if (!response.isSuccessful() || body == null || body.getCode() != 200) {
+                        if (MyVars.cache.getStoredDealerBillCount() == 0) {
+                            NetHelper.getInstance().uploadDealerMessage(dealer).enqueue(new Callback<Reply>() {
+                                @Override
+                                public void onResponse(@NonNull Call<Reply> call, @NonNull Response<Reply> response) {
+                                    Reply body = response.body();
+                                    if (!response.isSuccessful() || body == null || body.getCode() != 200) {
+                                        MyVars.cache.storeDealerBill(dealer);
+                                        EventBus.getDefault().post(new BillStoredMessage());
+                                    } else {
+                                        EventBus.getDefault().post(new BillUploadedMessage(false));
+                                    }
+                                }
+
+                                @Override
+                                public void onFailure(@NonNull Call<Reply> call, @NonNull Throwable t) {
                                     MyVars.cache.storeDealerBill(dealer);
                                     EventBus.getDefault().post(new BillStoredMessage());
-                                } else {
-                                    EventBus.getDefault().post(new BillUploadedMessage(false));
                                 }
-                            }
-
-                            @Override
-                            public void onFailure(@NonNull Call<Reply> call, @NonNull Throwable t) {
-                                MyVars.cache.storeDealerBill(dealer);
-                                EventBus.getDefault().post(new BillStoredMessage());
-                            }
-                        });
+                            });
+                        } else {
+                            MyVars.cache.storeDealerBill(dealer);
+                        }
                         clearBuckets();
                         dialog.dismiss();
                     }

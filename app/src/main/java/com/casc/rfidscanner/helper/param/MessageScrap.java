@@ -62,7 +62,7 @@ public class MessageScrap {
             this.bucket_TID = tid;
             this.bucket_epc = epc;
             this.bodycode = bodycode;
-            this.bucket_time = System.currentTimeMillis() / 1000 - (MyParams.DELAY * (10 - Integer.valueOf(stage)));
+            this.bucket_time = System.currentTimeMillis() - (MyParams.DELAY * (10 - Integer.valueOf(stage)));
             this.disablecode = code;
         }
     }

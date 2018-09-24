@@ -58,8 +58,10 @@ public class ConfigActivity extends BaseActivity {
     private static final String TAG = ConfigActivity.class.getSimpleName();
 
     public static void actionStart(Context context) {
-        Intent intent = new Intent(context, ConfigActivity.class);
-        context.startActivity(intent);
+        if (!(ActivityCollector.getTopActivity() instanceof ConfigActivity)) {
+            Intent intent = new Intent(context, ConfigActivity.class);
+            context.startActivity(intent);
+        }
     }
 
     @BindView(R.id.toolbar_config) Toolbar mToolbar;

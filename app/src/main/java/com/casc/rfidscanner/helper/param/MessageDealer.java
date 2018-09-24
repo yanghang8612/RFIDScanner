@@ -33,7 +33,7 @@ public class MessageDealer {
         this.longitude = Double.valueOf(ConfigHelper.getString(MyParams.S_LONGITUDE));
         this.latitude = Double.valueOf(ConfigHelper.getString(MyParams.S_LATITUDE));
         this.height = Double.valueOf(ConfigHelper.getString(MyParams.S_HEIGHT));
-        this.time = System.currentTimeMillis() / 1000 - (MyParams.DELAY * (14 - Integer.valueOf(stage)));
+        this.time = System.currentTimeMillis() - (MyParams.DELAY * (14 - Integer.valueOf(stage)));
         this.counterparty = counterparty;
         this.driver = driver;
     }

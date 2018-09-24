@@ -23,7 +23,6 @@ import java.util.List;
 /**
  * 桶筛选Fragment
  */
-
 public class R5Fragment extends BaseFragment {
 
     private static final String TAG = R5Fragment.class.getSimpleName();
@@ -49,8 +48,7 @@ public class R5Fragment extends BaseFragment {
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void onMessageEvent(PollingResultMessage message) {
         if (message.isRead) {
-            MyParams.EPCType epcType = CommonUtils.validEPC(message.epc);
-            switch (epcType) {
+            switch (CommonUtils.validEPC(message.epc)) {
                 case NONE: // 检测到未注册标签，是否提示
                     break;
                 case BUCKET:
@@ -69,7 +67,7 @@ public class R5Fragment extends BaseFragment {
                 case CARD_ADMIN:
                     if (++mAdminCardScannedCount == MyParams.ADMIN_CARD_SCANNED_COUNT) {
                         sendAdminLoginMessage(CommonUtils.bytesToHex(message.epc));
-                        ConfigActivity.actionStart(getContext());
+                        ConfigActivity.actionStart(mContext);
                     }
                     break;
             }

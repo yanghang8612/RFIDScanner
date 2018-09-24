@@ -28,22 +28,22 @@ public class Card {
     public Card(String type, String bodyCode, String validity) {
         switch (validity) {
             case "1周":
-                this.life = System.currentTimeMillis() / 1000 + 7 * 24 * 60 * 60;
+                this.life = System.currentTimeMillis() + 7L * 24 * 60 * 60 * 1000;
                 break;
             case "2周":
-                this.life = System.currentTimeMillis() / 1000 + 2 * 7 * 24 * 60 * 60;
+                this.life = System.currentTimeMillis() + 2L * 7 * 24 * 60 * 60 * 1000;
                 break;
             case "3周":
-                this.life = System.currentTimeMillis() / 1000 + 3 * 7 * 24 * 60 * 60;
+                this.life = System.currentTimeMillis() + 3L * 7 * 24 * 60 * 60 * 1000;
                 break;
             case "1个月":
-                this.life = System.currentTimeMillis() / 1000 + 30 * 24 * 60 * 60;
+                this.life = System.currentTimeMillis() + 30L * 24 * 60 * 60 * 1000;
                 break;
             case "6个月":
-                this.life = System.currentTimeMillis() / 1000 + 6 * 30 * 24 * 60 * 60;
+                this.life = System.currentTimeMillis() + 6L * 30 * 24 * 60 * 60 * 1000;
                 break;
             case "12个月":
-                this.life = System.currentTimeMillis() / 1000 + 12 * 30 * 24 * 60 * 60;
+                this.life = System.currentTimeMillis() + 12L * 30 * 24 * 60 * 60 * 1000;
                 break;
             case "永久":
                 this.life = 0;

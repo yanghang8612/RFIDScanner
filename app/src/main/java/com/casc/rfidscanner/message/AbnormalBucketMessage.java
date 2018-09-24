@@ -1,10 +1,12 @@
 package com.casc.rfidscanner.message;
 
+import com.casc.rfidscanner.utils.CommonUtils;
+
 public class AbnormalBucketMessage {
 
     public boolean isReadNone;
 
-    public String epc;
+    public byte[] epc;
 
     public AbnormalBucketMessage() {
         this.isReadNone = true;
@@ -12,6 +14,6 @@ public class AbnormalBucketMessage {
 
     public AbnormalBucketMessage(String epc) {
         this.isReadNone = false;
-        this.epc = epc;
+        this.epc = CommonUtils.hexToBytes(epc);
     }
 }

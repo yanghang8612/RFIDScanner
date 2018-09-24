@@ -21,10 +21,13 @@ public interface NetInterface {
     Call<Reply> checkBodyCodeAndTID(@Url String url, @QueryMap Map<String, String> header, @Body RequestBody query);
 
     @POST
-    Call<Reply> uploadR0Message(@Url String url, @QueryMap Map<String, String> header, @Body RequestBody r0);
+    Call<Reply> uploadRegisterMessage(@Url String url, @QueryMap Map<String, String> header, @Body RequestBody register);
 
     @POST
-    Call<Reply> uploadR1Message(@Url String url, @QueryMap Map<String, String> header, @Body RequestBody r1);
+    Call<Reply> uploadScrapMessage(@Url String url, @QueryMap Map<String, String> header, @Body RequestBody scrap);
+
+    @POST
+    Call<Reply> uploadOnlineMessage(@Url String url, @QueryMap Map<String, String> header, @Body RequestBody online);
 
     @POST
     Call<Reply> uploadCommonMessage(@Url String url, @QueryMap Map<String, String> header, @Body RequestBody common);
@@ -51,7 +54,7 @@ public interface NetInterface {
     Call<Reply> uploadAdminLoginInfo(@Url String url, @QueryMap Map<String, String> header, @Body RequestBody login);
 
     @POST
-    Call<Reply> reportHeartbeat(@Url String url, @Query("line")String line);
+    Call<Reply> reportHeartbeat(@Url String url, @Query("line") String line);
 
     @POST
     Call<Reply> reportBillDelivery(@Url String url, @Query("line") String line, @Body RequestBody bill);

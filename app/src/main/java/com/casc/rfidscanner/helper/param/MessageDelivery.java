@@ -2,6 +2,7 @@ package com.casc.rfidscanner.helper.param;
 
 import com.casc.rfidscanner.MyParams;
 import com.casc.rfidscanner.helper.ConfigHelper;
+import com.casc.rfidscanner.utils.CommonUtils;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -37,15 +38,15 @@ public class MessageDelivery {
         this.longitude = Double.valueOf(ConfigHelper.getString(MyParams.S_LONGITUDE));
         this.latitude = Double.valueOf(ConfigHelper.getString(MyParams.S_LATITUDE));
         this.height = Double.valueOf(ConfigHelper.getString(MyParams.S_HEIGHT));
-        this.time = System.currentTimeMillis() / 1000 - (MyParams.DELAY * 5);
+        this.time = System.currentTimeMillis() - (MyParams.DELAY * 5);
         this.formnumber = formnumber;
         this.accordance = accordance;
         this.dealer = dealer;
         this.driver = driver;
     }
 
-    public void addBucket(long time, String epc) {
-        bucket_info.add(new Bucket(time, epc));
+    public void addBucket(long time, byte[] epc, String flag) {
+        bucket_info.add(new Bucket(time, epc, flag.equals("3") || flag.equals("4") ? "0" : flag));
     }
 
     // 桶信息的内部类
@@ -55,9 +56,12 @@ public class MessageDelivery {
 
         private String bucket_epc;
 
-        private Bucket(long time, String epc) {
-            this.bucket_epc = epc;
+        private String flag;
+
+        private Bucket(long time, byte[] epc, String flag) {
             this.bucket_time = time - (MyParams.DELAY * 5);
+            this.bucket_epc = CommonUtils.bytesToHex(epc);
+            this.flag = flag;
         }
     }
 }

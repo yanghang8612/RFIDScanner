@@ -10,6 +10,7 @@ import com.casc.rfidscanner.helper.DBHelper;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.regex.Pattern;
 
 public class DeliveryBillDao {
     private static final String COLUMN_ID = "id";
@@ -34,7 +35,7 @@ public class DeliveryBillDao {
                 tableName, COLUMN_CARD + "=?", new String[]{bill.getCardStr()});
     }
 
-    public void insertBucket(String card, String bucket) {
+    public void insertBucket(String card, Bucket bucket) {
         Cursor c = getRowByCard(card);
         if (c != null) {
             if (c.moveToNext()) {
@@ -43,7 +44,7 @@ public class DeliveryBillDao {
                 if (!TextUtils.isEmpty(buckets)) {
                     buckets += ",";
                 }
-                buckets += bucket;
+                buckets += bucket.getFlag() + bucket.getEpcStr();
                 ContentValues values = new ContentValues();
                 values.put(COLUMN_BUCKETS, buckets);
                 dbHelper.getWritableDatabase().update(
@@ -80,13 +81,15 @@ public class DeliveryBillDao {
                 String bill = c.getString(c.getColumnIndex(COLUMN_BILL));
                 String[] buckets = c.getString(c.getColumnIndex(COLUMN_BUCKETS)).split(",");
                 DeliveryBill deliveryBill;
-                if (TextUtils.isEmpty(bill)) {
+                if (TextUtils.isEmpty(bill) || "null".equals(bill)) {
                     deliveryBill = new DeliveryBill(card);
                 } else {
                     deliveryBill = new DeliveryBill(card, bill);
                 }
                 for (String bucket : buckets) {
-                    deliveryBill.addBucket(bucket);
+                    if (!TextUtils.isEmpty(bucket)) {
+                        deliveryBill.addBucket(new Bucket(bucket.substring(1), bucket.substring(0, 1)));
+                    }
                 }
                 result.add(deliveryBill);
             }

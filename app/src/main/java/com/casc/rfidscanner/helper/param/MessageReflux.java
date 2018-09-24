@@ -24,22 +24,25 @@ public class MessageReflux {
 
     private String driver;
 
+    private int unknown;
+
     // 成品出库的桶身码相关扫描信息
     private List<Bucket> bucket_info = new ArrayList<>();
 
-    public MessageReflux(String dealer, String driver) {
+    public MessageReflux(String dealer, String driver, int unknown) {
         this.stage = ConfigHelper.getString(MyParams.S_LINK);
         this.reader_TID = ConfigHelper.getString(MyParams.S_READER_ID);
         this.longitude = Double.valueOf(ConfigHelper.getString(MyParams.S_LONGITUDE));
         this.latitude = Double.valueOf(ConfigHelper.getString(MyParams.S_LATITUDE));
         this.height = Double.valueOf(ConfigHelper.getString(MyParams.S_HEIGHT));
-        this.time = System.currentTimeMillis() / 1000;
+        this.time = System.currentTimeMillis();
         this.dealer = dealer;
         this.driver = driver;
+        this.unknown = unknown;
     }
 
-    public void addBucket(long time, String epc) {
-        bucket_info.add(new Bucket(time, epc));
+    public void addBucket(long time, String epc, String bodyCode) {
+        bucket_info.add(new Bucket(time, epc, bodyCode));
     }
 
     // 桶信息的内部类
@@ -49,9 +52,12 @@ public class MessageReflux {
 
         private String bucket_epc;
 
-        private Bucket(long time, String epc) {
-            this.bucket_epc = epc;
+        private String bodycode;
+
+        private Bucket(long time, String epc, String bodycode) {
             this.bucket_time = time;
+            this.bucket_epc = epc;
+            this.bodycode = bodycode;
         }
     }
 }

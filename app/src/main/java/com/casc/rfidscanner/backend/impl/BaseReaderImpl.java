@@ -30,7 +30,7 @@ abstract class BaseReaderImpl implements TagReader {
 
     private static final String TAG = BaseReaderImpl.class.getSimpleName();
 
-    private static final int SIGNAL_TIMEOUT = 100 * 1000 * 1000;
+    private static final int SIGNAL_TIMEOUT = 150 * 1000 * 1000;
     private static final int DISCOVERY_INTERVAL = 1500; // ms
     private static final int CMD_MAX_TRY_COUNT = 10;
 
@@ -176,6 +176,7 @@ abstract class BaseReaderImpl implements TagReader {
 
     @Override
     public synchronized byte[] sendCommandSync(byte[] cmd) {
+        // TODO: 2018.9.17 当前后两个执行的指令为读读或写写时，无法通过指令类型来判定后一条指令执行情况
         mResult = null;
         if (!mIsExecuteTask) {
             mIsExecuteTask = true;
@@ -358,6 +359,9 @@ abstract class BaseReaderImpl implements TagReader {
                                 write(InsHelper.getMultiPolling(65535));
                             } else if (mIsExecuteTask && mTryCount < CMD_MAX_TRY_COUNT) { // 队列不空则取队首指令发送，写任务阻塞
                                 write(mCmd);
+                                if (MyParams.PRINT_COMMAND) {
+                                    Log.i(TAG, "Send: " + CommonUtils.bytesToHex(mCmd));
+                                }
                                 waitForCondition("Execute cmd", mCmdSignal);
                             }
                         }
@@ -488,9 +492,9 @@ abstract class BaseReaderImpl implements TagReader {
                                                 }
                                             } else {
                                                 if (MyParams.PRINT_COMMAND) {
-                                                    Log.i(TAG, CommonUtils.bytesToHex(Arrays.copyOfRange(data, i, j + 1)));
+                                                    Log.i(TAG, "Recv: " + CommonUtils.bytesToHex(Arrays.copyOfRange(data, i, j + 1)));
                                                 }
-                                                if (++mTryCount < CMD_MAX_TRY_COUNT) {
+                                                if (++mTryCount >= CMD_MAX_TRY_COUNT) {
                                                     mIsExecuteTask = false;
                                                     sendSignal(mTaskComplete);
                                                 }
@@ -499,7 +503,7 @@ abstract class BaseReaderImpl implements TagReader {
                                             break;
                                         default:
                                             if (MyParams.PRINT_COMMAND) {
-                                                Log.i(TAG, CommonUtils.bytesToHex(Arrays.copyOfRange(data, i, j + 1)));
+                                                Log.i(TAG, "Recv: " + CommonUtils.bytesToHex(Arrays.copyOfRange(data, i, j + 1)));
                                             }
                                             mResult = Arrays.copyOfRange(data, i, j + 1);
                                             if (mResult[2] == mCmd[2]) {

@@ -35,6 +35,7 @@
     </android.support.design.widget.AppBarLayout>
 
     <LinearLayout
+        android:id="@+id/ll_r7_content"
         android:orientation="vertical"
         android:layout_width="match_parent"
         android:layout_height="match_parent">
@@ -58,49 +59,47 @@
                     android:theme="@style/AppTheme.LargeText"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_margin="@dimen/r7_margin"
+                    android:layout_marginTop="@dimen/r7_margin"
+                    android:layout_marginStart="@dimen/r7_margin"
                     android:layout_gravity="start"
-                    android:text="@string/process_scanned_count_label" />
+                    android:text="待上线产品" />
 
-                <com.casc.rfidscanner.view.NumberSwitcher
-                    android:id="@+id/ns_scanned_count"
-                    android:theme="@style/AppTheme.LargeNumber"
+                <TextView
+                    android:id="@+id/tv_task_product"
                     android:layout_width="match_parent"
                     android:layout_height="0dp"
                     android:layout_weight="1"
-                    android:layout_margin="@dimen/r7_margin"
-                    android:gravity="end"
-                    android:text="@string/number_default_value" />
+                    android:layout_marginBottom="@dimen/r7_margin"
+                    android:layout_marginEnd="@dimen/r7_margin"
+                    android:gravity="bottom|end"
+                    android:text=""
+                    android:textSize="48sp"
+                    android:textColor="@color/black"
+                    android:textStyle="bold" />
 
             </LinearLayout>
 
             <LinearLayout
+                android:id="@+id/ll_task_configure"
                 android:orientation="vertical"
                 android:layout_width="0dp"
                 android:layout_height="match_parent"
                 android:layout_weight="1"
                 android:layout_margin="@dimen/r7_margin"
                 android:background="@drawable/sp_corner"
+                android:backgroundTint="@color/light_gray"
                 android:gravity="center">
 
                 <TextView
+                    android:id="@+id/tv_task_configure_hint"
                     android:theme="@style/AppTheme.LargeText"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_margin="@dimen/r7_margin"
-                    android:layout_gravity="start"
-                    android:text="@string/process_uploaded_count_label" />
-
-                <com.casc.rfidscanner.view.NumberSwitcher
-                    android:id="@+id/ns_uploaded_count"
-                    android:theme="@style/AppTheme.LargeNumber"
-                    android:layout_width="match_parent"
-                    android:layout_height="0dp"
-                    android:layout_weight="1"
-                    android:layout_margin="@dimen/r7_margin"
-                    android:gravity="end"
-                    android:layout_marginEnd="@dimen/process_count_margin"
-                    android:text="@string/number_default_value" />
+                    android:text="配置任务"
+                    android:textSize="64sp"
+                    android:textColor="@color/black"
+                    android:textStyle="bold" />
 
             </LinearLayout>
 
@@ -113,6 +112,7 @@
             android:layout_weight="1">
 
             <LinearLayout
+                android:id="@+id/ll_online_bucket_count"
                 android:orientation="vertical"
                 android:layout_width="0dp"
                 android:layout_height="match_parent"
@@ -127,10 +127,10 @@
                     android:layout_height="wrap_content"
                     android:layout_margin="@dimen/r7_margin"
                     android:layout_gravity="start"
-                    android:text="@string/process_stored_count_label" />
+                    android:text="已上线数量" />
 
                 <com.casc.rfidscanner.view.NumberSwitcher
-                    android:id="@+id/ns_stored_count"
+                    android:id="@+id/ns_online_bucket_count"
                     android:theme="@style/AppTheme.LargeNumber"
                     android:layout_width="match_parent"
                     android:layout_height="0dp"
@@ -143,6 +143,7 @@
             </LinearLayout>
 
             <LinearLayout
+                android:orientation="vertical"
                 android:layout_width="0dp"
                 android:layout_height="match_parent"
                 android:layout_weight="1"
@@ -150,12 +151,24 @@
                 android:background="@drawable/sp_corner"
                 android:gravity="center">
 
-                <android.support.v7.widget.RecyclerView
-                    android:id="@+id/rv_r7_hint_list"
+                <TextView
+                    android:theme="@style/AppTheme.LargeText"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_margin="@dimen/r7_margin"
+                    android:layout_gravity="start"
+                    android:text="已转储单数" />
+
+                <com.casc.rfidscanner.view.NumberSwitcher
+                    android:id="@+id/ns_stored_bill_count"
+                    android:theme="@style/AppTheme.LargeNumber"
                     android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:padding="@dimen/r7_padding"
-                    android:background="@drawable/sp_corner" />
+                    android:layout_height="0dp"
+                    android:layout_weight="1"
+                    android:layout_margin="@dimen/r7_margin"
+                    android:gravity="end"
+                    android:layout_marginEnd="@dimen/process_count_margin"
+                    android:text="@string/number_default_value" />
 
             </LinearLayout>
 

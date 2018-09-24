@@ -15,15 +15,17 @@ public class DBHelper extends SQLiteOpenHelper {
     private final static String DB_NAME = "RFIDScanner.db";
 
     public static final String TABLE_NAME_TAG_MESSAGE = "tagMessageTable";
+    public static final String TABLE_NAME_ONLINE_MESSAGE = "onlineMessageTable";
     public static final String TABLE_NAME_DELIVERY_MESSAGE = "deliveryMessageTable";
     public static final String TABLE_NAME_REFLUX_MESSAGE = "refluxMessageTable";
     public static final String TABLE_NAME_DEALER_MESSAGE = "dealerMessageTable";
-    public static final String TABLE_NAME_LOGIN_MESSAGE = "loginMessageTable";
     public static final String TABLE_NAME_DELIVERY_BILL = "deliveryBillTable";
     public static final String TABLE_NAME_REFLUX_BILL = "refluxBillTable";
 
     private static String CREATE_TBL_TAG_MESSAGE =
             "CREATE TABLE if not exists " + TABLE_NAME_TAG_MESSAGE + "(id integer primary key autoincrement, content text)";
+    private static String CREATE_TBL_ONLINE_MESSAGE =
+            "CREATE TABLE if not exists " + TABLE_NAME_ONLINE_MESSAGE + "(id integer primary key autoincrement, content text)";
     private static String CREATE_TBL_DELIVERY_MESSAGE =
             "CREATE TABLE if not exists " + TABLE_NAME_DELIVERY_MESSAGE + "(id integer primary key autoincrement, content text)";
     private static String CREATE_TBL_REFLUX_MESSAGE =
@@ -31,8 +33,6 @@ public class DBHelper extends SQLiteOpenHelper {
     private static String CREATE_TBL_DEALER_MESSAGE =
             "CREATE TABLE if not exists " + TABLE_NAME_DEALER_MESSAGE + "(id integer primary key autoincrement, content text)";
     private static String CREATE_TBL_LOGIN_MESSAGE =
-            "CREATE TABLE if not exists " + TABLE_NAME_LOGIN_MESSAGE + "(id integer primary key autoincrement, content text)";
-    private static String CREATE_TBL_DELIVERY_BILL =
             "CREATE TABLE if not exists " + TABLE_NAME_DELIVERY_BILL + "(id integer primary key autoincrement, card varchar(24), bill varchar(48), buckets text)";
     private static String CREATE_TBL_REFLUX_BILL =
             "CREATE TABLE if not exists " + TABLE_NAME_REFLUX_BILL + "(id integer primary key autoincrement, card varchar(24), buckets text)";
@@ -59,11 +59,11 @@ public class DBHelper extends SQLiteOpenHelper {
     public void onCreate(SQLiteDatabase db) {
         Log.i(TAG, "======Create Database START( DB_NAME = " + DB_NAME + ", VERSION = " + VERSION + ")");
         db.execSQL(CREATE_TBL_TAG_MESSAGE);
+        db.execSQL(CREATE_TBL_ONLINE_MESSAGE);
         db.execSQL(CREATE_TBL_DELIVERY_MESSAGE);
         db.execSQL(CREATE_TBL_REFLUX_MESSAGE);
         db.execSQL(CREATE_TBL_DEALER_MESSAGE);
         db.execSQL(CREATE_TBL_LOGIN_MESSAGE);
-        db.execSQL(CREATE_TBL_DELIVERY_BILL);
         db.execSQL(CREATE_TBL_REFLUX_BILL);
     }
 

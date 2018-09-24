@@ -20,9 +20,9 @@
             android:theme="@style/AppTheme.GoodsText"
             android:layout_width="0dp"
             android:layout_height="match_parent"
-            android:layout_weight="3"
-            android:gravity="center|bottom"
-            android:text="11L不老泉纯净水" />
+            android:layout_weight="1"
+            android:gravity="start|bottom"
+            android:text="不老泉" />
 
         <com.casc.rfidscanner.view.NumberSwitcher
             android:id="@+id/ns_goods_left_count"
@@ -34,19 +34,37 @@
             app:ns_reverseAnim="true" />
 
         <com.casc.rfidscanner.view.NumberSwitcher
-            android:id="@+id/ns_goods_cur_count"
+            android:id="@+id/ns_goods_stack_count"
             android:theme="@style/AppTheme.BigNumber"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_weight="2"
+            android:layout_weight="1"
             android:layout_marginBottom="-10dp" />
+
+        <com.casc.rfidscanner.view.NumberSwitcher
+            android:id="@+id/ns_goods_single_count"
+            android:theme="@style/AppTheme.BigNumber"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:layout_marginBottom="-10dp"
+            android:text="0" />
+
+        <com.casc.rfidscanner.view.NumberSwitcher
+            android:id="@+id/ns_goods_back_count"
+            android:theme="@style/AppTheme.BigNumber"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:layout_marginBottom="-10dp"
+            android:text="0" />
 
         <TextView
             android:id="@+id/tv_goods_total_count"
             android:theme="@style/AppTheme.BigNumber"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_weight="2"
+            android:layout_weight="1"
             android:layout_marginBottom="-10dp"
             android:gravity="end"
             android:text="20" />

@@ -18,7 +18,7 @@ public class MessageCommon {
 
     private double height;
 
-    // R1、R3、R4消息中包含的所有桶RFID及桶身码相关扫描信息
+    // R3、R4消息中包含的所有桶RFID及桶身码相关扫描信息
     private List<Bucket> bucket_info = new ArrayList<>();
 
     public MessageCommon() {
@@ -33,6 +33,10 @@ public class MessageCommon {
         bucket_info.add(new Bucket(tid, epc));
     }
 
+    public void addBucket(String epc) {
+        bucket_info.add(new Bucket("", epc));
+    }
+
     // 桶信息的内部类
     private class Bucket {
 
@@ -44,7 +48,7 @@ public class MessageCommon {
 
         private Bucket(String tid, String epc) {
             this.bucket_TID = tid;
-            this.bucket_time = System.currentTimeMillis() / 1000 - (MyParams.DELAY * (10 - Integer.valueOf(stage)));
+            this.bucket_time = System.currentTimeMillis() - (MyParams.DELAY * (10 - Integer.valueOf(stage)));
             this.bucket_epc = epc;
         }
     }

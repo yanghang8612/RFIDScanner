@@ -87,14 +87,14 @@ public class RefluxBill {
 
     public boolean addBucket(String bucketEPC) {
         if (!buckets.containsKey(bucketEPC)) {
-            Bucket bucket = new Bucket(bucketEPC);
+            Bucket bucket = new Bucket(CommonUtils.hexToBytes(bucketEPC));
             buckets.put(bucketEPC, bucket);
             Goods matchedGoods = findMatchedGoods(bucket);
             if (matchedGoods == null) {
                 matchedGoods = new Goods(bucket.getProductInfo(), -1);
                 goods.add(matchedGoods);
             }
-            matchedGoods.addCurCount();
+            matchedGoods.addSingle();
             return true;
         }
         return false;

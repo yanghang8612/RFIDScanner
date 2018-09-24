@@ -1,10 +1,10 @@
 package com.casc.rfidscanner.message;
 
-public class ProductChoseMessage {
+public class ProductSelectedMessage {
 
     public String product;
 
-    public ProductChoseMessage(String product) {
+    public ProductSelectedMessage(String product) {
         this.product = product;
     }
 }

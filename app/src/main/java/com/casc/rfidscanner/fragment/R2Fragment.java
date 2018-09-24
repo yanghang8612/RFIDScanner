@@ -1,44 +1,50 @@
 package com.casc.rfidscanner.fragment;
 
+import android.content.Context;
+import android.graphics.PointF;
+import android.os.Handler;
+import android.os.Message;
+import android.os.Vibrator;
 import android.support.annotation.NonNull;
-import android.support.v7.widget.LinearLayoutManager;
-import android.support.v7.widget.RecyclerView;
+import android.text.TextUtils;
 import android.view.View;
+import android.widget.Button;
+import android.widget.ImageView;
 import android.widget.TextView;
 
-import com.baidu.tts.client.SpeechSynthesizer;
+import com.afollestad.materialdialogs.DialogAction;
+import com.afollestad.materialdialogs.MaterialDialog;
 import com.casc.rfidscanner.MyParams;
 import com.casc.rfidscanner.MyVars;
 import com.casc.rfidscanner.R;
 import com.casc.rfidscanner.activity.BillConfirmActivity;
 import com.casc.rfidscanner.activity.ConfigActivity;
-import com.casc.rfidscanner.adapter.RefluxBillAdapter;
 import com.casc.rfidscanner.bean.Bucket;
-import com.casc.rfidscanner.bean.RefluxBill;
-import com.casc.rfidscanner.dao.RefluxBillDao;
+import com.casc.rfidscanner.helper.ConfigHelper;
 import com.casc.rfidscanner.helper.NetHelper;
 import com.casc.rfidscanner.helper.param.MessageReflux;
 import com.casc.rfidscanner.helper.param.Reply;
 import com.casc.rfidscanner.message.AbnormalBucketMessage;
-import com.casc.rfidscanner.message.BillFinishedMessage;
 import com.casc.rfidscanner.message.BillStoredMessage;
-import com.casc.rfidscanner.message.BillUpdatedMessage;
 import com.casc.rfidscanner.message.BillUploadedMessage;
+import com.casc.rfidscanner.message.DealerAndDriverChoseMessage;
 import com.casc.rfidscanner.message.PollingResultMessage;
 import com.casc.rfidscanner.utils.CommonUtils;
-import com.chad.library.adapter.base.BaseQuickAdapter;
+import com.casc.rfidscanner.view.InputCodeLayout;
+import com.casc.rfidscanner.view.NumberSwitcher;
+import com.dlazaro66.qrcodereaderview.QRCodeReaderView;
 
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
 
-import java.util.ArrayList;
+import java.lang.ref.WeakReference;
+import java.util.Arrays;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
-import java.util.concurrent.TimeUnit;
 
 import butterknife.BindView;
+import butterknife.OnClick;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
@@ -46,76 +52,50 @@ import retrofit2.Response;
 /**
  * 空桶回流Fragment
  */
-public class R2Fragment extends BaseFragment {
+public class R2Fragment extends BaseFragment implements QRCodeReaderView.OnQRCodeReadListener {
 
     private static final String TAG = R2Fragment.class.getSimpleName();
+    private static final int FOUND_READ_COUNT = 20;
+    private static final int MAX_READ_NONE_COUNT = 10;
+    // Constant for InnerHandler message.what
+    private static final int MSG_RESET_READ_STATUS = 0;
+    private static final int MSG_UPDATE_HINT = 1;
 
-    @BindView(R.id.tv_r2_title) TextView mTitleTv;
-    @BindView(R.id.rv_reflux_bill) RecyclerView mBillView;
+    @BindView(R.id.icl_r2_unknown_count) InputCodeLayout mUnknownCountIcl;
+    @BindView(R.id.iv_add_count) ImageView mAddCountIv;
+    @BindView(R.id.iv_minus_count) ImageView mMinusCountIv;
+    @BindView(R.id.ns_r2_scanned_count) NumberSwitcher mScannedCountNs;
+    @BindView(R.id.btn_r2_commit) Button mCommitBtn;
+    @BindView(R.id.qrv_r2_body_code_reader) QRCodeReaderView mBodyCodeReaderQrv;
+    @BindView(R.id.tv_r2_hint_content) TextView mHintContentTv;
 
-    // 回流单列表
-    private List<RefluxBill> mBills = new ArrayList<>();
+    // 当前读取的EPC
+    private byte[] mScannedEPC;
 
-    // 回流单map，用于根据出货单EPC获取回流单实例
-    private Map<String, RefluxBill> mBillsMap = new HashMap<>();
+    // 读取到和未读取到EPC的计数器
+    private int mReadCount, mQualifiedCount, mReadNoneCount;
 
-    // 回流单列表适配器
-    private RefluxBillAdapter mBillAdapter;
+    private DealerAndDriverChoseMessage mConfig;
 
-    // 当前正在回流的回流单
-    private RefluxBill mCurBill;
+    private int mUnknownCount;
 
-    private RefluxBillDao mBillDao;
+    private Map<String, Bucket> mEPCBuckets = new HashMap<>();
 
-    // 同时回流提示标识符，卡EPC编码解析错误标识符
-    private boolean mIsErrorNoticed;
+    private Map<String, Long> mBodyCodes = new HashMap<>();
+
+    // 系统震动辅助类
+    private Vibrator mVibrator;
+
+    // Fragment内部handler
+    private Handler mHandler = new InnerHandler(this);
 
     @Subscribe(threadMode = ThreadMode.MAIN)
-    public void onMessageEvent(BillUpdatedMessage message) {
-        if (mCurBill != null) {
-            mCurBill.setUpdatedTime(System.currentTimeMillis());
-        }
-        mBillAdapter.showBill(mCurBill);
-    }
-
-    @Subscribe(threadMode = ThreadMode.MAIN)
-    public void onMessageEvent(BillFinishedMessage message) {
-        final MessageReflux reflux = new MessageReflux(message.dealer, message.driver);
-        for (Bucket bucket : mCurBill.getBuckets()) {
-            reflux.addBucket(bucket.getTime() / 1000, CommonUtils.bytesToHex(bucket.getEpc()));
-        }
-        NetHelper.getInstance().uploadRefluxMessage(reflux).enqueue(new Callback<Reply>() {
-            @Override
-            public void onResponse(@NonNull Call<Reply> call, @NonNull Response<Reply> response) {
-                Reply body = response.body();
-                if (!response.isSuccessful() || body == null || body.getCode() != 200) {
-                    MyVars.cache.storeRefluxBill(reflux);
-                    EventBus.getDefault().post(new BillStoredMessage());
-                }
-                else
-                    EventBus.getDefault().post(new BillUploadedMessage(false));
-            }
-
-            @Override
-            public void onFailure(@NonNull Call<Reply> call, @NonNull Throwable t) {
-                MyVars.cache.storeRefluxBill(reflux);
-                EventBus.getDefault().post(new BillStoredMessage());
-            }
-        });
-        showToast("提交成功");
-        mBills.remove(mCurBill);
-        mBillsMap.remove(mCurBill.getCardStr());
-        mBillDao.remove(mCurBill);
-        mCurBill = mBills.isEmpty() ? null : mBills.get(0);
-        EventBus.getDefault().post(new BillUpdatedMessage());
+    public void onMessageEvent(DealerAndDriverChoseMessage message) {
+        mConfig = message;
     }
 
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void onMessageEvent(AbnormalBucketMessage message) {
-//        String content = message.isReadNone ?
-//                "未发现桶标签" : "发现弱标签：" + new Bucket(message.epc).getBodyCode();
-//        mHints.add(0, new Hint(content));
-//        mHintAdapter.notifyDataSetChanged();
     }
 
     @Subscribe(threadMode = ThreadMode.MAIN)
@@ -126,45 +106,44 @@ public class R2Fragment extends BaseFragment {
                 case NONE: // 检测到未注册标签，是否提示
                     break;
                 case BUCKET:
-                    if (mCurBill == null) {
-                        if (!mIsErrorNoticed) {
-                            mIsErrorNoticed = true;
-                            SpeechSynthesizer.getInstance().speak("回收前请先刷卡");
-                        }
+                    mReadNoneCount = 0;
+                    if (Arrays.equals(message.epc, mScannedEPC)) { // 判定扫到的EPC是否为前一次扫到的
+                        mReadCount += 1;
+                        mQualifiedCount += message.rssi >=
+                                ConfigHelper.getInt(MyParams.S_RSSI_THRESHOLD) ? 1 : 0;
                     } else {
-                        if (mCurBill.addBucket(new Bucket(message.epc))){
-                            playSound();
-                            mBillDao.insertBucket(mCurBill.getCardStr(), epcStr);
-                            EventBus.getDefault().post(new BillUpdatedMessage());
-                        }
+                        mReadCount = 0;
+                        mQualifiedCount = 0;
+                        mScannedEPC = message.epc;
                     }
-                    break;
-                case CARD_REFLUX:
-                    mIsErrorNoticed = false;
-                    if (mBillsMap.containsKey(epcStr)) {
-                        if (mCurBill != mBillsMap.get(epcStr)) {
-                            mCurBill = mBillsMap.get(epcStr);
-                            EventBus.getDefault().post(new BillUpdatedMessage());
-                            SpeechSynthesizer.getInstance().speak(mCurBill.getCardNum() + "开始回收");
+                    if (mReadCount >= FOUND_READ_COUNT) {
+                        String bodyCode = Bucket.getBodyCode(epcStr);
+                        if (mBodyCodes.containsKey(bodyCode)) {
+                            writeHint(bodyCode + "\n已回收过");
+                        } else if (!mEPCBuckets.containsKey(bodyCode) &&
+                                mQualifiedCount >= ConfigHelper.getInt(MyParams.S_MIN_REACH_TIMES)) {
+                            playSound();
+                            Bucket bucket = new Bucket(mScannedEPC);
+                            mEPCBuckets.put(bodyCode, bucket);
+                            mScannedCountNs.increaseNumber();
+                            writeHint(bucket.getBodyCode() + "\n回收成功");
                         }
-                    } else {
-                        mCurBill = new RefluxBill(message.epc);
-                        mBills.add(0, mCurBill);
-                        mBillsMap.put(mCurBill.getCardStr(), mCurBill);
-                        mBillDao.insert(mCurBill);
-                        EventBus.getDefault().post(new BillUpdatedMessage());
-                        SpeechSynthesizer.getInstance().speak("刷卡成功，" + mCurBill.getCardNum() + "开始回收");
                     }
                     break;
                 case CARD_ADMIN:
                     if (++mAdminCardScannedCount == MyParams.ADMIN_CARD_SCANNED_COUNT) {
+                        Message.obtain(mHandler, MSG_RESET_READ_STATUS).sendToTarget();
                         sendAdminLoginMessage(CommonUtils.bytesToHex(message.epc));
-                        ConfigActivity.actionStart(getContext());
+                        ConfigActivity.actionStart(mContext);
                     }
                     break;
             }
         } else {
             mAdminCardScannedCount = 0;
+            if (++mReadNoneCount == MAX_READ_NONE_COUNT) {
+                writeHint("");
+                Message.obtain(mHandler, MSG_RESET_READ_STATUS).sendToTarget();
+            }
         }
     }
 
@@ -173,34 +152,17 @@ public class R2Fragment extends BaseFragment {
         mMonitorStatusLl.setVisibility(View.GONE);
         mReaderStatusLl.setVisibility(View.VISIBLE);
 
-        mBillDao = new RefluxBillDao();
-        if (mBillDao.rowCount() > 0) {
-            mBills.addAll(mBillDao.getAllBills());
-            for (RefluxBill bill : mBills) {
-                mBillsMap.put(bill.getCardStr(), bill);
-            }
-            mCurBill = mBills.get(0);
-        }
+        mVibrator = (Vibrator) mContext.getSystemService(Context.VIBRATOR_SERVICE);
 
-        mBillAdapter = new RefluxBillAdapter(mContext);
-        mBillAdapter.setOnItemChildClickListener(new BaseQuickAdapter.OnItemChildClickListener() {
-            @Override
-            public void onItemChildClick(BaseQuickAdapter adapter, View view, int position) {
-                switch (view.getId()) {
-                    case R.id.btn_confirm_reflux:
-                        BillConfirmActivity.actionStart(mContext);
-                        break;
-                }
-                adapter.notifyDataSetChanged();
-            }
-        });
+        mUnknownCount = -1;
+        mScannedCountNs.setNumber(0);
+        mBodyCodeReaderQrv.setOnQRCodeReadListener(this);
+        mBodyCodeReaderQrv.setQRDecodingEnabled(true);
+        mBodyCodeReaderQrv.setAutofocusInterval(250L);
+        mBodyCodeReaderQrv.setTorchEnabled(true);
+        mBodyCodeReaderQrv.setBackCamera();
 
-        LinearLayoutManager layoutManager = new LinearLayoutManager(mContext);
-        layoutManager.setOrientation(LinearLayoutManager.HORIZONTAL);
-        mBillView.setLayoutManager(layoutManager);
-        mBillView.setAdapter(mBillAdapter);
-        EventBus.getDefault().post(new BillUpdatedMessage());
-        MyVars.fragmentExecutor.scheduleWithFixedDelay(new BillNoOperationCheckTask(), 0, 1, TimeUnit.SECONDS);
+        BillConfirmActivity.actionStart(mContext, false);
     }
 
     @Override
@@ -208,15 +170,135 @@ public class R2Fragment extends BaseFragment {
         return R.layout.fragment_r2;
     }
 
-    private class BillNoOperationCheckTask implements Runnable {
+    @Override
+    public void onQRCodeRead(String text, PointF[] points) {
+        String[] result = text.split("=");
+        if (result.length == 2 && result[1].length() == MyParams.BODY_CODE_LENGTH
+                && result[1].startsWith(MyVars.config.getHeader())) {
+            String bodyCode = result[1];
+            if (mEPCBuckets.containsKey(bodyCode) || mBodyCodes.containsKey(bodyCode)) {
+                writeHint(bodyCode + "\n已回收过");
+            } else {
+                playSound();
+                mVibrator.vibrate(50);
+                mBodyCodes.put(bodyCode, System.currentTimeMillis());
+                mScannedCountNs.increaseNumber();
+                writeHint(bodyCode + "\n回收成功");
+            }
+        }
+    }
+
+    @OnClick(R.id.iv_add_count)
+    void onAddCountImageViewClicked() {
+        String count = mUnknownCountIcl.getCode();
+        if (TextUtils.isEmpty(count)) {
+            mUnknownCount = 0;
+        } else {
+            mUnknownCount += 1;
+        }
+        mUnknownCountIcl.setCode(String.format("%03d", mUnknownCount));
+    }
+
+    @OnClick(R.id.iv_minus_count)
+    void onMinusCountImageViewClicked() {
+        String count = mUnknownCountIcl.getCode();
+        if (TextUtils.isEmpty(count)) {
+            mUnknownCount = 0;
+        } else {
+            mUnknownCount -= mUnknownCount == 0 ? 0 : 1;
+        }
+        mUnknownCountIcl.setCode(String.format("%03d", mUnknownCount));
+    }
+
+    @OnClick(R.id.btn_r2_commit)
+    void onCommitButtonClicked() {
+        if (mUnknownCount == -1) {
+            showToast("请先选择双重损坏数量");
+        } else {
+            new MaterialDialog.Builder(mContext)
+                    .title("提示信息")
+                    .content("确认提交当前交接单吗？")
+                    .positiveText("确认")
+                    .positiveColorRes(R.color.white)
+                    .btnSelector(R.drawable.md_btn_postive, DialogAction.POSITIVE)
+                    .negativeText("取消")
+                    .negativeColorRes(R.color.gray)
+                    .onPositive(new MaterialDialog.SingleButtonCallback() {
+                        @Override
+                        public void onClick(@NonNull final MaterialDialog dialog, @NonNull DialogAction which) {
+                            dialog.dismiss();
+                            final MessageReflux reflux = new MessageReflux(mConfig.dealer, mConfig.driver, 0);
+                            for (Bucket bucket : mEPCBuckets.values()) {
+                                reflux.addBucket(bucket.getTime(), bucket.getEpcStr(), bucket.getBodyCode());
+                            }
+                            for (String bodyCode : mBodyCodes.keySet()) {
+                                reflux.addBucket(mBodyCodes.get(bodyCode), "", bodyCode);
+                            }
+                            if (MyVars.cache.getStoredRefluxBillCount() == 0) {
+                                NetHelper.getInstance().uploadRefluxMessage(reflux).enqueue(new Callback<Reply>() {
+                                    @Override
+                                    public void onResponse(@NonNull Call<Reply> call, @NonNull Response<Reply> response) {
+                                        Reply body = response.body();
+                                        if (!response.isSuccessful() || body == null || body.getCode() != 200) {
+                                            MyVars.cache.storeRefluxBill(reflux);
+                                            EventBus.getDefault().post(new BillStoredMessage());
+                                        }
+                                        else
+                                            EventBus.getDefault().post(new BillUploadedMessage(false));
+                                    }
+
+                                    @Override
+                                    public void onFailure(@NonNull Call<Reply> call, @NonNull Throwable t) {
+                                        MyVars.cache.storeRefluxBill(reflux);
+                                        EventBus.getDefault().post(new BillStoredMessage());
+                                    }
+                                });
+                            } else {
+                                MyVars.cache.storeRefluxBill(reflux);
+                            }
+                            showToast("回流交接单提交成功");
+                            mEPCBuckets.clear();
+                            mBodyCodes.clear();
+                            mUnknownCount = -1;
+                            mUnknownCountIcl.clear();
+                            mScannedCountNs.setNumber(0);
+                            Message.obtain(mHandler, MSG_RESET_READ_STATUS).sendToTarget();
+                            BillConfirmActivity.actionStart(mContext, false);
+                        }
+                    })
+                    .onNegative(new MaterialDialog.SingleButtonCallback() {
+                        @Override
+                        public void onClick(@NonNull MaterialDialog dialog, @NonNull DialogAction which) {
+                            dialog.dismiss();
+                        }
+                    })
+                    .show();
+        }
+    }
+
+    private void writeHint(String content) {
+        Message.obtain(mHandler, MSG_UPDATE_HINT, content).sendToTarget();
+    }
+
+    private static class InnerHandler extends Handler {
+
+        private WeakReference<R2Fragment> mOuter;
+
+        InnerHandler(R2Fragment fragment) {
+            this.mOuter = new WeakReference<>(fragment);
+        }
 
         @Override
-        public void run() {
-            for (RefluxBill bill : mBills) {
-                if (System.currentTimeMillis() - bill.getUpdatedTime() > MyParams.BILL_NO_OPERATION_CHECK_INTERVAL) {
-                    bill.setUpdatedTime(System.currentTimeMillis());
-                    SpeechSynthesizer.getInstance().speak("请及时确认" + bill.getCardNum() + "回收单");
-                }
+        public void handleMessage(Message msg) {
+            R2Fragment outer = mOuter.get();
+            switch (msg.what) {
+                case MSG_RESET_READ_STATUS:
+                    outer.mReadCount = 0;
+                    outer.mScannedEPC = null;
+                    break;
+                case MSG_UPDATE_HINT:
+                    outer.mHintContentTv.setText((String) msg.obj);
+                    break;
             }
         }
     }

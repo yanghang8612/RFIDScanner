@@ -1,6 +1,5 @@
 package com.casc.rfidscanner.backend;
 
-import android.content.Context;
 import android.support.annotation.NonNull;
 import android.util.Log;
 import android.util.Pair;
@@ -15,6 +14,7 @@ import com.casc.rfidscanner.helper.NetHelper;
 import com.casc.rfidscanner.helper.param.MessageCommon;
 import com.casc.rfidscanner.helper.param.MessageDealer;
 import com.casc.rfidscanner.helper.param.MessageDelivery;
+import com.casc.rfidscanner.helper.param.MessageOnline;
 import com.casc.rfidscanner.helper.param.MessageReflux;
 import com.casc.rfidscanner.helper.param.Reply;
 import com.casc.rfidscanner.message.BillUploadedMessage;
@@ -44,45 +44,43 @@ public class TagCache {
 
     private final MessageDao tagDao;
 
+    private final MessageDao onlineDao;
+
     private final MessageDao deliveryDao;
 
     private final MessageDao refluxDao;
 
     private final MessageDao dealerDao;
 
-    private final MessageDao loginDao;
-
-    private int scannedCount = 0, uploadCount = 0, storedCount;
+    private int scannedCount = 0, uploadCount = 0;
 
     public TagCache() {
         this.tagDao = new MessageDao(DBHelper.TABLE_NAME_TAG_MESSAGE);
+        this.onlineDao = new MessageDao(DBHelper.TABLE_NAME_ONLINE_MESSAGE);
         this.deliveryDao = new MessageDao(DBHelper.TABLE_NAME_DELIVERY_MESSAGE);
         this.refluxDao = new MessageDao(DBHelper.TABLE_NAME_REFLUX_MESSAGE);
         this.dealerDao = new MessageDao(DBHelper.TABLE_NAME_DEALER_MESSAGE);
-        this.loginDao = new MessageDao(DBHelper.TABLE_NAME_LOGIN_MESSAGE);
         MyVars.executor.scheduleWithFixedDelay(new LifecycleCheckTask(), 0, 100, TimeUnit.MILLISECONDS);
         MyVars.executor.scheduleWithFixedDelay(new StoredUploadTask(), 3000, 500, TimeUnit.MILLISECONDS); // 延迟5秒开始，便于界面有时间显示
-        this.storedCount = (int) tagDao.rowCount();
     }
 
     public synchronized long getStoredCount() {
         return tagDao.rowCount();
     }
 
-    public void clear() {
+    public synchronized void clear() {
         cache.clear();
         scannedCount = uploadCount = 0;
     }
 
     public synchronized boolean insert(String epc) {
         if (!cache.containsKey(epc)) {
+            scannedCount += 1;
             cache.put(epc, new Tag(epc));
             cache.get(epc).status = TagStatus.NONE;
-            EventBus.getDefault().post(new TagCountChangedMessage(++scannedCount, uploadCount, storedCount));
             return true;
         }
-        else
-            return false;
+        return false;
     }
 
     public synchronized void setTID(byte[] command) {
@@ -96,56 +94,72 @@ public class TagCache {
         }
     }
 
-    public synchronized void storeDeliveryBill(MessageDelivery bill) {
-        deliveryDao.insert(new Gson().toJson(bill));
+    public synchronized void storeOnlineTask(MessageOnline online) {
+        onlineDao.insert(CommonUtils.toJson(online));
     }
 
-    public synchronized void storeRefluxBill(MessageReflux bill) {
-        refluxDao.insert(new Gson().toJson(bill));
+    public synchronized int getStoredOnlineTaskCount() {
+        return onlineDao.rowCount();
     }
 
-    public synchronized void storeDealerBill(MessageDealer bill) {
-        dealerDao.insert(new Gson().toJson(bill));
+    public synchronized void storeDeliveryBill(MessageDelivery delivery) {
+        deliveryDao.insert(CommonUtils.toJson(delivery));
     }
 
-    public synchronized void storeLoginInfo(String login) {
-        loginDao.insert(login);
+    public synchronized int getStoredDeliveryBillCount() {
+        return deliveryDao.rowCount();
     }
 
-    public synchronized long getStoredDealerMessageCount() {
+    public synchronized void storeRefluxBill(MessageReflux reflux) {
+        refluxDao.insert(CommonUtils.toJson(reflux));
+    }
+
+    public synchronized int getStoredRefluxBillCount() {
+        return refluxDao.rowCount();
+    }
+
+    public synchronized void storeDealerBill(MessageDealer dealer) {
+        dealerDao.insert(CommonUtils.toJson(dealer));
+    }
+
+    public synchronized int getStoredDealerBillCount() {
         return dealerDao.rowCount();
     }
 
     private void upload(String tid, final String epc) {
         final MessageCommon common = new MessageCommon();
         common.addBucket(tid, epc);
-        NetHelper.getInstance().uploadCommonMessage(common)
-                .enqueue(new Callback<Reply>() {
-                    @Override
-                    public void onResponse(@NonNull Call<Reply> call, @NonNull Response<Reply> response) {
-                        Reply body = response.body();
-                        if (!response.isSuccessful() || body == null || body.getCode() != 200) {
+        if (tagDao.rowCount() == 0) {
+            NetHelper.getInstance().uploadCommonMessage(common)
+                    .enqueue(new Callback<Reply>() {
+                        @Override
+                        public void onResponse(@NonNull Call<Reply> call, @NonNull Response<Reply> response) {
+                            Reply body = response.body();
+                            if (!response.isSuccessful() || body == null || body.getCode() != 200) {
+                                synchronized (TagCache.this) {
+                                    tagDao.insert(CommonUtils.toJson(common));
+                                }
+                                cache.get(epc).status = TagStatus.STORED;
+                            }
+                            else {
+                                uploadCount += 1;
+                                cache.get(epc).status = TagStatus.UPLOADED;
+                            }
+                        }
+
+                        @Override
+                        public void onFailure(@NonNull Call<Reply> call, @NonNull Throwable t) {
                             synchronized (TagCache.this) {
-                                tagDao.insert(new Gson().toJson(common));
+                                tagDao.insert(CommonUtils.toJson(common));
                             }
                             cache.get(epc).status = TagStatus.STORED;
-                            EventBus.getDefault().post(new TagCountChangedMessage(scannedCount, uploadCount, ++storedCount));
                         }
-                        else {
-                            cache.get(epc).status = TagStatus.UPLOADED;
-                            EventBus.getDefault().post(new TagCountChangedMessage(scannedCount, ++uploadCount, storedCount));
-                        }
-                    }
-
-                    @Override
-                    public void onFailure(@NonNull Call<Reply> call, @NonNull Throwable t) {
-                        synchronized (TagCache.this) {
-                            tagDao.insert(new Gson().toJson(common));
-                        }
-                        cache.get(epc).status = TagStatus.STORED;
-                        EventBus.getDefault().post(new TagCountChangedMessage(scannedCount, uploadCount, ++storedCount));
-                    }
-                });
+                    });
+        } else {
+            synchronized (TagCache.this) {
+                tagDao.insert(CommonUtils.toJson(common));
+            }
+        }
     }
 
     private enum TagStatus {
@@ -171,6 +185,7 @@ public class TagCache {
         @Override
         public void run() {
             synchronized (TagCache.this) {
+                EventBus.getDefault().post(new TagCountChangedMessage(scannedCount, uploadCount, tagDao.rowCount()));
                 long lifecycle = ConfigHelper.getInt(MyParams.S_TAG_LIFECYCLE) * 60 * 1000;
                 Iterator<Map.Entry<String, Tag>> it = cache.entrySet().iterator();
                 while (it.hasNext()) {
@@ -181,7 +196,6 @@ public class TagCache {
                         upload(item.getValue().tid, item.getKey());
                     }
                     if (System.currentTimeMillis() - item.getValue().time > lifecycle) {
-                        Log.i(TAG, "Remove tag:" + item.getKey());
                         it.remove();
                     }
                 }
@@ -194,11 +208,9 @@ public class TagCache {
         @Override
         public void run() {
             synchronized (TagCache.this) {
-                //Log.i(TAG, String.valueOf(deliveryDao.count()));
                 switch (LinkType.getType()) {
                     case R3:
                     case R4:
-                    case R7:
                         if (tagDao.rowCount() != 0) {
                             final Pair<Integer, String> tag = tagDao.findOne();
                             try {
@@ -207,8 +219,23 @@ public class TagCache {
                                         .execute();
                                 Reply body = response.body();
                                 if (response.isSuccessful() && body != null && body.getCode() == 200) {
+                                    uploadCount += 1;
                                     tagDao.deleteById(tag.first);
-                                    EventBus.getDefault().post(new TagCountChangedMessage(scannedCount, ++uploadCount, --storedCount));
+                                }
+                            } catch (IOException ignored) {}
+                        }
+                        break;
+                    case R7:
+                        if (onlineDao.rowCount() != 0) {
+                            final Pair<Integer, String> online = onlineDao.findOne();
+                            try {
+                                Response<Reply> response = NetHelper.getInstance()
+                                        .uploadOnlineMessage(new Gson().fromJson(online.second, MessageOnline.class))
+                                        .execute();
+                                Reply body = response.body();
+                                if (response.isSuccessful() && body != null && body.getCode() == 200) {
+                                    onlineDao.deleteById(online.first);
+                                    EventBus.getDefault().post(new BillUploadedMessage(true));
                                 }
                             } catch (IOException ignored) {}
                         }
@@ -258,19 +285,6 @@ public class TagCache {
                             } catch (IOException ignored) {}
                         }
                         break;
-                }
-
-                if (loginDao.rowCount() != 0) {
-                    final Pair<Integer, String> login = loginDao.findOne();
-                    try {
-                        Response<Reply> response = NetHelper.getInstance()
-                                .uploadAdminLoginInfo(CommonUtils.generateRequestBody(login.second))
-                                .execute();
-                        Reply body = response.body();
-                        if (response.isSuccessful() && body != null && body.getCode() == 200) {
-                            loginDao.deleteById(login.first);
-                        }
-                    } catch (IOException ignored) {}
                 }
             }
         }

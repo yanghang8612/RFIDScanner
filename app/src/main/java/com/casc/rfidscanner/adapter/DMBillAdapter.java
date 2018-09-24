@@ -24,16 +24,15 @@ public class DMBillAdapter extends BaseQuickAdapter<DeliveryBill, BaseViewHolder
 //                MyApplication.getInstance().getColor(R.color.powder_blue) :
 //                item.checkGoods() ? MyApplication.getInstance().getColor(R.color.snow) :
 //                        MyApplication.getInstance().getColor(R.color.indian_red));
-        helper.setBackgroundRes(R.id.tv_bill_status,
-                item.isComplete() ? R.drawable.bg_indian_red :
-                        R.drawable.bg_light_grey);
+//        helper.setBackgroundRes(R.id.tv_bill_status,
+//                item.isComplete() ? R.drawable.bg_indian_red :
+//                        R.drawable.bg_light_grey);
         helper.setBackgroundRes(R.id.tv_dm_bill_card_id,
                 item.checkGoods() ? R.drawable.bg_bill_card_normal :
                         R.drawable.bg_bill_card_abnormal);
         ((NumberSwitcher) helper.getView(R.id.ns_dm_delivery_count))
                 .setNumber(item.getDeliveryCount());
-        helper.setText(R.id.tv_bill_status, item.isComplete() ? "已完成" : "出库中")
-                .setText(R.id.tv_dm_bill_card_id, item.getCardID())
+        helper.setText(R.id.tv_dm_bill_card_id, item.getCardID())
                 .setText(R.id.tv_dm_bill_id,
                         TextUtils.isEmpty(item.getBillID()) ? "待补单" : item.getBillID())
                 .setText(R.id.tv_dm_total_count, String.valueOf(item.getTotalCount()));

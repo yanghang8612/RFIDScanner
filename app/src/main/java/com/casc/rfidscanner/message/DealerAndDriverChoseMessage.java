@@ -1,6 +1,6 @@
 package com.casc.rfidscanner.message;
 
-public class BillFinishedMessage {
+public class DealerAndDriverChoseMessage {
 
     public String dealer;
 

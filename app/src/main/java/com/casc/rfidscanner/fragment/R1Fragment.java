@@ -6,15 +6,12 @@ import android.os.Handler;
 import android.os.Message;
 import android.os.Vibrator;
 import android.support.annotation.NonNull;
-import android.support.v7.widget.LinearLayoutManager;
-import android.support.v7.widget.RecyclerView;
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.ImageView;
-import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import com.afollestad.materialdialogs.DialogAction;
@@ -24,8 +21,6 @@ import com.casc.rfidscanner.MyParams;
 import com.casc.rfidscanner.MyVars;
 import com.casc.rfidscanner.R;
 import com.casc.rfidscanner.activity.ConfigActivity;
-import com.casc.rfidscanner.activity.ErrorRemindActivity;
-import com.casc.rfidscanner.adapter.BucketAdapter;
 import com.casc.rfidscanner.bean.Bucket;
 import com.casc.rfidscanner.helper.InsHelper;
 import com.casc.rfidscanner.helper.NetHelper;
@@ -36,7 +31,6 @@ import com.casc.rfidscanner.message.MultiStatusMessage;
 import com.casc.rfidscanner.message.PollingResultMessage;
 import com.casc.rfidscanner.utils.CommonUtils;
 import com.casc.rfidscanner.view.InputCodeLayout;
-import com.casc.rfidscanner.view.NumberSwitcher;
 import com.dlazaro66.qrcodereaderview.QRCodeReaderView;
 import com.weiwangcn.betterspinner.library.BetterSpinner;
 
@@ -44,19 +38,11 @@ import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
 
 import java.lang.ref.WeakReference;
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
 import java.util.Objects;
-import java.util.Set;
 
 import butterknife.BindView;
 import butterknife.OnClick;
-import retrofit2.Call;
-import retrofit2.Callback;
 import retrofit2.Response;
 
 /**
@@ -123,8 +109,7 @@ public class R1Fragment extends BaseFragment implements QRCodeReaderView.OnQRCod
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void onMessageEvent(PollingResultMessage message) {
         if (message.isRead) {
-            MyParams.EPCType epcType = CommonUtils.validEPC(message.epc);
-            switch (epcType) {
+            switch (CommonUtils.validEPC(message.epc)) {
                 case BUCKET:
                     mReadNoneCount = 0;
                     mTagStatusIv.setImageResource(R.drawable.ic_connection_normal);
@@ -137,20 +122,25 @@ public class R1Fragment extends BaseFragment implements QRCodeReaderView.OnQRCod
                     }
                     if (mReadCount >= CAN_SCRAP_READ_COUNT) {
                         mIsBucketEPCRead = true;
+                        mBodyCodeIcl.setCode(Bucket.getBodyCode(mScannedEPC)
+                                .substring(MyVars.config.getHeader().length()));
                         mTagStatusTv.setText("标签信号正常");
                     }
                     break;
                 case CARD_ADMIN:
                     if (++mAdminCardScannedCount == MyParams.ADMIN_CARD_SCANNED_COUNT) {
                         sendAdminLoginMessage(CommonUtils.bytesToHex(mScannedEPC));
-                        ConfigActivity.actionStart(getContext());
+                        ConfigActivity.actionStart(mContext);
                     }
                     break;
             }
         } else {
             mAdminCardScannedCount = 0;
-            if (++mReadNoneCount > MAX_READ_NONE_COUNT) {
-                mHandler.sendMessage(Message.obtain(mHandler, MSG_RESET_READ_STATUS));
+            if (++mReadNoneCount >= MAX_READ_NONE_COUNT) {
+                if (mIsBucketEPCRead) {
+                    mBodyCodeIcl.clear();
+                }
+                Message.obtain(mHandler, MSG_RESET_READ_STATUS).sendToTarget();
                 if (!mIsScraping) {
                     mTagStatusIv.setImageResource(R.drawable.ic_connection_abnormal);
                     mTagStatusTv.setText("未检测到标签");
@@ -183,22 +173,24 @@ public class R1Fragment extends BaseFragment implements QRCodeReaderView.OnQRCod
 
     @Override
     public void onQRCodeRead(String text, PointF[] points) {
-        mVibrator.vibrate(50);
-        String[] result = text.split("=");
-        if (result.length == 2 && result[1].length() == MyParams.BODY_CODE_LENGTH
-                && result[1].startsWith(MyVars.config.getHeader())) {
-            mBodyCodeIcl.setCode(result[1].substring(MyVars.config.getHeader().length()));
-            mIsBodyCodeWritten = true;
-            mScrapBtn.setEnabled(canScrap());
-//            if (mRegisterBtn.isEnabled()) {
-//                onRegisterButtonClicked();
-//            }
+        if (mIsBucketEPCRead) {
+            showToast("通过二维码报废时请将天线门中的桶移开");
+        } else {
+            mVibrator.vibrate(50);
+            String[] result = text.split("=");
+            if (result.length == 2 && result[1].length() == MyParams.BODY_CODE_LENGTH
+                    && result[1].startsWith(MyVars.config.getHeader())) {
+                mBodyCodeIcl.setCode(result[1].substring(MyVars.config.getHeader().length()));
+                mIsBodyCodeWritten = true;
+                mScrapBtn.setEnabled(canScrap());
+            }
         }
+
     }
 
     @OnClick(R.id.btn_r1_scrap)
     public void onButtonClicked() {
-        new MaterialDialog.Builder(Objects.requireNonNull(getContext()))
+        new MaterialDialog.Builder(mContext)
                 .title("提示信息")
                 .content("桶身码：" + mBodyCodeIcl.getCode() + "\n" + "报废原因：" + mScrapReasonSpn.getText())
                 .positiveText("确认报废")
@@ -225,15 +217,15 @@ public class R1Fragment extends BaseFragment implements QRCodeReaderView.OnQRCod
     }
 
     private void writeTaskSuccess() {
-        mHandler.sendMessage(Message.obtain(mHandler, MSG_SUCCESS));
+        Message.obtain(mHandler, MSG_SUCCESS).sendToTarget();
     }
 
     private void writeTaskFailed() {
-        mHandler.sendMessage(Message.obtain(mHandler, MSG_FAILED));
+        Message.obtain(mHandler, MSG_FAILED).sendToTarget();
     }
 
     private void writeHint(String content) {
-        mHandler.sendMessage(Message.obtain(mHandler, MSG_UPDATE_HINT, content));
+        Message.obtain(mHandler, MSG_UPDATE_HINT, content).sendToTarget();
     }
 
     private boolean canScrap() {
@@ -272,15 +264,14 @@ public class R1Fragment extends BaseFragment implements QRCodeReaderView.OnQRCod
                     outer.mBodyCodeIcl.clear();
                     outer.mIsBodyCodeWritten = false;
                     outer.mIsScraping = false;
-                    outer.mHandler.sendMessage(Message.obtain(outer.mHandler, MSG_RESET_READ_STATUS));
                     outer.playSound();
-                    //SpeechSynthesizer.getInstance().speak("注册成功");
+                    Message.obtain(outer.mHandler, MSG_RESET_READ_STATUS).sendToTarget();
                     break;
                 case MSG_FAILED:
                     outer.mBodyCodeIcl.clear();
                     outer.mIsBodyCodeWritten = false;
                     outer.mIsScraping = false;
-                    outer.mHandler.sendMessage(Message.obtain(outer.mHandler, MSG_RESET_READ_STATUS));
+                    Message.obtain(outer.mHandler, MSG_RESET_READ_STATUS).sendToTarget();
                     SpeechSynthesizer.getInstance().speak("报废失败");
                     break;
                 case MSG_RESET_READ_STATUS:
@@ -354,7 +345,7 @@ public class R1Fragment extends BaseFragment implements QRCodeReaderView.OnQRCod
                 }
 
                 // 尝试上报平台
-                Response<Reply> responseR1 = NetHelper.getInstance().uploadR1Message(message).execute();
+                Response<Reply> responseR1 = NetHelper.getInstance().uploadScrapMessage(message).execute();
                 Reply replyR1 = responseR1.body();
                 if (!responseR1.isSuccessful() || replyR1 == null) {
                     writeHint("平台内部\n错误");

@@ -12,6 +12,7 @@ import com.casc.rfidscanner.helper.param.MessageCommon;
 import com.casc.rfidscanner.helper.param.MessageConfig;
 import com.casc.rfidscanner.helper.param.MessageDealer;
 import com.casc.rfidscanner.helper.param.MessageDelivery;
+import com.casc.rfidscanner.helper.param.MessageOnline;
 import com.casc.rfidscanner.helper.param.MessageQuery;
 import com.casc.rfidscanner.helper.param.MessageReflux;
 import com.casc.rfidscanner.helper.param.MessageRegister;
@@ -66,18 +67,25 @@ public class NetHelper {
                 CommonUtils.generateRequestBody(query));
     }
 
-    public Call<Reply> uploadR0Message(MessageRegister r0) {
-        return netInterface.uploadR0Message(
+    public Call<Reply> uploadRegisterMessage(MessageRegister register) {
+        return netInterface.uploadRegisterMessage(
                 ConfigHelper.getString(MyParams.S_MAIN_PLATFORM_ADDR) + "/api/message/bucket/register",
                 CommonUtils.generateRequestHeader("02"),
-                CommonUtils.generateRequestBody(r0));
+                CommonUtils.generateRequestBody(register));
     }
 
-    public Call<Reply> uploadR1Message(MessageScrap r1) {
-        return netInterface.uploadR1Message(
+    public Call<Reply> uploadScrapMessage(MessageScrap scrap) {
+        return netInterface.uploadScrapMessage(
                 ConfigHelper.getString(MyParams.S_MAIN_PLATFORM_ADDR) + "/api/message/bucket/scrap",
                 CommonUtils.generateRequestHeader("02"),
-                CommonUtils.generateRequestBody(r1));
+                CommonUtils.generateRequestBody(scrap));
+    }
+
+    public Call<Reply> uploadOnlineMessage(MessageOnline online) {
+        return netInterface.uploadOnlineMessage(
+                ConfigHelper.getString(MyParams.S_MAIN_PLATFORM_ADDR) + "/api/message/bucket/online",
+                CommonUtils.generateRequestHeader("02"),
+                CommonUtils.generateRequestBody(online));
     }
 
     public Call<Reply> uploadCommonMessage(MessageCommon common) {

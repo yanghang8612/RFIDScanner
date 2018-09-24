@@ -37,6 +37,9 @@ import java.util.concurrent.TimeUnit;
 
 import butterknife.BindView;
 
+/**
+ * 成品水出库监控Fragment
+ */
 public class R6MonitorFragment extends BaseFragment {
 
     private static final String TAG = R6MonitorFragment.class.getSimpleName();
@@ -90,10 +93,10 @@ public class R6MonitorFragment extends BaseFragment {
     public void onMessageEvent(MessageBillBucket message) {
         Client client = message.getClient();
         DeliveryBill bill = mBillsMap.get(message.getCardID());
-        if (message.isRemoved())
-            bill.removeBucket(message.getBucketEPC());
-        else
-            bill.addBucket(message.getBucketEPC());
+//        if (message.isRemoved())
+//            bill.removeBucket(message.getBucketEPC());
+//        else
+//            bill.addBucket(message.getBucketEPC());
         client.moveToFirst(bill);
         client.getAdapter().notifyDataSetChanged();
     }
@@ -113,8 +116,8 @@ public class R6MonitorFragment extends BaseFragment {
         mMonitorStatusLl.setVisibility(View.GONE);
         mReaderStatusLl.setVisibility(View.GONE);
 
-        mClientAdapter = new ClientAdapter(getContext(), mClients);
-        mClientListRv.setLayoutManager(new LinearLayoutManager(getContext()));
+        mClientAdapter = new ClientAdapter(mContext, mClients);
+        mClientListRv.setLayoutManager(new LinearLayoutManager(mContext));
         mClientListRv.setAdapter(mClientAdapter);
 
         MyVars.fragmentExecutor.scheduleWithFixedDelay(

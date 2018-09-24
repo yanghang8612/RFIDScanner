@@ -18,7 +18,9 @@
         <LinearLayout
             android:orientation="horizontal"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content">
+            android:layout_height="wrap_content"
+            android:layout_marginStart="4dp"
+            android:layout_marginEnd="4dp">
 
             <LinearLayout
                 android:layout_width="0dp"
@@ -76,8 +78,8 @@
             <TextView
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:layout_weight="3"
-                android:gravity="center"
+                android:layout_weight="1"
+                android:gravity="start"
                 android:text="产品名称" />
 
             <TextView
@@ -90,14 +92,28 @@
             <TextView
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:layout_weight="2"
+                android:layout_weight="1"
                 android:gravity="end"
-                android:text="已出库" />
+                android:text="成垛出" />
 
             <TextView
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:layout_weight="2"
+                android:layout_weight="1"
+                android:gravity="end"
+                android:text="单桶出" />
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:gravity="end"
+                android:text="已退库" />
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
                 android:gravity="end"
                 android:text="数量" />
 
@@ -128,11 +144,28 @@
                     android:layout_height="wrap_content">
 
                     <Button
-                        android:id="@+id/btn_state_delivery"
+                        android:id="@+id/btn_state_stack_32"
                         android:theme="@style/ButtonGrey"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="出库模式"
+                        android:text="32桶/垛"
+                        android:textSize="30sp" />
+
+                    <Button
+                        android:id="@+id/btn_state_stack_48"
+                        android:theme="@style/ButtonGrey"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="48桶/垛"
+                        android:textSize="30sp" />
+
+                    <Button
+                        android:visibility="gone"
+                        android:id="@+id/btn_state_single"
+                        android:theme="@style/ButtonOrange"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="单桶模式"
                         android:textSize="30sp" />
 
                     <Button

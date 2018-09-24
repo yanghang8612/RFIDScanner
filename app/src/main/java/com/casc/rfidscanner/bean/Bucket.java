@@ -8,6 +8,26 @@ import java.util.Arrays;
 
 public class Bucket {
 
+    public static ProductInfo getProductInfo(String epcStr) {
+        return getProductInfo(CommonUtils.hexToBytes(epcStr));
+    }
+
+    public static ProductInfo getProductInfo(byte[] epc) {
+        return MyVars.config.getProductInfoByCode(epc[5]);
+    }
+
+    public static String getBodyCode(String epcStr) {
+        return getBodyCode(CommonUtils.hexToBytes(epcStr));
+    }
+
+    public static String getBodyCode(byte[] epc) {
+        String res = "";
+        for (int i = 0; i < 5; i++) {
+            res = String.format("%s%s", res, (char) epc[7 + i]);
+        }
+        return MyVars.config.getHeader() + res;
+    }
+
     private byte[] epc;
 
     private byte[] tid;
@@ -16,20 +36,28 @@ public class Bucket {
 
     private ProductInfo info;
 
-    private String bodyCode = "";
+    private String bodyCode;
 
-    public Bucket(byte[] epc) {
+    private String flag;
+
+    public Bucket(byte[] epc, String flag) {
         this.epc = epc;
+        this.flag = flag;
         this.time = System.currentTimeMillis();
         this.info = MyVars.config.getProductInfoByCode(epc[5]);
+        this.bodyCode = "";
         for (int i = 0; i < 5; i++) {
             this.bodyCode = String.format("%s%s", this.bodyCode, (char) epc[7 + i]);
         }
         this.bodyCode = MyVars.config.getHeader() + this.bodyCode;
     }
 
-    public Bucket(String epcStr) {
-        this(CommonUtils.hexToBytes(epcStr));
+    public Bucket(String epcStr, String flag) {
+        this(CommonUtils.hexToBytes(epcStr), flag);
+    }
+
+    public Bucket(byte[] epc) {
+        this(epc, "1");
     }
 
     public Bucket(String epcStr, long time) {
@@ -43,6 +71,10 @@ public class Bucket {
 
     public void setScraped() {
         epc[MyParams.EPC_TYPE_INDEX] = MyParams.EPCType.BUCKET_SCRAPED.getCode();
+    }
+
+    public String getKey() {
+        return flag + getEpcStr();
     }
 
     public byte[] getEpc() {
@@ -79,6 +111,10 @@ public class Bucket {
 
     public String getBodyCode() {
         return bodyCode;
+    }
+
+    public String getFlag() {
+        return flag;
     }
 
     @Override

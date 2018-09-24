@@ -10,6 +10,7 @@ import android.support.annotation.Nullable;
 import android.support.annotation.StringRes;
 import android.support.v4.app.Fragment;
 import android.util.Log;
+import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -30,7 +31,6 @@ import com.casc.rfidscanner.helper.param.Reply;
 import com.casc.rfidscanner.message.BatteryStatusMessage;
 import com.casc.rfidscanner.message.MultiStatusMessage;
 import com.casc.rfidscanner.utils.CommonUtils;
-import com.google.gson.Gson;
 
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
@@ -84,7 +84,7 @@ public abstract class BaseFragment extends Fragment {
                     .build();
 
     // 资源ID
-    private int mSoundID;
+    private int mSoundID, mAlertID;
 
     private int mBackdoorCount;
 
@@ -152,10 +152,14 @@ public abstract class BaseFragment extends Fragment {
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         mContext = getActivity();
-        mSoundID = mSoundPool.load(getContext(), R.raw.timer, 1);
+        mSoundID = mSoundPool.load(mContext, R.raw.timer, 1);
+        mAlertID = mSoundPool.load(mContext, R.raw.alert, 1);
         mToast = Toast.makeText(mContext, "", Toast.LENGTH_SHORT);
+        LinearLayout layout = (LinearLayout) mToast.getView();
+        TextView tv = (TextView) layout.getChildAt(0);
+        tv.setTextSize(24);
+        mToast.setGravity(Gravity.CENTER, 0, 0);
         EventBus.getDefault().register(this);
-        Log.i(TAG, "onCreate");
     }
 
     @Override
@@ -193,7 +197,6 @@ public abstract class BaseFragment extends Fragment {
         EventBus.getDefault().unregister(this);
         MyVars.fragmentExecutor.shutdown();
         MyVars.cache.clear();
-        Log.i(TAG, "onDestroy");
     }
 
     // 派生类必须重写该abstract方法，以实现自己的Fragment初始化逻辑
@@ -204,6 +207,10 @@ public abstract class BaseFragment extends Fragment {
 
     protected void playSound() {
         mSoundPool.play(mSoundID, 1, 1, 10, 0, 1.0F);
+    }
+
+    protected void playAlert() {
+        mSoundPool.play(mAlertID, 1, 1, 10, 0, 1.0F);
     }
 
     protected void increaseCount(TextView view) {
@@ -225,13 +232,11 @@ public abstract class BaseFragment extends Fragment {
                     public void onResponse(@NonNull Call<Reply> call, @NonNull Response<Reply> response) {
                         Reply body = response.body();
                         if (!response.isSuccessful() || body == null || body.getCode() != 200) {
-                            MyVars.cache.storeLoginInfo(new Gson().toJson(login));
                         }
                     }
 
                     @Override
                     public void onFailure(@NonNull Call<Reply> call, @NonNull Throwable t) {
-                        MyVars.cache.storeLoginInfo(new Gson().toJson(login));
                     }
                 });
     }
@@ -256,7 +261,7 @@ public abstract class BaseFragment extends Fragment {
                 mBackdoorCount = 0;
             }
             if (mBackdoorCount == 10) {
-                ConfigActivity.actionStart(getContext());
+                ConfigActivity.actionStart(mContext);
             }
         }
     }

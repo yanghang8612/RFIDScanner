@@ -80,4 +80,12 @@ public class NumberSwitcher extends TextSwitcher {
             setNumber(oldNumber + 1);
         }
     }
+
+    public void decreaseNumber() {
+        String oldText = ((TextView) getCurrentView()).getText().toString();
+        int oldNumber = TextUtils.isEmpty(oldText) ? -1 : Integer.valueOf(oldText);
+        if (oldNumber > 0) {
+            setNumber(oldNumber - 1);
+        }
+    }
 }

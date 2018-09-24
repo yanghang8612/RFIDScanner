@@ -13,7 +13,7 @@ public class MessageAdminLogin {
 
     public MessageAdminLogin(String epc) {
         this.epc = epc;
-        this.logintime = System.currentTimeMillis() / 1000;
+        this.logintime = System.currentTimeMillis();
         this.reader_TID = ConfigHelper.getString(MyParams.S_READER_ID);
     }
 

@@ -119,8 +119,8 @@
         <item>12个月</item>
         <item>永久</item>
     </string-array>
-    <string-array name="sensor_switch">
-        <item>true</item>
-        <item>false</item>
+    <string-array name="stack_capacity">
+        <item>32桶/垛</item>
+        <item>48桶/垛</item>
     </string-array>
 </resources>

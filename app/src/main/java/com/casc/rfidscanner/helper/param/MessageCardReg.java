@@ -38,7 +38,7 @@ public class MessageCardReg {
         this.card_type = card.getType();
         this.card_code = card.getBodyCode();
         this.company = MyVars.config.getCompanySymbol();
-        this.registertime = card.getTime() / 1000;
+        this.registertime = card.getTime();
         this.longitude = Double.valueOf(ConfigHelper.getString(MyParams.S_LONGITUDE));
         this.latitude = Double.valueOf(ConfigHelper.getString(MyParams.S_LATITUDE));
         this.height = Double.valueOf(ConfigHelper.getString(MyParams.S_HEIGHT));

@@ -7,6 +7,7 @@ import com.casc.rfidscanner.helper.param.MessageBillDelivery;
 import com.casc.rfidscanner.helper.param.MessageBillReflux;
 import com.casc.rfidscanner.helper.param.Reply;
 import com.casc.rfidscanner.message.NewClientMessage;
+import com.casc.rfidscanner.utils.CommonUtils;
 import com.google.gson.Gson;
 
 import org.greenrobot.eventbus.EventBus;
@@ -87,6 +88,6 @@ public class HttpServer extends NanoHTTPD {
         return newFixedLengthResponse(
                 NanoHTTPD.Response.Status.OK,
                 "application/json",
-                new Gson().toJson(new Reply(code, message)));
+                CommonUtils.toJson(new Reply(code, message)));
     }
 }

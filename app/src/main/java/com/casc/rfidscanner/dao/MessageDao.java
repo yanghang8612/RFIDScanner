@@ -83,7 +83,7 @@ public class MessageDao {
                 tableName, COLUMN_ID + "=?", new String[]{String.valueOf(id)});
     }
 
-    public long rowCount() {
+    public int rowCount() {
         int count = 0;
         Cursor c = getAllRows();
         if (c != null) {

@@ -13,7 +13,8 @@ import com.casc.rfidscanner.R;
 import com.casc.rfidscanner.adapter.ProductAdapter;
 import com.casc.rfidscanner.bean.ProductInfo;
 import com.casc.rfidscanner.message.ConfigUpdatedMessage;
-import com.casc.rfidscanner.message.ProductChoseMessage;
+import com.casc.rfidscanner.message.ProductSelectedMessage;
+import com.casc.rfidscanner.utils.ActivityCollector;
 import com.chad.library.adapter.base.BaseQuickAdapter;
 
 import org.greenrobot.eventbus.EventBus;
@@ -27,14 +28,16 @@ import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
 
-public class ProductChooseActivity extends BaseActivity {
+public class ProductSelectActivity extends BaseActivity {
 
-    private static final String TAG = ProductChooseActivity.class.getSimpleName();
+    private static final String TAG = ProductSelectActivity.class.getSimpleName();
 
     public static void actionStart(Context context) {
-        Intent intent = new Intent(context, ProductChooseActivity.class);
-        intent.setFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
-        context.startActivity(intent);
+        if (!(ActivityCollector.getTopActivity() instanceof ProductSelectActivity)) {
+            Intent intent = new Intent(context, ProductSelectActivity.class);
+            intent.setFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
+            context.startActivity(intent);
+        }
     }
 
     @BindView(R.id.rv_product_list) RecyclerView mProductList;
@@ -56,7 +59,7 @@ public class ProductChooseActivity extends BaseActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_product_choose);
+        setContentView(R.layout.activity_product_select);
         ButterKnife.bind(this);
         EventBus.getDefault().register(this);
 
@@ -90,7 +93,7 @@ public class ProductChooseActivity extends BaseActivity {
     @OnClick(R.id.btn_confirm_product)
     void onConfirmButtonClicked() {
         EventBus.getDefault().post(
-                new ProductChoseMessage(mProducts.get(mSelectedIndex).getName()));
+                new ProductSelectedMessage(mProducts.get(mSelectedIndex).getName()));
         finish();
     }
 }

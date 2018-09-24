@@ -6,12 +6,14 @@ import com.casc.rfidscanner.MyParams;
 import com.casc.rfidscanner.MyParams.EPCType;
 import com.casc.rfidscanner.MyVars;
 import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Random;
 import java.util.UUID;
 
@@ -120,16 +122,20 @@ public class CommonUtils {
     }
 
     public static RequestBody generateRequestBody(Object body) {
-        String jsonStr = new Gson().toJson(body);
+        String jsonStr = toJson(body);
         if (MyParams.PRINT_JSON) {
             Log.i(TAG, jsonStr);
         }
         return RequestBody.create(MediaType.parse("application/json"), jsonStr);
     }
 
+    public static String toJson(Object o) {
+        return new GsonBuilder().serializeNulls().create().toJson(o);
+    }
+
     private static final char[] hexArray = "0123456789ABCDEF".toCharArray();
     public static String bytesToHex(byte[] bytes) {
-        if (bytes == null) return "null";
+        if (bytes == null) return "";
         return bytesToHex(bytes, 0, bytes.length);
     }
 
@@ -188,10 +194,7 @@ public class CommonUtils {
     }
 
     public static void main(String[] args) {
-        long part = getBitsFromBytes(hexToBytes("0102030400"), 0, 34);
-        System.out.println((part >> 26) & 0xFF);
-        System.out.println((part >> 18) & 0xFF);
-        System.out.println((part >> 10) & 0xFF);
-        System.out.println(part & 0x3FF);
+        System.out.println(System.currentTimeMillis() + 12 * 30 * 24 * 60 * 60 * 1000);
+        System.out.println(System.currentTimeMillis() + 12L * 30 * 24 * 60 * 60 * 1000);
     }
 }

@@ -5,7 +5,6 @@ import android.database.Cursor;
 import android.text.TextUtils;
 
 import com.casc.rfidscanner.bean.Bucket;
-import com.casc.rfidscanner.bean.DeliveryBill;
 import com.casc.rfidscanner.bean.RefluxBill;
 import com.casc.rfidscanner.helper.DBHelper;
 

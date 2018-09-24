@@ -77,9 +77,6 @@
             </intent-filter>
         </activity>
         <activity
-            android:name=".activity.SplashActivity"
-            android:screenOrientation="landscape" />
-        <activity
             android:name=".activity.ConfigActivity"
             android:screenOrientation="landscape" />
         <activity
@@ -91,23 +88,24 @@
             android:screenOrientation="landscape"
             android:theme="@style/AppTheme.Transparent" />
         <activity
-            android:name=".activity.DialogActivity"
-            android:screenOrientation="landscape"
-            android:theme="@style/AppTheme.LightTransparent" />
-        <activity
             android:name=".activity.BillConfirmActivity"
             android:screenOrientation="landscape"
             android:theme="@style/AppTheme.LightTransparent" />
         <activity
-            android:name=".activity.ProductChooseActivity"
+            android:name=".activity.ProductSelectActivity"
+            android:screenOrientation="landscape"
+            android:theme="@style/AppTheme.LightTransparent" />
+        <activity
+            android:name=".activity.TaskConfigureActivity"
             android:screenOrientation="landscape"
             android:theme="@style/AppTheme.LightTransparent" />
         <activity
             android:name=".activity.ErrorRemindActivity"
             android:screenOrientation="landscape"
-            android:theme="@style/AppTheme.LightTransparent"/>
+            android:theme="@style/AppTheme.LightTransparent" />
 
         <service android:name=".service.HttpService" />
+
     </application>
 
 </manifest>

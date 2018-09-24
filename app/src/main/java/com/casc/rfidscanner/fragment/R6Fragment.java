@@ -1,6 +1,5 @@
 package com.casc.rfidscanner.fragment;
 
-import android.database.Cursor;
 import android.support.annotation.NonNull;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -29,10 +28,10 @@ import com.casc.rfidscanner.helper.param.MessageBillDelivery;
 import com.casc.rfidscanner.helper.param.MessageDelivery;
 import com.casc.rfidscanner.helper.param.Reply;
 import com.casc.rfidscanner.message.AbnormalBucketMessage;
-import com.casc.rfidscanner.message.BillFinishedMessage;
 import com.casc.rfidscanner.message.BillStoredMessage;
 import com.casc.rfidscanner.message.BillUpdatedMessage;
 import com.casc.rfidscanner.message.BillUploadedMessage;
+import com.casc.rfidscanner.message.DealerAndDriverChoseMessage;
 import com.casc.rfidscanner.message.MultiStatusMessage;
 import com.casc.rfidscanner.message.PollingResultMessage;
 import com.casc.rfidscanner.message.ReadResultMessage;
@@ -81,6 +80,7 @@ public class R6Fragment extends BaseFragment {
     // 当前正在出库的出库单
     private DeliveryBill mCurBill, mReadBill;
 
+    // 出库交接单持久化DAO
     private DeliveryBillDao mBillDao;
 
     // 错误已提示标识
@@ -111,35 +111,38 @@ public class R6Fragment extends BaseFragment {
     }
 
     @Subscribe(threadMode = ThreadMode.MAIN)
-    public void onMessageEvent(BillFinishedMessage message) {
+    public void onMessageEvent(DealerAndDriverChoseMessage message) {
         // 异步上传平台
-        final MessageDelivery delivery =
-                new MessageDelivery(
-                        TextUtils.isEmpty(mCurBill.getBillID()) ? "0000000000" : mCurBill.getBillID(),
-                        (char) (TextUtils.isEmpty(mCurBill.getBillID()) ? 2 : mCurBill.checkBill() ?  0 : 1),
-                        message.dealer,
-                        message.driver);
+        final MessageDelivery delivery = new MessageDelivery(
+                TextUtils.isEmpty(mCurBill.getBillID()) ? "0000000000" : mCurBill.getBillID(),
+                (char) (TextUtils.isEmpty(mCurBill.getBillID()) ? 2 : mCurBill.checkBill() ?  0 : 1),
+                message.dealer,
+                message.driver);
         for (Bucket bucket : mCurBill.getBuckets()) {
-            delivery.addBucket(bucket.getTime() / 1000, CommonUtils.bytesToHex(bucket.getEpc()));
+            delivery.addBucket(bucket.getTime(), bucket.getEpc(), bucket.getFlag());
         }
-        NetHelper.getInstance().uploadDeliveryMessage(delivery).enqueue(new Callback<Reply>() {
-            @Override
-            public void onResponse(@NonNull Call<Reply> call, @NonNull Response<Reply> response) {
-                Reply body = response.body();
-                if (!response.isSuccessful() || body == null || body.getCode() != 200) {
+        if (MyVars.cache.getStoredDeliveryBillCount() == 0) {
+            NetHelper.getInstance().uploadDeliveryMessage(delivery).enqueue(new Callback<Reply>() {
+                @Override
+                public void onResponse(@NonNull Call<Reply> call, @NonNull Response<Reply> response) {
+                    Reply body = response.body();
+                    if (!response.isSuccessful() || body == null || body.getCode() != 200) {
+                        MyVars.cache.storeDeliveryBill(delivery);
+                        EventBus.getDefault().post(new BillStoredMessage());
+                    } else {
+                        EventBus.getDefault().post(new BillUploadedMessage(false));
+                    }
+                }
+
+                @Override
+                public void onFailure(@NonNull Call<Reply> call, @NonNull Throwable t) {
                     MyVars.cache.storeDeliveryBill(delivery);
                     EventBus.getDefault().post(new BillStoredMessage());
-                } else {
-                    EventBus.getDefault().post(new BillUploadedMessage(false));
                 }
-            }
-
-            @Override
-            public void onFailure(@NonNull Call<Reply> call, @NonNull Throwable t) {
-                MyVars.cache.storeDeliveryBill(delivery);
-                EventBus.getDefault().post(new BillStoredMessage());
-            }
-        });
+            });
+        } else {
+            MyVars.cache.storeDeliveryBill(delivery);
+        }
         showToast("提交成功");
         NetHelper.getInstance().reportBillComplete(
                 new MessageBillComplete(mCurBill.getCardID()));
@@ -172,24 +175,14 @@ public class R6Fragment extends BaseFragment {
                             SpeechSynthesizer.getInstance().speak("出库前请先刷卡");
                         }
                     } else {
-                        if (mCurBill.isBacking()) {
-                            if (mCurBill.removeBucket(epcStr)) {
-                                playSound();
-                                mBillDao.updateBuckets(mCurBill);
-                                EventBus.getDefault().post(new BillUpdatedMessage());
-                                NetHelper.getInstance().reportBillBucket(
-                                        new MessageBillBucket(mCurBill.getCardID(),
-                                                CommonUtils.bytesToHex(message.epc), true));
-                            }
-                        } else {
-                            if (mCurBill.addBucket(epcStr)) {
-                                playSound();
-                                mBillDao.insertBucket(mCurBill.getCardStr(), epcStr);
-                                EventBus.getDefault().post(new BillUpdatedMessage());
-                                NetHelper.getInstance().reportBillBucket(
-                                        new MessageBillBucket(mCurBill.getCardID(),
-                                                CommonUtils.bytesToHex(message.epc), false));
-                            }
+                        Bucket bucket = mCurBill.addBucket(message.epc);
+                        if (bucket != null) {
+                            playSound();
+                            mBillDao.insertBucket(mCurBill.getCardStr(), bucket);
+                            EventBus.getDefault().post(new BillUpdatedMessage());
+                            NetHelper.getInstance().reportBillBucket(
+                                    new MessageBillBucket(mCurBill.getCardID(),
+                                            CommonUtils.bytesToHex(message.epc), false));
                         }
                     }
                     break;
@@ -230,7 +223,7 @@ public class R6Fragment extends BaseFragment {
                 case CARD_ADMIN:
                     if (++mAdminCardScannedCount == MyParams.ADMIN_CARD_SCANNED_COUNT) {
                         sendAdminLoginMessage(CommonUtils.bytesToHex(message.epc));
-                        ConfigActivity.actionStart(getContext());
+                        ConfigActivity.actionStart(mContext);
                     }
                     break;
             }
@@ -273,6 +266,7 @@ public class R6Fragment extends BaseFragment {
     public void onMessageEvent(WriteResultMessage message) {
         if (mReadBill != null && !mBillsMap.containsKey(mReadBill.getCardStr())) {
             mCurBill = mReadBill;
+            mReadBill = null;
             mBills.add(0, mCurBill);
             mBillsMap.put(mCurBill.getCardStr(), mCurBill);
             EventBus.getDefault().post(new BillUpdatedMessage());
@@ -300,14 +294,20 @@ public class R6Fragment extends BaseFragment {
             @Override
             public void onItemChildClick(BaseQuickAdapter adapter, View view, int position) {
                 switch (view.getId()) {
-                    case R.id.btn_state_delivery:
-                        mCurBill.setBacking(true);
+                    case R.id.btn_state_stack_32:
+                        mCurBill.setStack48();
+                        break;
+                    case R.id.btn_state_stack_48:
+                        mCurBill.setSingle();
+                        break;
+                    case R.id.btn_state_single:
+                        mCurBill.setBack();
                         break;
                     case R.id.btn_state_back:
-                        mCurBill.setBacking(false);
+                        mCurBill.setStack32();
                         break;
                     case R.id.btn_confirm_delivery:
-                        BillConfirmActivity.actionStart(mContext);
+                        BillConfirmActivity.actionStart(mContext, true);
                         break;
                 }
                 adapter.notifyDataSetChanged();

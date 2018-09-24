@@ -113,8 +113,8 @@ public class MyApplication extends Application {
 
         @Override
         public void run() {
-            if (mWifiManager.getWifiState() == WifiManager.WIFI_STATE_DISABLED)
-                mWifiManager.setWifiEnabled(true);
+//            if (mWifiManager.getWifiState() == WifiManager.WIFI_STATE_DISABLED)
+//                mWifiManager.setWifiEnabled(true);
             NetworkCapabilities networkCapabilities = mConnectivityManager.getNetworkCapabilities(mConnectivityManager.getActiveNetwork());
             EventBus.getDefault().post(MyVars.status.setReaderStatus(MyVars.getReader().isConnected())
                     .setNetworkStatus(networkCapabilities != null &&

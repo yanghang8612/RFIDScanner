@@ -18,7 +18,7 @@ import com.casc.rfidscanner.MyVars;
 import com.casc.rfidscanner.R;
 import com.casc.rfidscanner.activity.ConfigActivity;
 import com.casc.rfidscanner.activity.ErrorRemindActivity;
-import com.casc.rfidscanner.activity.ProductChooseActivity;
+import com.casc.rfidscanner.activity.ProductSelectActivity;
 import com.casc.rfidscanner.bean.Bucket;
 import com.casc.rfidscanner.helper.ConfigHelper;
 import com.casc.rfidscanner.helper.InsHelper;
@@ -29,7 +29,7 @@ import com.casc.rfidscanner.helper.param.Reply;
 import com.casc.rfidscanner.message.ConfigUpdatedMessage;
 import com.casc.rfidscanner.message.MultiStatusMessage;
 import com.casc.rfidscanner.message.PollingResultMessage;
-import com.casc.rfidscanner.message.ProductChoseMessage;
+import com.casc.rfidscanner.message.ProductSelectedMessage;
 import com.casc.rfidscanner.utils.CommonUtils;
 import com.casc.rfidscanner.view.InputCodeLayout;
 import com.casc.rfidscanner.view.NumberSwitcher;
@@ -83,7 +83,7 @@ public class R0Fragment extends BaseFragment implements QRCodeReaderView.OnQRCod
     // 注册状态的标志符
     private boolean mIsRegistering;
 
-    // 当前读取的EPC和数据存储区数据
+    // 当前读取的EPC
     private byte[] mScannedEPC;
 
     // 读取到和未读取到EPC的计数器
@@ -131,9 +131,8 @@ public class R0Fragment extends BaseFragment implements QRCodeReaderView.OnQRCod
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void onMessageEvent(PollingResultMessage message) {
         if (message.isRead) {
-            MyParams.EPCType epcType = CommonUtils.validEPC(mScannedEPC);
             String epcStr = CommonUtils.bytesToHex(message.epc);
-            switch (epcType) {
+            switch (CommonUtils.validEPC(mScannedEPC)) {
                 case BUCKET: // 检测到注册桶标签，也允许注册
                 case NONE: // 检测到未注册桶标签，允许注册
                     mReadNoneCount = 0;
@@ -165,15 +164,19 @@ public class R0Fragment extends BaseFragment implements QRCodeReaderView.OnQRCod
                         }
                     }
                     break;
+                case BUCKET_SCRAPED:
+                    mTagStatusIv.setImageResource(R.drawable.ic_connection_abnormal);
+                    mTagStatusTv.setText("检测到已报废标签");
+                    break;
                 case CARD_ADMIN:
                     if (++mAdminCardScannedCount == MyParams.ADMIN_CARD_SCANNED_COUNT) { // 启动配置界面，并暂停EPC读取
-                        mHandler.sendMessage(Message.obtain(mHandler, MSG_RESET_READ_STATUS));
-                        sendAdminLoginMessage(CommonUtils.bytesToHex(mScannedEPC));
+                        Message.obtain(mHandler, MSG_RESET_READ_STATUS).sendToTarget();
+                        sendAdminLoginMessage(CommonUtils.bytesToHex(message.epc));
                         ConfigActivity.actionStart(mContext);
                     }
                     break;
                 default:
-                    mHandler.sendMessage(Message.obtain(mHandler, MSG_RESET_READ_STATUS));
+                    Message.obtain(mHandler, MSG_RESET_READ_STATUS).sendToTarget();
             }
         } else {
             mAdminCardScannedCount = 0;
@@ -181,7 +184,7 @@ public class R0Fragment extends BaseFragment implements QRCodeReaderView.OnQRCod
                 mHintContentTv.setText(mProductName);
                 mHintRootRl.setBackground(mContext.getDrawable(R.drawable.bg_r0_normal));
                 mRegisterBtn.setEnabled(false);
-                mHandler.sendMessage(Message.obtain(mHandler, MSG_RESET_READ_STATUS));
+                Message.obtain(mHandler, MSG_RESET_READ_STATUS).sendToTarget();
                 if (!mIsRegistering) {
                     mTagStatusIv.setImageResource(R.drawable.ic_connection_abnormal);
                     mTagStatusTv.setText("未检测到标签");
@@ -192,7 +195,7 @@ public class R0Fragment extends BaseFragment implements QRCodeReaderView.OnQRCod
     }
 
     @Subscribe(threadMode = ThreadMode.MAIN)
-    public void onMessageEvent(ProductChoseMessage message) {
+    public void onMessageEvent(ProductSelectedMessage message) {
         mProductName = message.product;
         writeHint(mProductName);
     }
@@ -208,11 +211,11 @@ public class R0Fragment extends BaseFragment implements QRCodeReaderView.OnQRCod
         mRegisteredCountNs.setNumber(0);
         mBodyCodeReaderQrv.setOnQRCodeReadListener(this);
         mBodyCodeReaderQrv.setQRDecodingEnabled(true);
-        mBodyCodeReaderQrv.setAutofocusInterval(250L);
+        mBodyCodeReaderQrv.setAutofocusInterval(100L);
         mBodyCodeReaderQrv.setTorchEnabled(true);
         mBodyCodeReaderQrv.setBackCamera();
 
-        ProductChooseActivity.actionStart(mContext);
+        ProductSelectActivity.actionStart(mContext);
     }
 
     @Override
@@ -237,7 +240,7 @@ public class R0Fragment extends BaseFragment implements QRCodeReaderView.OnQRCod
 
     @OnClick(R.id.tv_r0_title)
     void onTitleTextViewClicked() {
-        ProductChooseActivity.actionStart(mContext);
+        ProductSelectActivity.actionStart(mContext);
     }
 
     @OnClick(R.id.btn_r0_register)
@@ -264,23 +267,23 @@ public class R0Fragment extends BaseFragment implements QRCodeReaderView.OnQRCod
 
     private void writeTaskSuccess() {
         mEPCs.add(mBucketToRegister.getEpcStr());
-        mHandler.sendMessage(Message.obtain(mHandler, MSG_SUCCESS));
+        Message.obtain(mHandler, MSG_SUCCESS).sendToTarget();
     }
 
     private void updateTaskSuccess() {
-        mEPCs.add(mBucketToRegister.getEpcStr());
-        mHandler.sendMessage(Message.obtain(mHandler, MSG_UPDATED));
+        //mEPCs.add(mBucketToRegister.getEpcStr());
+        Message.obtain(mHandler, MSG_UPDATED).sendToTarget();
     }
 
     private void writeTaskFailed(boolean isShowRemind) {
         if (isShowRemind) {
             ErrorRemindActivity.actionStart(mContext);
         }
-        mHandler.sendMessage(Message.obtain(mHandler, MSG_FAILED));
+        Message.obtain(mHandler, MSG_FAILED).sendToTarget();
     }
 
     private void writeHint(String content) {
-        mHandler.sendMessage(Message.obtain(mHandler, MSG_UPDATE_HINT, content));
+        Message.obtain(mHandler, MSG_UPDATE_HINT, content).sendToTarget();
     }
 
     private boolean canRegister() {
@@ -310,8 +313,8 @@ public class R0Fragment extends BaseFragment implements QRCodeReaderView.OnQRCod
 //                    outer.mBodyCodeIcl.setCode(String.format("%05d", ++bodyCode));
                     outer.mIsRegistering = false;
                     outer.mRegisterBtn.setEnabled(false);
-                    outer.mHandler.sendMessage(Message.obtain(outer.mHandler, MSG_RESET_READ_STATUS));
                     outer.playSound();
+                    Message.obtain(outer.mHandler, MSG_RESET_READ_STATUS).sendToTarget();
                     //SpeechSynthesizer.getInstance().speak("注册成功");
                     break;
                 case MSG_FAILED:
@@ -320,7 +323,7 @@ public class R0Fragment extends BaseFragment implements QRCodeReaderView.OnQRCod
                     outer.mIsBodyCodeWritten = false;
                     outer.mIsRegistering = false;
                     outer.mRegisterBtn.setEnabled(outer.canRegister());
-                    outer.mHandler.sendMessage(Message.obtain(outer.mHandler, MSG_RESET_READ_STATUS));
+                    Message.obtain(outer.mHandler, MSG_RESET_READ_STATUS).sendToTarget();
                     SpeechSynthesizer.getInstance().speak("注册失败");
                     break;
                 case MSG_RESET_READ_STATUS:
@@ -378,7 +381,8 @@ public class R0Fragment extends BaseFragment implements QRCodeReaderView.OnQRCod
                 MessageQuery messageQuery = new MessageQuery(
                         CommonUtils.bytesToHex(mBucketToRegister.getTid()), bodyCode);
                 Response<Reply> queryResponse = NetHelper.getInstance().checkBodyCodeAndTID(messageQuery).execute();
-                if (!queryResponse.isSuccessful()) {
+                Reply replyQuery = queryResponse.body();
+                if (!queryResponse.isSuccessful() || replyQuery == null) {
                     writeHint("注册失败,平台连接失败");
                     writeTaskFailed(true);
                     return;
@@ -456,11 +460,11 @@ public class R0Fragment extends BaseFragment implements QRCodeReaderView.OnQRCod
                         CommonUtils.bytesToHex(mBucketToRegister.getTid()),
                         CommonUtils.bytesToHex(mBucketToRegister.getEpc()),
                         mBucketToRegister.getBodyCode());
-                Response<Reply> responseR0 = NetHelper.getInstance().uploadR0Message(message).execute();
+                Response<Reply> responseR0 = NetHelper.getInstance().uploadRegisterMessage(message).execute();
                 Reply replyR0 = responseR0.body();
                 if (!responseR0.isSuccessful() || replyR0 == null) {
-                    writeHint("平台内部\n错误");
-                    writeTaskFailed(true);
+                    writeHint("平台内部错误,请联系运维人员");
+                    writeTaskFailed(false);
                     return;
                 } else if (replyR0.getCode() != 200) {
                     switch (replyR0.getCode()) {
@@ -476,7 +480,7 @@ public class R0Fragment extends BaseFragment implements QRCodeReaderView.OnQRCod
                             }
                             return;
                         case 211:
-                            writeHint("桶身码已使用,请联系运维");
+                            writeHint("桶身码已使用,请联系运维人员");
                             writeTaskFailed(false);
                             return;
                         case 215:
@@ -490,6 +494,10 @@ public class R0Fragment extends BaseFragment implements QRCodeReaderView.OnQRCod
                         case 217:
                             writeHint("桶产品信息\n修改成功");
                             updateTaskSuccess();
+                            return;
+                        case 219:
+                            writeHint("该桶已报废");
+                            writeTaskFailed(false);
                             return;
                         default:
                             Log.i(TAG, String.valueOf(replyR0.getCode()));

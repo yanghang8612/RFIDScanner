@@ -20,8 +20,9 @@ import com.casc.rfidscanner.R;
 import com.casc.rfidscanner.adapter.BucketAdapter;
 import com.casc.rfidscanner.adapter.GoodsAdapter;
 import com.casc.rfidscanner.bean.RefluxBill;
-import com.casc.rfidscanner.message.BillFinishedMessage;
 import com.casc.rfidscanner.message.BillUpdatedMessage;
+import com.casc.rfidscanner.message.DealerAndDriverChoseMessage;
+import com.casc.rfidscanner.utils.ActivityCollector;
 import com.weiwangcn.betterspinner.library.BetterSpinner;
 
 import org.greenrobot.eventbus.EventBus;
@@ -37,10 +38,12 @@ public class RefluxDetailActivity extends BaseActivity {
     private static final String TAG = RefluxDetailActivity.class.getSimpleName();
 
     public static void actionStart(Context context) {
-        Intent intent = new Intent(context, RefluxDetailActivity.class);
-        intent.setFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
-        context.startActivity(intent);
-        ((BaseActivity) context).overridePendingTransition(R.anim.push_right_in, 0);
+        if (!(ActivityCollector.getTopActivity() instanceof RefluxDetailActivity)) {
+            Intent intent = new Intent(context, RefluxDetailActivity.class);
+            intent.setFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
+            context.startActivity(intent);
+            ((BaseActivity) context).overridePendingTransition(R.anim.push_right_in, 0);
+        }
     }
 
     @BindView(R.id.tv_reflux_detail_card_id) TextView mCardIDTv;
@@ -156,7 +159,7 @@ public class RefluxDetailActivity extends BaseActivity {
                 .onPositive(new MaterialDialog.SingleButtonCallback() {
                     @Override
                     public void onClick(@NonNull MaterialDialog dialog, @NonNull DialogAction which) {
-                        BillFinishedMessage message = new BillFinishedMessage();
+                        DealerAndDriverChoseMessage message = new DealerAndDriverChoseMessage();
                         message.dealer = mDealerSpn.getText().toString();
                         message.driver = mDriverSpn.getText().toString();
                         EventBus.getDefault().post(message);
