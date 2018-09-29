@@ -22,4 +22,8 @@ public class MultiStatusMessage {
         this.platformStatus = platformStatus;
         return this;
     }
+
+    public boolean canSendRequest() {
+        return networkStatus && platformStatus;
+    }
 }

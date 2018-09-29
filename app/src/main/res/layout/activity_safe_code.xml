@@ -1,14 +1,21 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:backgroundTint="@color/transparent">
 
+    <LinearLayout
+        android:layout_width="0dp"
+        android:layout_height="match_parent"
+        android:layout_weight="3" />
+
     <android.support.v7.widget.CardView
         android:theme="@style/AppTheme.BigText"
-        android:layout_width="match_parent"
+        android:layout_width="0dp"
         android:layout_height="match_parent"
+        android:layout_weight="2"
         android:layout_marginTop="56dp"
         android:layout_marginBottom="16dp"
         android:layout_marginStart="16dp"
@@ -16,144 +23,52 @@
         app:cardCornerRadius="12dp">
 
         <LinearLayout
-            android:orientation="horizontal"
+            android:orientation="vertical"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:layout_margin="16dp">
 
             <LinearLayout
-                android:orientation="vertical"
-                android:layout_width="0dp"
-                android:layout_height="match_parent"
-                android:layout_weight="1">
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
 
-                <LinearLayout
-                    android:orientation="horizontal"
-                    android:layout_width="match_parent"
-                    android:layout_height="0dp"
-                    android:layout_weight="1"
-                    android:gravity="center">
-
-                    <TextView
-                        android:theme="@style/AppTheme.BigText"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_gravity="center"
-                        android:text="待上线产品：" />
-
-                    <com.weiwangcn.betterspinner.library.BetterSpinner
-                        android:id="@+id/spn_task_product_name"
-                        android:theme="@style/AppTheme.BigText"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content" />
-
-                </LinearLayout>
-
-                <LinearLayout
-                    android:orientation="horizontal"
-                    android:layout_width="match_parent"
-                    android:layout_height="0dp"
-                    android:layout_weight="1"
-                    android:gravity="center">
-
-                    <TextView
-                        android:theme="@style/AppTheme.BigText"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_gravity="center"
-                        android:text="待上线数量：" />
-
-                    <com.casc.rfidscanner.view.InputCodeLayout
-                        android:id="@+id/icl_task_product_count"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        app:icl_number="4"
-                        app:icl_width="@dimen/task_configure_count_size"
-                        app:icl_height="@dimen/task_configure_count_size"
-                        app:icl_divideWidth="10dp"
-                        app:icl_showMode="normal"
-                        app:icl_textColor="@color/black"
-                        app:icl_textSize="@dimen/task_configure_count_text_size"
-                        app:icl_focusBackground="@drawable/bg_edit_focus"
-                        app:icl_unFocusBackground="@drawable/bg_edit_un_focus" />
-
-                </LinearLayout>
-
-                <LinearLayout
-                    android:orientation="horizontal"
-                    android:layout_width="match_parent"
-                    android:layout_height="0dp"
-                    android:layout_weight="1"
-                    android:gravity="center">
-
-                    <TextView
-                        android:theme="@style/AppTheme.BigText"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="每一垛数量：" />
-
-                    <com.weiwangcn.betterspinner.library.BetterSpinner
-                        android:id="@+id/spn_task_amount"
-                        android:theme="@style/AppTheme.BigText"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content" />
-
-                </LinearLayout>
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content">
-
-                    <Button
-                        android:id="@+id/btn_cancel_task"
-                        android:theme="@style/ButtonGrey"
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:text="退出"
-                        android:textSize="36dp" />
-
-                    <Button
-                        android:id="@+id/btn_start_task"
-                        android:theme="@style/ButtonPrimary"
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:text="启动任务"
-                        android:textSize="36dp" />
-
-                </LinearLayout>
+                <com.casc.rfidscanner.view.InputCodeLayout
+                    android:id="@+id/icl_safe_code"
+                    android:layout_width="wrap_content"
+                    android:layout_height="64dp"
+                    android:layout_gravity="center"
+                    android:gravity="center"
+                    app:icl_number="4"
+                    app:icl_width="@dimen/safe_code_count_size"
+                    app:icl_height="@dimen/safe_code_count_size"
+                    app:icl_divideWidth="10dp"
+                    app:icl_showMode="normal"
+                    app:icl_textColor="@color/black"
+                    app:icl_textSize="@dimen/safe_code_count_text_size"
+                    app:icl_focusBackground="@drawable/bg_edit_focus"
+                    app:icl_unFocusBackground="@drawable/bg_edit_un_focus" />
 
             </LinearLayout>
 
-            <LinearLayout
-                android:layout_width="1dp"
-                android:layout_height="match_parent"
-                android:layout_marginTop="16dp"
-                android:layout_marginBottom="8dp"
-                android:layout_marginStart="16dp"
-                android:background="@color/black" />
-
             <GridLayout
-                android:layout_width="0dp"
+                android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:layout_weight="1"
                 android:layout_margin="16dp"
                 android:columnCount="3"
                 android:rowCount="4">
 
                 <android.support.v7.widget.CardView
                     android:id="@+id/cv_keyboard_one"
-                    android:layout_width="@dimen/task_configure_keyboard_size"
-                    android:layout_height="@dimen/task_configure_keyboard_size"
-                    android:layout_margin="@dimen/task_configure_keyboard_margin"
+                    android:layout_width="@dimen/safe_code_keyboard_size"
+                    android:layout_height="@dimen/safe_code_keyboard_size"
+                    android:layout_margin="@dimen/safe_code_keyboard_margin"
                     android:layout_columnWeight="1"
                     android:layout_rowWeight="1"
                     android:stateListAnimator="@animator/lift_on_touch"
                     android:clickable="true"
                     android:foreground="?android:attr/selectableItemBackground"
                     app:cardBackgroundColor="@color/keyboard"
-                    app:cardCornerRadius="@dimen/task_configure_keyboard_radius">
+                    app:cardCornerRadius="@dimen/safe_code_keyboard_radius">
 
                     <TextView
                         android:layout_width="match_parent"
@@ -166,9 +81,9 @@
 
                 <android.support.v7.widget.CardView
                     android:id="@+id/cv_keyboard_two"
-                    android:layout_width="@dimen/task_configure_keyboard_size"
-                    android:layout_height="@dimen/task_configure_keyboard_size"
-                    android:layout_margin="@dimen/task_configure_keyboard_margin"
+                    android:layout_width="@dimen/safe_code_keyboard_size"
+                    android:layout_height="@dimen/safe_code_keyboard_size"
+                    android:layout_margin="@dimen/safe_code_keyboard_margin"
                     android:layout_columnWeight="1"
                     android:layout_rowWeight="1"
                     android:stateListAnimator="@animator/lift_on_touch"
@@ -176,7 +91,7 @@
                     android:focusable="true"
                     android:foreground="?android:attr/selectableItemBackground"
                     app:cardBackgroundColor="@color/keyboard"
-                    app:cardCornerRadius="@dimen/task_configure_keyboard_radius">
+                    app:cardCornerRadius="@dimen/safe_code_keyboard_radius">
 
                     <TextView
                         android:layout_width="match_parent"
@@ -189,16 +104,16 @@
 
                 <android.support.v7.widget.CardView
                     android:id="@+id/cv_keyboard_three"
-                    android:layout_width="@dimen/task_configure_keyboard_size"
-                    android:layout_height="@dimen/task_configure_keyboard_size"
-                    android:layout_margin="@dimen/task_configure_keyboard_margin"
+                    android:layout_width="@dimen/safe_code_keyboard_size"
+                    android:layout_height="@dimen/safe_code_keyboard_size"
+                    android:layout_margin="@dimen/safe_code_keyboard_margin"
                     android:layout_columnWeight="1"
                     android:layout_rowWeight="1"
                     android:stateListAnimator="@animator/lift_on_touch"
                     android:clickable="true"
                     android:foreground="?android:attr/selectableItemBackground"
                     app:cardBackgroundColor="@color/keyboard"
-                    app:cardCornerRadius="@dimen/task_configure_keyboard_radius">
+                    app:cardCornerRadius="@dimen/safe_code_keyboard_radius">
 
                     <TextView
                         android:layout_width="match_parent"
@@ -211,16 +126,16 @@
 
                 <android.support.v7.widget.CardView
                     android:id="@+id/cv_keyboard_four"
-                    android:layout_width="@dimen/task_configure_keyboard_size"
-                    android:layout_height="@dimen/task_configure_keyboard_size"
-                    android:layout_margin="@dimen/task_configure_keyboard_margin"
+                    android:layout_width="@dimen/safe_code_keyboard_size"
+                    android:layout_height="@dimen/safe_code_keyboard_size"
+                    android:layout_margin="@dimen/safe_code_keyboard_margin"
                     android:layout_columnWeight="1"
                     android:layout_rowWeight="1"
                     android:stateListAnimator="@animator/lift_on_touch"
                     android:clickable="true"
                     android:foreground="?android:attr/selectableItemBackground"
                     app:cardBackgroundColor="@color/keyboard"
-                    app:cardCornerRadius="@dimen/task_configure_keyboard_radius">
+                    app:cardCornerRadius="@dimen/safe_code_keyboard_radius">
 
                     <TextView
                         android:layout_width="match_parent"
@@ -233,16 +148,16 @@
 
                 <android.support.v7.widget.CardView
                     android:id="@+id/cv_keyboard_five"
-                    android:layout_width="@dimen/task_configure_keyboard_size"
-                    android:layout_height="@dimen/task_configure_keyboard_size"
-                    android:layout_margin="@dimen/task_configure_keyboard_margin"
+                    android:layout_width="@dimen/safe_code_keyboard_size"
+                    android:layout_height="@dimen/safe_code_keyboard_size"
+                    android:layout_margin="@dimen/safe_code_keyboard_margin"
                     android:layout_columnWeight="1"
                     android:layout_rowWeight="1"
                     android:stateListAnimator="@animator/lift_on_touch"
                     android:clickable="true"
                     android:foreground="?android:attr/selectableItemBackground"
                     app:cardBackgroundColor="@color/keyboard"
-                    app:cardCornerRadius="@dimen/task_configure_keyboard_radius">
+                    app:cardCornerRadius="@dimen/safe_code_keyboard_radius">
 
                     <TextView
                         android:layout_width="match_parent"
@@ -255,16 +170,16 @@
 
                 <android.support.v7.widget.CardView
                     android:id="@+id/cv_keyboard_six"
-                    android:layout_width="@dimen/task_configure_keyboard_size"
-                    android:layout_height="@dimen/task_configure_keyboard_size"
-                    android:layout_margin="@dimen/task_configure_keyboard_margin"
+                    android:layout_width="@dimen/safe_code_keyboard_size"
+                    android:layout_height="@dimen/safe_code_keyboard_size"
+                    android:layout_margin="@dimen/safe_code_keyboard_margin"
                     android:layout_columnWeight="1"
                     android:layout_rowWeight="1"
                     android:stateListAnimator="@animator/lift_on_touch"
                     android:clickable="true"
                     android:foreground="?android:attr/selectableItemBackground"
                     app:cardBackgroundColor="@color/keyboard"
-                    app:cardCornerRadius="@dimen/task_configure_keyboard_radius">
+                    app:cardCornerRadius="@dimen/safe_code_keyboard_radius">
 
                     <TextView
                         android:layout_width="match_parent"
@@ -277,16 +192,16 @@
 
                 <android.support.v7.widget.CardView
                     android:id="@+id/cv_keyboard_seven"
-                    android:layout_width="@dimen/task_configure_keyboard_size"
-                    android:layout_height="@dimen/task_configure_keyboard_size"
-                    android:layout_margin="@dimen/task_configure_keyboard_margin"
+                    android:layout_width="@dimen/safe_code_keyboard_size"
+                    android:layout_height="@dimen/safe_code_keyboard_size"
+                    android:layout_margin="@dimen/safe_code_keyboard_margin"
                     android:layout_columnWeight="1"
                     android:layout_rowWeight="1"
                     android:stateListAnimator="@animator/lift_on_touch"
                     android:clickable="true"
                     android:foreground="?android:attr/selectableItemBackground"
                     app:cardBackgroundColor="@color/keyboard"
-                    app:cardCornerRadius="@dimen/task_configure_keyboard_radius">
+                    app:cardCornerRadius="@dimen/safe_code_keyboard_radius">
 
                     <TextView
                         android:layout_width="match_parent"
@@ -299,16 +214,16 @@
 
                 <android.support.v7.widget.CardView
                     android:id="@+id/cv_keyboard_eight"
-                    android:layout_width="@dimen/task_configure_keyboard_size"
-                    android:layout_height="@dimen/task_configure_keyboard_size"
-                    android:layout_margin="@dimen/task_configure_keyboard_margin"
+                    android:layout_width="@dimen/safe_code_keyboard_size"
+                    android:layout_height="@dimen/safe_code_keyboard_size"
+                    android:layout_margin="@dimen/safe_code_keyboard_margin"
                     android:layout_columnWeight="1"
                     android:layout_rowWeight="1"
                     android:stateListAnimator="@animator/lift_on_touch"
                     android:clickable="true"
                     android:foreground="?android:attr/selectableItemBackground"
                     app:cardBackgroundColor="@color/keyboard"
-                    app:cardCornerRadius="@dimen/task_configure_keyboard_radius">
+                    app:cardCornerRadius="@dimen/safe_code_keyboard_radius">
 
                     <TextView
                         android:layout_width="match_parent"
@@ -321,16 +236,16 @@
 
                 <android.support.v7.widget.CardView
                     android:id="@+id/cv_keyboard_nine"
-                    android:layout_width="@dimen/task_configure_keyboard_size"
-                    android:layout_height="@dimen/task_configure_keyboard_size"
-                    android:layout_margin="@dimen/task_configure_keyboard_margin"
+                    android:layout_width="@dimen/safe_code_keyboard_size"
+                    android:layout_height="@dimen/safe_code_keyboard_size"
+                    android:layout_margin="@dimen/safe_code_keyboard_margin"
                     android:layout_columnWeight="1"
                     android:layout_rowWeight="1"
                     android:stateListAnimator="@animator/lift_on_touch"
                     android:clickable="true"
                     android:foreground="?android:attr/selectableItemBackground"
                     app:cardBackgroundColor="@color/keyboard"
-                    app:cardCornerRadius="@dimen/task_configure_keyboard_radius">
+                    app:cardCornerRadius="@dimen/safe_code_keyboard_radius">
 
                     <TextView
                         android:layout_width="match_parent"
@@ -343,16 +258,16 @@
 
                 <android.support.v7.widget.CardView
                     android:id="@+id/cv_keyboard_clear"
-                    android:layout_width="@dimen/task_configure_keyboard_size"
-                    android:layout_height="@dimen/task_configure_keyboard_size"
-                    android:layout_margin="@dimen/task_configure_keyboard_margin"
+                    android:layout_width="@dimen/safe_code_keyboard_size"
+                    android:layout_height="@dimen/safe_code_keyboard_size"
+                    android:layout_margin="@dimen/safe_code_keyboard_margin"
                     android:layout_columnWeight="1"
                     android:layout_rowWeight="1"
                     android:stateListAnimator="@animator/lift_on_touch"
                     android:clickable="true"
                     android:foreground="?android:attr/selectableItemBackground"
                     app:cardBackgroundColor="@color/keyboard"
-                    app:cardCornerRadius="@dimen/task_configure_keyboard_radius">
+                    app:cardCornerRadius="@dimen/safe_code_keyboard_radius">
 
                     <TextView
                         android:layout_width="match_parent"
@@ -365,16 +280,16 @@
 
                 <android.support.v7.widget.CardView
                     android:id="@+id/cv_keyboard_zero"
-                    android:layout_width="@dimen/task_configure_keyboard_size"
-                    android:layout_height="@dimen/task_configure_keyboard_size"
-                    android:layout_margin="@dimen/task_configure_keyboard_margin"
+                    android:layout_width="@dimen/safe_code_keyboard_size"
+                    android:layout_height="@dimen/safe_code_keyboard_size"
+                    android:layout_margin="@dimen/safe_code_keyboard_margin"
                     android:layout_columnWeight="1"
                     android:layout_rowWeight="1"
                     android:stateListAnimator="@animator/lift_on_touch"
                     android:clickable="true"
                     android:foreground="?android:attr/selectableItemBackground"
                     app:cardBackgroundColor="@color/keyboard"
-                    app:cardCornerRadius="@dimen/task_configure_keyboard_radius">
+                    app:cardCornerRadius="@dimen/safe_code_keyboard_radius">
 
                     <TextView
                         android:layout_width="match_parent"
@@ -387,16 +302,16 @@
 
                 <android.support.v7.widget.CardView
                     android:id="@+id/cv_keyboard_back"
-                    android:layout_width="@dimen/task_configure_keyboard_size"
-                    android:layout_height="@dimen/task_configure_keyboard_size"
-                    android:layout_margin="@dimen/task_configure_keyboard_margin"
+                    android:layout_width="@dimen/safe_code_keyboard_size"
+                    android:layout_height="@dimen/safe_code_keyboard_size"
+                    android:layout_margin="@dimen/safe_code_keyboard_margin"
                     android:layout_columnWeight="1"
                     android:layout_rowWeight="1"
                     android:stateListAnimator="@animator/lift_on_touch"
                     android:clickable="true"
                     android:foreground="?android:attr/selectableItemBackground"
                     app:cardBackgroundColor="@color/keyboard"
-                    app:cardCornerRadius="@dimen/task_configure_keyboard_radius">
+                    app:cardCornerRadius="@dimen/safe_code_keyboard_radius">
 
                     <ImageView
                         android:layout_width="48dp"

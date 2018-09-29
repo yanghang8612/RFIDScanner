@@ -7,11 +7,11 @@
     <dimen name="toolbar_title_size">20sp</dimen>
     <dimen name="toolbar_title_margin_start">24dp</dimen>
 
-    <dimen name="task_configure_keyboard_radius">8dp</dimen>
-    <dimen name="task_configure_keyboard_margin">8dp</dimen>
-    <dimen name="task_configure_keyboard_size">56dp</dimen>
-    <dimen name="task_configure_count_size">56dp</dimen>
-    <dimen name="task_configure_count_text_size">36sp</dimen>
+    <dimen name="safe_code_keyboard_radius">8dp</dimen>
+    <dimen name="safe_code_keyboard_margin">8dp</dimen>
+    <dimen name="safe_code_keyboard_size">56dp</dimen>
+    <dimen name="safe_code_count_size">56dp</dimen>
+    <dimen name="safe_code_count_text_size">36sp</dimen>
 
     <dimen name="r0_content_margin">16dp</dimen>
     <dimen name="r0_content_text_size">12sp</dimen>
@@ -46,6 +46,9 @@
 
     <dimen name="r4_padding">8dp</dimen>
     <dimen name="r4_margin">16dp</dimen>
+
+    <dimen name="r5_padding">8dp</dimen>
+    <dimen name="r5_margin">16dp</dimen>
 
     <dimen name="r6_monitor_padding">24dp</dimen>
     <dimen name="r6_monitor_margin">16dp</dimen>

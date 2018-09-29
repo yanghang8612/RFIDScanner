@@ -259,32 +259,11 @@ public class RNFragment extends BaseFragment {
                         String driver = mRNDriverAct.getText().toString();
                         saveHistory(mRNCounterAct, MyParams.S_COUNTER_HISTORY);
                         saveHistory(mRNDriverAct, MyParams.S_DRIVER_HISTORY);
-                        final MessageDealer dealer = new MessageDealer(stage, counter, driver);
+                        MessageDealer dealer = new MessageDealer(stage, counter, driver);
                         for (RNBucket bucket : mBuckets) {
                             dealer.addBucket(System.currentTimeMillis() / 1000, bucket.getEpc());
                         }
-                        if (MyVars.cache.getStoredDealerBillCount() == 0) {
-                            NetHelper.getInstance().uploadDealerMessage(dealer).enqueue(new Callback<Reply>() {
-                                @Override
-                                public void onResponse(@NonNull Call<Reply> call, @NonNull Response<Reply> response) {
-                                    Reply body = response.body();
-                                    if (!response.isSuccessful() || body == null || body.getCode() != 200) {
-                                        MyVars.cache.storeDealerBill(dealer);
-                                        EventBus.getDefault().post(new BillStoredMessage());
-                                    } else {
-                                        EventBus.getDefault().post(new BillUploadedMessage(false));
-                                    }
-                                }
-
-                                @Override
-                                public void onFailure(@NonNull Call<Reply> call, @NonNull Throwable t) {
-                                    MyVars.cache.storeDealerBill(dealer);
-                                    EventBus.getDefault().post(new BillStoredMessage());
-                                }
-                            });
-                        } else {
-                            MyVars.cache.storeDealerBill(dealer);
-                        }
+                        MyVars.cache.storeDealerBill(dealer);
                         clearBuckets();
                         dialog.dismiss();
                     }

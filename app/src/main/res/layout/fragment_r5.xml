@@ -6,25 +6,25 @@
     android:layout_height="match_parent">
 
     <android.support.design.widget.AppBarLayout
-        android:id="@+id/appbar_r4"
+        android:id="@+id/appbar_r5"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:theme="@style/AppTheme.AppBarOverlay">
 
         <android.support.v7.widget.Toolbar
-            android:id="@+id/toolbar_r4"
+            android:id="@+id/toolbar_r5"
             android:layout_width="match_parent"
             android:layout_height="@dimen/toolbar_height"
             app:popupTheme="@style/AppTheme.PopupOverlay">
 
             <TextView
-                android:id="@+id/tv_r4_title"
+                android:id="@+id/tv_r5_title"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="@dimen/toolbar_title_margin_start"
                 android:layout_gravity="start"
                 android:background="@drawable/bg_toolbar_title"
-                android:text="@string/r4_title"
+                android:text="@string/r5_title"
                 android:textSize="@dimen/toolbar_title_size"
                 android:textColor="@color/black" />
 
@@ -46,32 +46,26 @@
             android:layout_weight="1">
 
             <LinearLayout
+                android:id="@+id/ll_stack_buckets"
                 android:orientation="vertical"
                 android:layout_width="0dp"
                 android:layout_height="match_parent"
                 android:layout_weight="1"
-                android:layout_margin="@dimen/r4_margin"
+                android:layout_margin="@dimen/r7_margin"
                 android:background="@drawable/sp_corner"
+                android:backgroundTint="@color/light_gray"
                 android:gravity="center">
 
                 <TextView
+                    android:id="@+id/tv_stack_buckets"
                     android:theme="@style/AppTheme.LargeText"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_margin="@dimen/r4_margin"
-                    android:layout_gravity="start"
-                    android:text="@string/process_scanned_count_label" />
-
-                <com.casc.rfidscanner.view.NumberSwitcher
-                    android:id="@+id/ns_r4_scanned_count"
-                    android:theme="@style/AppTheme.LargeNumber"
-                    android:layout_width="match_parent"
-                    android:layout_height="0dp"
-                    android:layout_weight="1"
-                    android:layout_margin="@dimen/r4_margin"
-                    android:gravity="end"
-                    android:layout_marginEnd="@dimen/process_count_margin"
-                    android:text="@string/number_default_value" />
+                    android:layout_margin="@dimen/r7_margin"
+                    android:text="入整垛区"
+                    android:textSize="64sp"
+                    android:textColor="@color/black"
+                    android:textStyle="bold" />
 
             </LinearLayout>
 
@@ -80,7 +74,7 @@
                 android:layout_width="0dp"
                 android:layout_height="match_parent"
                 android:layout_weight="1"
-                android:layout_margin="@dimen/r4_margin"
+                android:layout_margin="@dimen/r5_margin"
                 android:background="@drawable/sp_corner"
                 android:gravity="center">
 
@@ -88,19 +82,18 @@
                     android:theme="@style/AppTheme.LargeText"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_margin="@dimen/r4_margin"
+                    android:layout_margin="@dimen/r5_margin"
                     android:layout_gravity="start"
-                    android:text="@string/process_uploaded_count_label" />
+                    android:text="已扫描桶数" />
 
                 <com.casc.rfidscanner.view.NumberSwitcher
-                    android:id="@+id/ns_r4_uploaded_count"
+                    android:id="@+id/ns_r5_scanned_count"
                     android:theme="@style/AppTheme.LargeNumber"
                     android:layout_width="match_parent"
                     android:layout_height="0dp"
                     android:layout_weight="1"
-                    android:layout_margin="@dimen/r4_margin"
+                    android:layout_margin="@dimen/r5_margin"
                     android:gravity="end"
-                    android:layout_marginEnd="@dimen/process_count_margin"
                     android:text="@string/number_default_value" />
 
             </LinearLayout>
@@ -114,11 +107,35 @@
             android:layout_weight="1">
 
             <LinearLayout
+                android:id="@+id/ll_bulk_buckets"
                 android:orientation="vertical"
                 android:layout_width="0dp"
                 android:layout_height="match_parent"
                 android:layout_weight="1"
-                android:layout_margin="@dimen/r4_margin"
+                android:layout_margin="@dimen/r7_margin"
+                android:background="@drawable/sp_corner"
+                android:backgroundTint="@color/light_gray"
+                android:gravity="center">
+
+                <TextView
+                    android:id="@+id/tv_bulk_buckets"
+                    android:theme="@style/AppTheme.LargeText"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_margin="@dimen/r7_margin"
+                    android:text="入散垛区"
+                    android:textSize="64sp"
+                    android:textColor="@color/black"
+                    android:textStyle="bold" />
+
+            </LinearLayout>
+
+            <LinearLayout
+                android:orientation="vertical"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:layout_margin="@dimen/r5_margin"
                 android:background="@drawable/sp_corner"
                 android:gravity="center">
 
@@ -126,37 +143,20 @@
                     android:theme="@style/AppTheme.LargeText"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_margin="@dimen/r4_margin"
+                    android:layout_margin="@dimen/r5_margin"
                     android:layout_gravity="start"
-                    android:text="@string/process_stored_count_label" />
+                    android:text="已完成垛数" />
 
                 <com.casc.rfidscanner.view.NumberSwitcher
-                    android:id="@+id/ns_r4_stored_count"
+                    android:id="@+id/ns_r5_stack_count"
                     android:theme="@style/AppTheme.LargeNumber"
                     android:layout_width="match_parent"
                     android:layout_height="0dp"
                     android:layout_weight="1"
-                    android:layout_margin="@dimen/r4_margin"
+                    android:layout_margin="@dimen/r5_margin"
                     android:gravity="end"
                     android:layout_marginEnd="@dimen/process_count_margin"
                     android:text="@string/number_default_value" />
-
-            </LinearLayout>
-
-            <LinearLayout
-                android:layout_width="0dp"
-                android:layout_height="match_parent"
-                android:layout_weight="1"
-                android:layout_margin="@dimen/r4_margin"
-                android:background="@drawable/sp_corner"
-                android:gravity="center">
-
-                <android.support.v7.widget.RecyclerView
-                    android:id="@+id/rv_r4_hint_list"
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:padding="@dimen/r4_padding"
-                    android:background="@drawable/sp_corner" />
 
             </LinearLayout>
 

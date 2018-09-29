@@ -32,9 +32,9 @@ public class R3Fragment extends BaseFragment {
 
     private static final String TAG = R3Fragment.class.getSimpleName();
 
-    @BindView(R.id.ns_scanned_count) NumberSwitcher mScannedCountNs;
-    @BindView(R.id.ns_uploaded_count) NumberSwitcher mUploadedCountNs;
-    @BindView(R.id.ns_stored_count) NumberSwitcher mStoredCountNs;
+    @BindView(R.id.ns_r3_scanned_count) NumberSwitcher mScannedCountNs;
+    @BindView(R.id.ns_r3_uploaded_count) NumberSwitcher mUploadedCountNs;
+    @BindView(R.id.ns_r3_stored_count) NumberSwitcher mStoredCountNs;
     @BindView(R.id.rv_r3_hint_list) RecyclerView mHintListRv;
 
     // 提示信息列表

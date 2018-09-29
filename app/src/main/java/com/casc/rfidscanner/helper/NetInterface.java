@@ -27,10 +27,10 @@ public interface NetInterface {
     Call<Reply> uploadScrapMessage(@Url String url, @QueryMap Map<String, String> header, @Body RequestBody scrap);
 
     @POST
-    Call<Reply> uploadOnlineMessage(@Url String url, @QueryMap Map<String, String> header, @Body RequestBody online);
+    Call<Reply> uploadCommonMessage(@Url String url, @QueryMap Map<String, String> header, @Body RequestBody common);
 
     @POST
-    Call<Reply> uploadCommonMessage(@Url String url, @QueryMap Map<String, String> header, @Body RequestBody common);
+    Call<Reply> uploadStackMessage(@Url String url, @QueryMap Map<String, String> header, @Body RequestBody stack);
 
     @POST
     Call<Reply> uploadDeliveryMessage(@Url String url, @QueryMap Map<String, String> header, @Body RequestBody delivery);

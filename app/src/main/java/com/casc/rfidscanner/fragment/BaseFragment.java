@@ -24,6 +24,7 @@ import com.casc.rfidscanner.MyParams;
 import com.casc.rfidscanner.MyVars;
 import com.casc.rfidscanner.R;
 import com.casc.rfidscanner.activity.ConfigActivity;
+import com.casc.rfidscanner.activity.SafeCodeActivity;
 import com.casc.rfidscanner.bean.LinkType;
 import com.casc.rfidscanner.helper.NetHelper;
 import com.casc.rfidscanner.helper.param.MessageAdminLogin;
@@ -174,9 +175,7 @@ public abstract class BaseFragment extends Fragment {
         super.onActivityCreated(savedInstanceState);
         if (MyVars.batteryStatus != null) onMessageEvent(MyVars.batteryStatus);
         MyVars.fragmentExecutor = Executors.newScheduledThreadPool(5);
-        if (MyParams.ENABLE_BACKDOOR) {
-            MyVars.fragmentExecutor.scheduleWithFixedDelay(new BackdoorTask(), 0, 10, TimeUnit.MILLISECONDS);
-        }
+        MyVars.fragmentExecutor.scheduleWithFixedDelay(new BackdoorTask(), 0, 10, TimeUnit.MILLISECONDS);
         initFragment();
     }
 
@@ -256,12 +255,13 @@ public abstract class BaseFragment extends Fragment {
         @Override
         public void run() {
             if (mBackdoorBtn.isPressed()) {
-                mBackdoorCount++;
+                mBackdoorCount += 1;
             } else {
                 mBackdoorCount = 0;
             }
-            if (mBackdoorCount == 10) {
-                ConfigActivity.actionStart(mContext);
+            if (MyParams.ENABLE_BACKDOOR && mBackdoorCount == 10) {
+                SafeCodeActivity.actionStart(mContext);
+//                ConfigActivity.actionStart(mContext);
             }
         }
     }

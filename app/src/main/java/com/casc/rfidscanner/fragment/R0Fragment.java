@@ -197,6 +197,7 @@ public class R0Fragment extends BaseFragment implements QRCodeReaderView.OnQRCod
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void onMessageEvent(ProductSelectedMessage message) {
         mProductName = message.product;
+        mRegisteredCountNs.setNumber(0);
         writeHint(mProductName);
     }
 
@@ -382,9 +383,14 @@ public class R0Fragment extends BaseFragment implements QRCodeReaderView.OnQRCod
                         CommonUtils.bytesToHex(mBucketToRegister.getTid()), bodyCode);
                 Response<Reply> queryResponse = NetHelper.getInstance().checkBodyCodeAndTID(messageQuery).execute();
                 Reply replyQuery = queryResponse.body();
+                Log.i(TAG, "" + replyQuery.getCode());
                 if (!queryResponse.isSuccessful() || replyQuery == null) {
                     writeHint("注册失败,平台连接失败");
                     writeTaskFailed(true);
+                    return;
+                } else if (replyQuery.getCode() == 211) {
+                    writeHint("桶身码已使用,请更换后重试");
+                    writeTaskFailed(false);
                     return;
                 }
 
@@ -480,7 +486,7 @@ public class R0Fragment extends BaseFragment implements QRCodeReaderView.OnQRCod
                             }
                             return;
                         case 211:
-                            writeHint("桶身码已使用,请联系运维人员");
+                            writeHint("桶身码已使用,请更换后重试");
                             writeTaskFailed(false);
                             return;
                         case 215:

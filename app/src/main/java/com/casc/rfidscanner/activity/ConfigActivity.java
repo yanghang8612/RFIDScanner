@@ -284,6 +284,9 @@ public class ConfigActivity extends BaseActivity {
             ConfigHelper.setParam(MyParams.S_BLANK_INTERVAL, mBlankIntervalSpn.getText().toString());
             ConfigHelper.setParam(MyParams.S_DISCOVERY_INTERVAL, mDiscoveryIntervalSpn.getText().toString());
 
+            ConfigHelper.setParam(MyParams.S_LINE_NAME, mLineNameMet.getText().toString());
+            ConfigHelper.setParam(MyParams.S_MAIN_PLATFORM_ADDR, mMainPlatformAddrMet.getText().toString());
+            ConfigHelper.setParam(MyParams.S_MONITOR_APP_ADDR, mMonitorAppAddrMet.getText().toString());
             ConfigHelper.setParam(MyParams.S_LONGITUDE, mLongitudeMet.getText().toString());
             ConfigHelper.setParam(MyParams.S_LATITUDE, mLatitudeMet.getText().toString());
             ConfigHelper.setParam(MyParams.S_HEIGHT, mHeightMet.getText().toString());
@@ -307,11 +310,7 @@ public class ConfigActivity extends BaseActivity {
             } else {
                 ConfigHelper.setParam(MyParams.S_READER_ID, mReaderIDMet.getText().toString());
             }
-            ConfigHelper.setParam(MyParams.S_LINE_NAME, mLineNameMet.getText().toString());
-            ConfigHelper.setParam(MyParams.S_MAIN_PLATFORM_ADDR, mMainPlatformAddrMet.getText().toString());
-            ConfigHelper.setParam(MyParams.S_MONITOR_APP_ADDR, mMonitorAppAddrMet.getText().toString());
             ConfigHelper.setParam(MyParams.S_READER_MAC, mReaderMacTv.getText().toString());
-
             finish();
         }
     }

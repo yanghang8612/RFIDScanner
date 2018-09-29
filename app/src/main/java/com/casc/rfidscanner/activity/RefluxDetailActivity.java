@@ -21,7 +21,7 @@ import com.casc.rfidscanner.adapter.BucketAdapter;
 import com.casc.rfidscanner.adapter.GoodsAdapter;
 import com.casc.rfidscanner.bean.RefluxBill;
 import com.casc.rfidscanner.message.BillUpdatedMessage;
-import com.casc.rfidscanner.message.DealerAndDriverChoseMessage;
+import com.casc.rfidscanner.message.DealerAndDriverSelectedMessage;
 import com.casc.rfidscanner.utils.ActivityCollector;
 import com.weiwangcn.betterspinner.library.BetterSpinner;
 
@@ -159,7 +159,7 @@ public class RefluxDetailActivity extends BaseActivity {
                 .onPositive(new MaterialDialog.SingleButtonCallback() {
                     @Override
                     public void onClick(@NonNull MaterialDialog dialog, @NonNull DialogAction which) {
-                        DealerAndDriverChoseMessage message = new DealerAndDriverChoseMessage();
+                        DealerAndDriverSelectedMessage message = new DealerAndDriverSelectedMessage();
                         message.dealer = mDealerSpn.getText().toString();
                         message.driver = mDriverSpn.getText().toString();
                         EventBus.getDefault().post(message);

@@ -176,7 +176,7 @@ public class DeliveryDetailActivity extends BaseActivity {
 //                    .onPositive(new MaterialDialog.SingleButtonCallback() {
 //                        @Override
 //                        public void onClick(@NonNull MaterialDialog dialog, @NonNull DialogAction which) {
-//                            DealerAndDriverChoseMessage message = new DealerAndDriverChoseMessage();
+//                            DealerAndDriverSelectedMessage message = new DealerAndDriverSelectedMessage();
 //                            message.dealer = mDealerSpn.getText().toString();
 //                            message.driver = mDriverSpn.getText().toString();
 //                            EventBus.getDefault().post(message);

@@ -4,14 +4,12 @@ import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.text.TextUtils;
-import android.view.View;
 import android.widget.ArrayAdapter;
-import android.widget.Button;
 
 import com.casc.rfidscanner.MyVars;
 import com.casc.rfidscanner.R;
 import com.casc.rfidscanner.message.ConfigUpdatedMessage;
-import com.casc.rfidscanner.message.DealerAndDriverChoseMessage;
+import com.casc.rfidscanner.message.DealerAndDriverSelectedMessage;
 import com.casc.rfidscanner.utils.ActivityCollector;
 import com.weiwangcn.betterspinner.library.BetterSpinner;
 
@@ -27,10 +25,9 @@ public class BillConfirmActivity extends BaseActivity {
 
     private static final String TAG = BillConfirmActivity.class.getSimpleName();
 
-    public static void actionStart(Context context, boolean canCancel) {
+    public static void actionStart(Context context) {
         if (!(ActivityCollector.getTopActivity() instanceof BillConfirmActivity)) {
             Intent intent = new Intent(context, BillConfirmActivity.class);
-            intent.putExtra("can_cancel", canCancel);
             intent.setFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
             context.startActivity(intent);
         }
@@ -38,7 +35,6 @@ public class BillConfirmActivity extends BaseActivity {
 
     @BindView(R.id.spn_delivery_driver) BetterSpinner mDriverSpn;
     @BindView(R.id.spn_delivery_dealer) BetterSpinner mDealerSpn;
-    @BindView(R.id.btn_dialog_cancel) Button mCancelBtn;
 
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void onMessageEvent(ConfigUpdatedMessage message) {
@@ -52,8 +48,6 @@ public class BillConfirmActivity extends BaseActivity {
         ButterKnife.bind(this);
         EventBus.getDefault().register(this);
         updateConfigViews();
-        mCancelBtn.setVisibility(getIntent().getBooleanExtra("can_cancel", true) ?
-                View.VISIBLE : View.GONE);
     }
 
     @Override
@@ -84,7 +78,7 @@ public class BillConfirmActivity extends BaseActivity {
         if (TextUtils.isEmpty(driver) || TextUtils.isEmpty(dealer)) {
             showToast("请选择司机或经销商");
         } else {
-            DealerAndDriverChoseMessage message = new DealerAndDriverChoseMessage();
+            DealerAndDriverSelectedMessage message = new DealerAndDriverSelectedMessage();
             message.driver = driver;
             message.dealer = dealer;
             EventBus.getDefault().post(message);

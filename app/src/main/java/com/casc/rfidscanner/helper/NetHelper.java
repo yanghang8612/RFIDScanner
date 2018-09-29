@@ -12,11 +12,11 @@ import com.casc.rfidscanner.helper.param.MessageCommon;
 import com.casc.rfidscanner.helper.param.MessageConfig;
 import com.casc.rfidscanner.helper.param.MessageDealer;
 import com.casc.rfidscanner.helper.param.MessageDelivery;
-import com.casc.rfidscanner.helper.param.MessageOnline;
 import com.casc.rfidscanner.helper.param.MessageQuery;
 import com.casc.rfidscanner.helper.param.MessageReflux;
 import com.casc.rfidscanner.helper.param.MessageRegister;
 import com.casc.rfidscanner.helper.param.MessageScrap;
+import com.casc.rfidscanner.helper.param.MessageStack;
 import com.casc.rfidscanner.helper.param.Reply;
 import com.casc.rfidscanner.message.ResendAllBillsMessage;
 import com.casc.rfidscanner.utils.CommonUtils;
@@ -81,18 +81,18 @@ public class NetHelper {
                 CommonUtils.generateRequestBody(scrap));
     }
 
-    public Call<Reply> uploadOnlineMessage(MessageOnline online) {
-        return netInterface.uploadOnlineMessage(
-                ConfigHelper.getString(MyParams.S_MAIN_PLATFORM_ADDR) + "/api/message/bucket/online",
-                CommonUtils.generateRequestHeader("02"),
-                CommonUtils.generateRequestBody(online));
-    }
-
     public Call<Reply> uploadCommonMessage(MessageCommon common) {
         return netInterface.uploadCommonMessage(
                 ConfigHelper.getString(MyParams.S_MAIN_PLATFORM_ADDR) + "/api/message/bucket/common",
                 CommonUtils.generateRequestHeader("02"),
                 CommonUtils.generateRequestBody(common));
+    }
+
+    public Call<Reply> uploadStackMessage(MessageStack stack) {
+        return netInterface.uploadStackMessage(
+                ConfigHelper.getString(MyParams.S_MAIN_PLATFORM_ADDR) + "/api/message/bucket/package",
+                CommonUtils.generateRequestHeader("02"),
+                CommonUtils.generateRequestBody(stack));
     }
 
     public Call<Reply> uploadDeliveryMessage(MessageDelivery delivery) {
@@ -158,49 +158,48 @@ public class NetHelper {
     }
 
     public void reportHeartbeat() {
-        netInterface.reportHeartbeat(
-                ConfigHelper.getString(MyParams.S_MONITOR_APP_ADDR) + "/heartbeat",
-                ConfigHelper.getString(MyParams.S_LINE_NAME))
-                .enqueue(new BillCallback());
+        if (MyParams.MONITOR_ON) {
+            netInterface.reportHeartbeat(
+                    ConfigHelper.getString(MyParams.S_MONITOR_APP_ADDR) + "/heartbeat",
+                    ConfigHelper.getString(MyParams.S_LINE_NAME))
+                    .enqueue(new BillCallback());
+        }
     }
 
     public void reportBillDelivery(MessageBillDelivery bill) {
-        netInterface.reportBillDelivery(
-                ConfigHelper.getString(MyParams.S_MONITOR_APP_ADDR) + "/bill_delivery",
-                ConfigHelper.getString(MyParams.S_LINE_NAME),
-                CommonUtils.generateRequestBody(bill)).enqueue(new BillCallback());
+        if (MyParams.MONITOR_ON) {
+            netInterface.reportBillDelivery(
+                    ConfigHelper.getString(MyParams.S_MONITOR_APP_ADDR) + "/bill_delivery",
+                    ConfigHelper.getString(MyParams.S_LINE_NAME),
+                    CommonUtils.generateRequestBody(bill)).enqueue(new BillCallback());
+        }
     }
 
     public void reportBillReflux(MessageBillDelivery bill) {
-        netInterface.reportBillReflux(
-                ConfigHelper.getString(MyParams.S_MONITOR_APP_ADDR) + "/bill_reflux",
-                ConfigHelper.getString(MyParams.S_LINE_NAME),
-                CommonUtils.generateRequestBody(bill)).enqueue(new BillCallback());
+        if (MyParams.MONITOR_ON) {
+            netInterface.reportBillReflux(
+                    ConfigHelper.getString(MyParams.S_MONITOR_APP_ADDR) + "/bill_reflux",
+                    ConfigHelper.getString(MyParams.S_LINE_NAME),
+                    CommonUtils.generateRequestBody(bill)).enqueue(new BillCallback());
+        }
     }
 
     public void reportBillBucket(MessageBillBucket bucket) {
-        netInterface.reportBillBucket(
-                ConfigHelper.getString(MyParams.S_MONITOR_APP_ADDR) + "/bill_bucket",
-                ConfigHelper.getString(MyParams.S_LINE_NAME),
-                CommonUtils.generateRequestBody(bucket)).enqueue(new BillCallback());
+        if (MyParams.MONITOR_ON) {
+            netInterface.reportBillBucket(
+                    ConfigHelper.getString(MyParams.S_MONITOR_APP_ADDR) + "/bill_bucket",
+                    ConfigHelper.getString(MyParams.S_LINE_NAME),
+                    CommonUtils.generateRequestBody(bucket)).enqueue(new BillCallback());
+        }
     }
 
     public void reportBillComplete(MessageBillComplete message) {
-        netInterface.reportBillComplete(
-                ConfigHelper.getString(MyParams.S_MONITOR_APP_ADDR) + "/bill_complete",
-                ConfigHelper.getString(MyParams.S_LINE_NAME),
-                CommonUtils.generateRequestBody(message)).enqueue(new BillCallback());
-    }
-
-    public Call<String> traceBucket() {
-        return netInterface.traceBucket(
-                "https://wx.iwiot.net/api/app/trace",
-                CommonUtils.generateRequestBody(new Content()));
-    }
-
-    class Content {
-        String bodycode = "AHY00001";
-        String userid = "";
+        if (MyParams.MONITOR_ON) {
+            netInterface.reportBillComplete(
+                    ConfigHelper.getString(MyParams.S_MONITOR_APP_ADDR) + "/bill_complete",
+                    ConfigHelper.getString(MyParams.S_LINE_NAME),
+                    CommonUtils.generateRequestBody(message)).enqueue(new BillCallback());
+        }
     }
 
     private class BillCallback implements Callback<Reply> {

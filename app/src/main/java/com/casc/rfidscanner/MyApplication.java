@@ -57,7 +57,7 @@ public class MyApplication extends Application {
         mConnectivityManager = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
 
         // 初始化读写器实例（USB、蓝牙）和标签缓存
-        MyVars.executor = Executors.newScheduledThreadPool(10);
+        MyVars.executor = Executors.newScheduledThreadPool(15);
         MyVars.usbReader = new USBReaderImpl(this);
         MyVars.bleReader = new BLEReaderImpl(this);
         MyVars.cache = new TagCache();
@@ -89,12 +89,12 @@ public class MyApplication extends Application {
 
         @Override
         public void run() {
-            if (MyVars.getReader().getState() != TagReader.STATE_CONNECTING) {
+            if (MyVars.status.networkStatus &&
+                    MyVars.getReader().getState() != TagReader.STATE_CONNECTING) {
                 NetHelper.getInstance().getConfig(new MessageConfig()).enqueue(new Callback<Reply>() {
                     @Override
                     public void onResponse(@NonNull Call<Reply> call, @NonNull Response<Reply> response) {
                         Reply reply = response.body();
-                        //Log.i(TAG, reply.toString());
                         if (response.isSuccessful() && reply != null && reply.getCode() == 200) {
                             ConfigHelper.setParam(MyParams.S_API_JSON, reply.getContent().toString());
                             MyVars.config = new Gson().fromJson(reply.getContent().toString(), Config.class);
@@ -113,12 +113,17 @@ public class MyApplication extends Application {
 
         @Override
         public void run() {
-//            if (mWifiManager.getWifiState() == WifiManager.WIFI_STATE_DISABLED)
-//                mWifiManager.setWifiEnabled(true);
-            NetworkCapabilities networkCapabilities = mConnectivityManager.getNetworkCapabilities(mConnectivityManager.getActiveNetwork());
-            EventBus.getDefault().post(MyVars.status.setReaderStatus(MyVars.getReader().isConnected())
-                    .setNetworkStatus(networkCapabilities != null &&
-                            networkCapabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_VALIDATED)));
+            if (mWifiManager.getWifiState() == WifiManager.WIFI_STATE_DISABLED)
+                mWifiManager.setWifiEnabled(true);
+            NetworkCapabilities nc = mConnectivityManager.getNetworkCapabilities(
+                    mConnectivityManager.getActiveNetwork());
+            MyVars.status.setReaderStatus(MyVars.getReader().isConnected());
+            MyVars.status.setNetworkStatus(nc != null &&
+                    nc.hasCapability(NetworkCapabilities.NET_CAPABILITY_VALIDATED));
+            if (!MyVars.status.networkStatus) {
+                MyVars.status.setPlatformStatus(false);
+            }
+            EventBus.getDefault().post(MyVars.status);
         }
     }
 
@@ -126,7 +131,8 @@ public class MyApplication extends Application {
 
         @Override
         public void run() {
-            if (MyVars.getReader().getState() != TagReader.STATE_CONNECTING) {
+            if (MyVars.status.networkStatus &&
+                    MyVars.getReader().getState() != TagReader.STATE_CONNECTING) {
                 NetHelper.getInstance().sendHeartbeat().enqueue(new Callback<Reply>() {
                     @Override
                     public void onResponse(@NonNull Call<Reply> call, @NonNull Response<Reply> response) {

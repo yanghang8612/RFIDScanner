@@ -30,7 +30,7 @@ public class DeliveryBill {
 
     private enum BillState {
 
-        IS_STACK32("3"), IS_STACK48("4"), IS_SINGLE("1"), IS_BACK("2");
+        IS_STACK("0"), IS_SINGLE("1"), IS_BACK("2");
 
         final String flag;
 
@@ -47,7 +47,7 @@ public class DeliveryBill {
         }
     }
 
-    private BillState state = BillState.IS_STACK32;
+    private BillState state = BillState.IS_STACK;
 
     private long updatedTime = System.currentTimeMillis();
 
@@ -122,20 +122,12 @@ public class DeliveryBill {
         }
     }
 
-    public boolean isStack32() {
-        return state == BillState.IS_STACK32;
+    public boolean isStack() {
+        return state == BillState.IS_STACK;
     }
 
-    public void setStack32() {
-        state = BillState.IS_STACK32;
-    }
-
-    public boolean isStack48() {
-        return state == BillState.IS_STACK48;
-    }
-
-    public void setStack48() {
-        state = BillState.IS_STACK48;
+    public void setStack() {
+        state = BillState.IS_STACK;
     }
 
     public boolean isSingle() {
@@ -227,25 +219,12 @@ public class DeliveryBill {
     }
 
     public Bucket addBucket(byte[] epc) {
-        String epcStr = CommonUtils.bytesToHex(epc);
-        if (state == BillState.IS_STACK32 || state == BillState.IS_STACK48) {
-            String key1 = BillState.IS_STACK32.flag + epcStr;
-            String key2 = BillState.IS_STACK48.flag + epcStr;
-            if (!buckets.containsKey(key1) && !buckets.containsKey(key2)) {
-                Bucket bucket = new Bucket(epc, state.flag);
-                buckets.put(state.flag + epcStr, bucket);
-                addMatchedGoods(bucket);
-                return bucket;
-            }
-
-        } else {
-            String key = state.flag + epcStr;
-            if (!buckets.containsKey(key)) {
-                Bucket bucket = new Bucket(epc, state.flag);
-                buckets.put(key, bucket);
-                addMatchedGoods(bucket);
-                return bucket;
-            }
+        String key = state.flag + CommonUtils.bytesToHex(epc);
+        if (!buckets.containsKey(key)) {
+            Bucket bucket = new Bucket(epc, state.flag);
+            buckets.put(key, bucket);
+            addMatchedGoods(bucket);
+            return bucket;
         }
         return null;
     }
@@ -280,11 +259,8 @@ public class DeliveryBill {
         for (Goods goods : goods) {
             if (goods.getCode() == bucket.getCode()) {
                 switch (BillState.getStateByFlag(bucket.getFlag())) {
-                    case IS_STACK32:
-                        goods.addStack32();
-                        break;
-                    case IS_STACK48:
-                        goods.addStack48();
+                    case IS_STACK:
+                        goods.addStack();
                         break;
                     case IS_SINGLE:
                         goods.addSingle();

@@ -144,19 +144,11 @@
                     android:layout_height="wrap_content">
 
                     <Button
-                        android:id="@+id/btn_state_stack_32"
+                        android:id="@+id/btn_state_stack"
                         android:theme="@style/ButtonGrey"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="32桶/垛"
-                        android:textSize="30sp" />
-
-                    <Button
-                        android:id="@+id/btn_state_stack_48"
-                        android:theme="@style/ButtonGrey"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="48桶/垛"
+                        android:text="整垛模式"
                         android:textSize="30sp" />
 
                     <Button

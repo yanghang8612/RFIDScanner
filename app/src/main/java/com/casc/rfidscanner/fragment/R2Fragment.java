@@ -27,7 +27,7 @@ import com.casc.rfidscanner.helper.param.Reply;
 import com.casc.rfidscanner.message.AbnormalBucketMessage;
 import com.casc.rfidscanner.message.BillStoredMessage;
 import com.casc.rfidscanner.message.BillUploadedMessage;
-import com.casc.rfidscanner.message.DealerAndDriverChoseMessage;
+import com.casc.rfidscanner.message.DealerAndDriverSelectedMessage;
 import com.casc.rfidscanner.message.PollingResultMessage;
 import com.casc.rfidscanner.utils.CommonUtils;
 import com.casc.rfidscanner.view.InputCodeLayout;
@@ -75,8 +75,6 @@ public class R2Fragment extends BaseFragment implements QRCodeReaderView.OnQRCod
     // 读取到和未读取到EPC的计数器
     private int mReadCount, mQualifiedCount, mReadNoneCount;
 
-    private DealerAndDriverChoseMessage mConfig;
-
     private int mUnknownCount;
 
     private Map<String, Bucket> mEPCBuckets = new HashMap<>();
@@ -90,8 +88,22 @@ public class R2Fragment extends BaseFragment implements QRCodeReaderView.OnQRCod
     private Handler mHandler = new InnerHandler(this);
 
     @Subscribe(threadMode = ThreadMode.MAIN)
-    public void onMessageEvent(DealerAndDriverChoseMessage message) {
-        mConfig = message;
+    public void onMessageEvent(DealerAndDriverSelectedMessage message) {
+        MessageReflux reflux = new MessageReflux(message.dealer, message.driver, 0);
+        for (Bucket bucket : mEPCBuckets.values()) {
+            reflux.addBucket(bucket.getTime(), bucket.getEpcStr(), bucket.getBodyCode());
+        }
+        for (String bodyCode : mBodyCodes.keySet()) {
+            reflux.addBucket(mBodyCodes.get(bodyCode), "", bodyCode);
+        }
+        MyVars.cache.storeRefluxBill(reflux);
+        showToast("提交成功");
+        mEPCBuckets.clear();
+        mBodyCodes.clear();
+        mUnknownCount = -1;
+        mUnknownCountIcl.clear();
+        mScannedCountNs.setNumber(0);
+        Message.obtain(mHandler, MSG_RESET_READ_STATUS).sendToTarget();
     }
 
     @Subscribe(threadMode = ThreadMode.MAIN)
@@ -161,8 +173,6 @@ public class R2Fragment extends BaseFragment implements QRCodeReaderView.OnQRCod
         mBodyCodeReaderQrv.setAutofocusInterval(250L);
         mBodyCodeReaderQrv.setTorchEnabled(true);
         mBodyCodeReaderQrv.setBackCamera();
-
-        BillConfirmActivity.actionStart(mContext, false);
     }
 
     @Override
@@ -215,64 +225,7 @@ public class R2Fragment extends BaseFragment implements QRCodeReaderView.OnQRCod
         if (mUnknownCount == -1) {
             showToast("请先选择双重损坏数量");
         } else {
-            new MaterialDialog.Builder(mContext)
-                    .title("提示信息")
-                    .content("确认提交当前交接单吗？")
-                    .positiveText("确认")
-                    .positiveColorRes(R.color.white)
-                    .btnSelector(R.drawable.md_btn_postive, DialogAction.POSITIVE)
-                    .negativeText("取消")
-                    .negativeColorRes(R.color.gray)
-                    .onPositive(new MaterialDialog.SingleButtonCallback() {
-                        @Override
-                        public void onClick(@NonNull final MaterialDialog dialog, @NonNull DialogAction which) {
-                            dialog.dismiss();
-                            final MessageReflux reflux = new MessageReflux(mConfig.dealer, mConfig.driver, 0);
-                            for (Bucket bucket : mEPCBuckets.values()) {
-                                reflux.addBucket(bucket.getTime(), bucket.getEpcStr(), bucket.getBodyCode());
-                            }
-                            for (String bodyCode : mBodyCodes.keySet()) {
-                                reflux.addBucket(mBodyCodes.get(bodyCode), "", bodyCode);
-                            }
-                            if (MyVars.cache.getStoredRefluxBillCount() == 0) {
-                                NetHelper.getInstance().uploadRefluxMessage(reflux).enqueue(new Callback<Reply>() {
-                                    @Override
-                                    public void onResponse(@NonNull Call<Reply> call, @NonNull Response<Reply> response) {
-                                        Reply body = response.body();
-                                        if (!response.isSuccessful() || body == null || body.getCode() != 200) {
-                                            MyVars.cache.storeRefluxBill(reflux);
-                                            EventBus.getDefault().post(new BillStoredMessage());
-                                        }
-                                        else
-                                            EventBus.getDefault().post(new BillUploadedMessage(false));
-                                    }
-
-                                    @Override
-                                    public void onFailure(@NonNull Call<Reply> call, @NonNull Throwable t) {
-                                        MyVars.cache.storeRefluxBill(reflux);
-                                        EventBus.getDefault().post(new BillStoredMessage());
-                                    }
-                                });
-                            } else {
-                                MyVars.cache.storeRefluxBill(reflux);
-                            }
-                            showToast("回流交接单提交成功");
-                            mEPCBuckets.clear();
-                            mBodyCodes.clear();
-                            mUnknownCount = -1;
-                            mUnknownCountIcl.clear();
-                            mScannedCountNs.setNumber(0);
-                            Message.obtain(mHandler, MSG_RESET_READ_STATUS).sendToTarget();
-                            BillConfirmActivity.actionStart(mContext, false);
-                        }
-                    })
-                    .onNegative(new MaterialDialog.SingleButtonCallback() {
-                        @Override
-                        public void onClick(@NonNull MaterialDialog dialog, @NonNull DialogAction which) {
-                            dialog.dismiss();
-                        }
-                    })
-                    .show();
+            BillConfirmActivity.actionStart(mContext);
         }
     }
 

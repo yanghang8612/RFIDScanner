@@ -31,7 +31,7 @@ import com.casc.rfidscanner.message.AbnormalBucketMessage;
 import com.casc.rfidscanner.message.BillStoredMessage;
 import com.casc.rfidscanner.message.BillUpdatedMessage;
 import com.casc.rfidscanner.message.BillUploadedMessage;
-import com.casc.rfidscanner.message.DealerAndDriverChoseMessage;
+import com.casc.rfidscanner.message.DealerAndDriverSelectedMessage;
 import com.casc.rfidscanner.message.MultiStatusMessage;
 import com.casc.rfidscanner.message.PollingResultMessage;
 import com.casc.rfidscanner.message.ReadResultMessage;
@@ -111,9 +111,9 @@ public class R6Fragment extends BaseFragment {
     }
 
     @Subscribe(threadMode = ThreadMode.MAIN)
-    public void onMessageEvent(DealerAndDriverChoseMessage message) {
+    public void onMessageEvent(DealerAndDriverSelectedMessage message) {
         // 异步上传平台
-        final MessageDelivery delivery = new MessageDelivery(
+        MessageDelivery delivery = new MessageDelivery(
                 TextUtils.isEmpty(mCurBill.getBillID()) ? "0000000000" : mCurBill.getBillID(),
                 (char) (TextUtils.isEmpty(mCurBill.getBillID()) ? 2 : mCurBill.checkBill() ?  0 : 1),
                 message.dealer,
@@ -121,28 +121,7 @@ public class R6Fragment extends BaseFragment {
         for (Bucket bucket : mCurBill.getBuckets()) {
             delivery.addBucket(bucket.getTime(), bucket.getEpc(), bucket.getFlag());
         }
-        if (MyVars.cache.getStoredDeliveryBillCount() == 0) {
-            NetHelper.getInstance().uploadDeliveryMessage(delivery).enqueue(new Callback<Reply>() {
-                @Override
-                public void onResponse(@NonNull Call<Reply> call, @NonNull Response<Reply> response) {
-                    Reply body = response.body();
-                    if (!response.isSuccessful() || body == null || body.getCode() != 200) {
-                        MyVars.cache.storeDeliveryBill(delivery);
-                        EventBus.getDefault().post(new BillStoredMessage());
-                    } else {
-                        EventBus.getDefault().post(new BillUploadedMessage(false));
-                    }
-                }
-
-                @Override
-                public void onFailure(@NonNull Call<Reply> call, @NonNull Throwable t) {
-                    MyVars.cache.storeDeliveryBill(delivery);
-                    EventBus.getDefault().post(new BillStoredMessage());
-                }
-            });
-        } else {
-            MyVars.cache.storeDeliveryBill(delivery);
-        }
+        MyVars.cache.storeDeliveryBill(delivery);
         showToast("提交成功");
         NetHelper.getInstance().reportBillComplete(
                 new MessageBillComplete(mCurBill.getCardID()));
@@ -294,20 +273,17 @@ public class R6Fragment extends BaseFragment {
             @Override
             public void onItemChildClick(BaseQuickAdapter adapter, View view, int position) {
                 switch (view.getId()) {
-                    case R.id.btn_state_stack_32:
-                        mCurBill.setStack48();
-                        break;
-                    case R.id.btn_state_stack_48:
+                    case R.id.btn_state_stack:
                         mCurBill.setSingle();
                         break;
                     case R.id.btn_state_single:
                         mCurBill.setBack();
                         break;
                     case R.id.btn_state_back:
-                        mCurBill.setStack32();
+                        mCurBill.setStack();
                         break;
                     case R.id.btn_confirm_delivery:
-                        BillConfirmActivity.actionStart(mContext, true);
+                        BillConfirmActivity.actionStart(mContext);
                         break;
                 }
                 adapter.notifyDataSetChanged();

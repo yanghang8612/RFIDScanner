@@ -1,7 +1,6 @@
 package com.casc.rfidscanner.backend;
 
 import android.support.annotation.NonNull;
-import android.util.Log;
 import android.util.Pair;
 
 import com.casc.rfidscanner.MyParams;
@@ -14,8 +13,8 @@ import com.casc.rfidscanner.helper.NetHelper;
 import com.casc.rfidscanner.helper.param.MessageCommon;
 import com.casc.rfidscanner.helper.param.MessageDealer;
 import com.casc.rfidscanner.helper.param.MessageDelivery;
-import com.casc.rfidscanner.helper.param.MessageOnline;
 import com.casc.rfidscanner.helper.param.MessageReflux;
+import com.casc.rfidscanner.helper.param.MessageStack;
 import com.casc.rfidscanner.helper.param.Reply;
 import com.casc.rfidscanner.message.BillUploadedMessage;
 import com.casc.rfidscanner.message.TagCountChangedMessage;
@@ -44,7 +43,7 @@ public class TagCache {
 
     private final MessageDao tagDao;
 
-    private final MessageDao onlineDao;
+    private final MessageDao stackDao;
 
     private final MessageDao deliveryDao;
 
@@ -56,7 +55,7 @@ public class TagCache {
 
     public TagCache() {
         this.tagDao = new MessageDao(DBHelper.TABLE_NAME_TAG_MESSAGE);
-        this.onlineDao = new MessageDao(DBHelper.TABLE_NAME_ONLINE_MESSAGE);
+        this.stackDao = new MessageDao(DBHelper.TABLE_NAME_STACK_MESSAGE);
         this.deliveryDao = new MessageDao(DBHelper.TABLE_NAME_DELIVERY_MESSAGE);
         this.refluxDao = new MessageDao(DBHelper.TABLE_NAME_REFLUX_MESSAGE);
         this.dealerDao = new MessageDao(DBHelper.TABLE_NAME_DEALER_MESSAGE);
@@ -94,12 +93,12 @@ public class TagCache {
         }
     }
 
-    public synchronized void storeOnlineTask(MessageOnline online) {
-        onlineDao.insert(CommonUtils.toJson(online));
+    public synchronized void storeStackMessage(MessageStack stack) {
+        stackDao.insert(CommonUtils.toJson(stack));
     }
 
-    public synchronized int getStoredOnlineTaskCount() {
-        return onlineDao.rowCount();
+    public synchronized int getStoredStackMessageCount() {
+        return stackDao.rowCount();
     }
 
     public synchronized void storeDeliveryBill(MessageDelivery delivery) {
@@ -129,7 +128,7 @@ public class TagCache {
     private void upload(String tid, final String epc) {
         final MessageCommon common = new MessageCommon();
         common.addBucket(tid, epc);
-        if (tagDao.rowCount() == 0) {
+        if (MyVars.status.canSendRequest() && tagDao.rowCount() == 0) {
             NetHelper.getInstance().uploadCommonMessage(common)
                     .enqueue(new Callback<Reply>() {
                         @Override
@@ -211,67 +210,71 @@ public class TagCache {
                 switch (LinkType.getType()) {
                     case R3:
                     case R4:
-                        if (tagDao.rowCount() != 0) {
-                            final Pair<Integer, String> tag = tagDao.findOne();
+                    case R7:
+                        if (MyVars.status.canSendRequest() && tagDao.rowCount() != 0) {
+                            final Pair<Integer, String> tagPair = tagDao.findOne();
                             try {
                                 Response<Reply> response = NetHelper.getInstance()
-                                        .uploadCommonMessage(new Gson().fromJson(tag.second, MessageCommon.class))
+                                        .uploadCommonMessage(
+                                                new Gson().fromJson(tagPair.second, MessageCommon.class))
                                         .execute();
                                 Reply body = response.body();
                                 if (response.isSuccessful() && body != null && body.getCode() == 200) {
                                     uploadCount += 1;
-                                    tagDao.deleteById(tag.first);
+                                    tagDao.deleteById(tagPair.first);
                                 }
                             } catch (IOException ignored) {}
                         }
                         break;
-                    case R7:
-                        if (onlineDao.rowCount() != 0) {
-                            final Pair<Integer, String> online = onlineDao.findOne();
+                    case R5:
+                        if (MyVars.status.canSendRequest() && stackDao.rowCount() != 0) {
+                            final Pair<Integer, String> stackPair = stackDao.findOne();
                             try {
                                 Response<Reply> response = NetHelper.getInstance()
-                                        .uploadOnlineMessage(new Gson().fromJson(online.second, MessageOnline.class))
+                                        .uploadStackMessage(
+                                                new Gson().fromJson(stackPair.second, MessageStack.class))
                                         .execute();
                                 Reply body = response.body();
                                 if (response.isSuccessful() && body != null && body.getCode() == 200) {
-                                    onlineDao.deleteById(online.first);
-                                    EventBus.getDefault().post(new BillUploadedMessage(true));
+                                    stackDao.deleteById(stackPair.first);
                                 }
                             } catch (IOException ignored) {}
                         }
                         break;
                     case R2:
-                        if (refluxDao.rowCount() != 0) {
-                            final Pair<Integer, String> reflux = refluxDao.findOne();
+                        if (MyVars.status.canSendRequest() && refluxDao.rowCount() != 0) {
+                            final Pair<Integer, String> refluxPair = refluxDao.findOne();
                             try {
                                 Response<Reply> response = NetHelper.getInstance()
-                                        .uploadRefluxMessage(new Gson().fromJson(reflux.second, MessageReflux.class))
+                                        .uploadRefluxMessage(
+                                                new Gson().fromJson(refluxPair.second, MessageReflux.class))
                                         .execute();
                                 Reply body = response.body();
                                 if (response.isSuccessful() && body != null && body.getCode() == 200) {
-                                    refluxDao.deleteById(reflux.first);
+                                    refluxDao.deleteById(refluxPair.first);
                                     EventBus.getDefault().post(new BillUploadedMessage(true));
                                 }
                             } catch (IOException ignored) {}
                         }
                         break;
                     case R6:
-                        if (deliveryDao.rowCount() != 0) {
-                            final Pair<Integer, String> delivery = deliveryDao.findOne();
+                        if (MyVars.status.canSendRequest() && deliveryDao.rowCount() != 0) {
+                            final Pair<Integer, String> deliveryPair = deliveryDao.findOne();
                             try {
                                 Response<Reply> response = NetHelper.getInstance()
-                                        .uploadDeliveryMessage(new Gson().fromJson(delivery.second, MessageDelivery.class))
+                                        .uploadDeliveryMessage(
+                                                new Gson().fromJson(deliveryPair.second, MessageDelivery.class))
                                         .execute();
                                 Reply body = response.body();
                                 if (response.isSuccessful() && body != null && body.getCode() == 200) {
-                                    deliveryDao.deleteById(delivery.first);
+                                    deliveryDao.deleteById(deliveryPair.first);
                                     EventBus.getDefault().post(new BillUploadedMessage(true));
                                 }
                             } catch (IOException ignored) {}
                         }
                         break;
                     case RN:
-                        if (dealerDao.rowCount() != 0) {
+                        if (MyVars.status.canSendRequest() && dealerDao.rowCount() != 0) {
                             final Pair<Integer, String> dealer = dealerDao.findOne();
                             try {
                                 Response<Reply> response = NetHelper.getInstance()

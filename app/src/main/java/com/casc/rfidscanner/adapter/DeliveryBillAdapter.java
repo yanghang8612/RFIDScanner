@@ -41,12 +41,10 @@ public class DeliveryBillAdapter extends BaseQuickAdapter<DeliveryBill, BaseView
                 .setText(R.id.tv_bill_id,
                         TextUtils.isEmpty(item.getBillID()) ? "待补单" : item.getBillID())
                 .setText(R.id.tv_total_count, String.valueOf(item.getTotalCount()))
-                .setGone(R.id.btn_state_stack_32, item.isStack32())
-                .setGone(R.id.btn_state_stack_48, item.isStack48())
+                .setGone(R.id.btn_state_stack, item.isStack())
                 .setGone(R.id.btn_state_single, item.isSingle())
                 .setGone(R.id.btn_state_back, item.isBack())
-                .addOnClickListener(R.id.btn_state_stack_32)
-                .addOnClickListener(R.id.btn_state_stack_48)
+                .addOnClickListener(R.id.btn_state_stack)
                 .addOnClickListener(R.id.btn_state_single)
                 .addOnClickListener(R.id.btn_state_back)
                 .addOnClickListener(R.id.btn_confirm_delivery);

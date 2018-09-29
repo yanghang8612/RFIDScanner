@@ -26,7 +26,7 @@ public class MessageReflux {
 
     private int unknown;
 
-    // 成品出库的桶身码相关扫描信息
+    // 成品回流的桶身码相关扫描信息
     private List<Bucket> bucket_info = new ArrayList<>();
 
     public MessageReflux(String dealer, String driver, int unknown) {

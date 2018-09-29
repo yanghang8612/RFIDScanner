@@ -18,7 +18,7 @@ public class MessageCommon {
 
     private double height;
 
-    // R3、R4消息中包含的所有桶RFID及桶身码相关扫描信息
+    // R3、R4、R7消息中包含的所有桶RFID及桶身码相关扫描信息
     private List<Bucket> bucket_info = new ArrayList<>();
 
     public MessageCommon() {

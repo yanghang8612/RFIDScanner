@@ -8,16 +8,13 @@ public class Goods {
     // 总数量
     private int totalCount;
 
-    // 成垛32数量
-    private int stack32Count;
-
-    // 成垛32数量
-    private int stack48Count;
-
     // 成垛数量
+    private int stackCount;
+
+    // 散货数量
     private int singleCount;
 
-    // 成垛数量
+    // 退库数量
     private int backCount;
 
     public Goods(ProductInfo info, int totalCount) {
@@ -46,11 +43,11 @@ public class Goods {
     }
 
     public int getCurCount() {
-        return 32 * stack32Count + 48 * stack48Count + singleCount - backCount;
+        return 32 * stackCount + singleCount - backCount;
     }
 
     public int getStackCount() {
-        return stack32Count + stack48Count;
+        return stackCount;
     }
 
     public int getSingleCount() {
@@ -61,20 +58,12 @@ public class Goods {
         return backCount;
     }
 
-    public void addStack32() {
-        this.stack32Count++;
+    public void addStack() {
+        this.stackCount++;
     }
 
-    public void minusStack32() {
-        this.stack32Count--;
-    }
-
-    public void addStack48() {
-        this.stack48Count++;
-    }
-
-    public void minusStack48() {
-        this.stack48Count--;
+    public void minusStack() {
+        this.stackCount--;
     }
 
     public void addSingle() {

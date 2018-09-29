@@ -112,6 +112,7 @@ public class MyParams {
     public static final boolean ENABLE_BACKDOOR = true;
     public static final boolean PRINT_COMMAND = true;
     public static final boolean PRINT_JSON = true;
+    public static final boolean MONITOR_ON = false;
 
     /**
      * EPC各种类型

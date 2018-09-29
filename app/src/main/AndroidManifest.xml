@@ -96,7 +96,7 @@
             android:screenOrientation="landscape"
             android:theme="@style/AppTheme.LightTransparent" />
         <activity
-            android:name=".activity.TaskConfigureActivity"
+            android:name=".activity.SafeCodeActivity"
             android:screenOrientation="landscape"
             android:theme="@style/AppTheme.LightTransparent" />
         <activity
