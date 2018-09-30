@@ -107,6 +107,8 @@ public class R5Fragment extends BaseFragment {
                             case IS_STACK:
                             case IS_BULK:
                                 if (!mBucketsToRemove.containsKey(epcStr)) {
+                                    playSound();
+                                    mScannedCountNs.increaseNumber();
                                     mBucketsToRemove.put(epcStr, 1);
                                 } else {
                                     mBucketsToRemove.put(epcStr, mBucketsToRemove.get(epcStr) + 1);
@@ -144,23 +146,29 @@ public class R5Fragment extends BaseFragment {
 
     @OnClick(R.id.ll_stack_buckets)
     void onStackBucketsLinearLayoutClicked() {
-        mStatus = WorkStatus.IS_STACK;
-        mStackBucketsLl.setEnabled(false);
-        mStackBucketsLl.getBackground().setTint(mContext.getColor(R.color.red));
-        mStackBucketsTv.setText("打垛中...");
-        mBulkBucketsLl.setEnabled(false);
-        mHandler.sendMessageDelayed(mHandler.obtainMessage(MSG_COMPLETE), 20000);
+        synchronized (mLock) {
+            mStatus = WorkStatus.IS_STACK;
+            mStackBucketsLl.setEnabled(false);
+            mStackBucketsLl.getBackground().setTint(mContext.getColor(R.color.red));
+            mStackBucketsTv.setText("打垛中...");
+            mBulkBucketsLl.setEnabled(false);
+            mScannedCountNs.setNumber(0);
+            mHandler.sendMessageDelayed(mHandler.obtainMessage(MSG_COMPLETE), 20000);
+        }
 
     }
 
     @OnClick(R.id.ll_bulk_buckets)
     void onBulkBucketsLinearLayoutClicked() {
-        mStatus = WorkStatus.IS_BULK;
-        mStackBucketsLl.setEnabled(false);
-        mBulkBucketsLl.setEnabled(false);
-        mBulkBucketsLl.getBackground().setTint(mContext.getColor(R.color.red));
-        mBulkBucketsTv.setText("打垛中...");
-        mHandler.sendMessageDelayed(mHandler.obtainMessage(MSG_COMPLETE), 20000);
+        synchronized (mLock) {
+            mStatus = WorkStatus.IS_BULK;
+            mStackBucketsLl.setEnabled(false);
+            mBulkBucketsLl.setEnabled(false);
+            mBulkBucketsLl.getBackground().setTint(mContext.getColor(R.color.red));
+            mBulkBucketsTv.setText("打垛中...");
+            mScannedCountNs.setNumber(0);
+            mHandler.sendMessageDelayed(mHandler.obtainMessage(MSG_COMPLETE), 20000);
+        }
 
     }
 
@@ -178,12 +186,12 @@ public class R5Fragment extends BaseFragment {
             switch (msg.what) {
                 case MSG_COMPLETE:
                     synchronized (outer.mLock) {
-                        outer.storeBucketsMap(outer.mBucketsToStack);
-                        outer.storeBucketsMap(outer.mBucketsToRemove);
+//                        outer.storeBucketsMap(outer.mBucketsToStack);
+//                        outer.storeBucketsMap(outer.mBucketsToRemove);
                         for (String epcStr : outer.mBucketsToRemove.keySet()) {
                             outer.mBucketsToStack.remove(epcStr);
                         }
-                        outer.storeBucketsMap(outer.mBucketsToStack);
+//                        outer.storeBucketsMap(outer.mBucketsToStack);
                         outer.uploadStackMessage(outer.mBucketsToStack,
                                 outer.mStatus == WorkStatus.IS_BULK);
                         outer.mBucketsToStack = outer.mBucketsToRemove;

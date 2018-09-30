@@ -91,22 +91,26 @@ public class MyApplication extends Application {
         public void run() {
             if (MyVars.status.networkStatus &&
                     MyVars.getReader().getState() != TagReader.STATE_CONNECTING) {
-                NetHelper.getInstance().getConfig(new MessageConfig()).enqueue(new Callback<Reply>() {
-                    @Override
-                    public void onResponse(@NonNull Call<Reply> call, @NonNull Response<Reply> response) {
-                        Reply reply = response.body();
-                        if (response.isSuccessful() && reply != null && reply.getCode() == 200) {
-                            ConfigHelper.setParam(MyParams.S_API_JSON, reply.getContent().toString());
-                            MyVars.config = new Gson().fromJson(reply.getContent().toString(), Config.class);
-                            EventBus.getDefault().post(new ConfigUpdatedMessage());
-                        }
-                    }
-
-                    @Override
-                    public void onFailure(@NonNull Call<Reply> call, @NonNull Throwable t) {}
-                });
+                getConfig();
             }
         }
+    }
+
+    private void getConfig() {
+        NetHelper.getInstance().getConfig(new MessageConfig()).enqueue(new Callback<Reply>() {
+            @Override
+            public void onResponse(@NonNull Call<Reply> call, @NonNull Response<Reply> response) {
+                Reply reply = response.body();
+                if (response.isSuccessful() && reply != null && reply.getCode() == 200) {
+                    ConfigHelper.setParam(MyParams.S_API_JSON, reply.getContent().toString());
+                    MyVars.config = new Gson().fromJson(reply.getContent().toString(), Config.class);
+                    EventBus.getDefault().post(new ConfigUpdatedMessage());
+                }
+            }
+
+            @Override
+            public void onFailure(@NonNull Call<Reply> call, @NonNull Throwable t) {}
+        });
     }
 
     private class InternetStatusCheckTask implements Runnable {
@@ -138,6 +142,7 @@ public class MyApplication extends Application {
                     public void onResponse(@NonNull Call<Reply> call, @NonNull Response<Reply> response) {
                         if (response.isSuccessful()) {
                             if (!MyVars.status.platformStatus)
+                                getConfig();
                                 EventBus.getDefault().post(MyVars.status.setPlatformStatus(true));
                         } else {
                             if (MyVars.status.platformStatus)
