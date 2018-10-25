@@ -62,6 +62,12 @@
         <item name="android:textColor">@color/black</item>
     </style>
 
+    <style name="AppTheme.GoodsNumber">
+        <item name="android:textSize">24sp</item>
+        <item name="android:textColor">@color/black</item>
+        <item name="android:textStyle">bold</item>
+    </style>
+
     <style name="AppTheme.CommonNumber">
         <item name="android:textSize">36sp</item>
         <item name="android:textColor">@color/black</item>
@@ -69,7 +75,7 @@
     </style>
 
     <style name="AppTheme.BigNumber">
-        <item name="android:textSize">48sp</item>
+        <item name="android:textSize">64sp</item>
         <item name="android:textColor">@color/black</item>
         <item name="android:textStyle">bold</item>
     </style>
@@ -113,7 +119,7 @@
 
     <style name="AppTheme.BillText">
         <item name="android:gravity">center</item>
-        <item name="android:textSize">20sp</item>
+        <item name="android:textSize">14sp</item>
         <item name="android:textColor">@color/black</item>
     </style>
 
@@ -129,7 +135,7 @@
     </style>
 
     <style name="AppTheme.GoodsText">
-        <item name="android:textSize">24sp</item>
+        <item name="android:textSize">12sp</item>
         <item name="android:textColor">@color/black</item>
     </style>
 

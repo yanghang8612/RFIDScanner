@@ -1,14 +1,11 @@
 package com.casc.rfidscanner.fragment;
 
-import android.content.Context;
 import android.graphics.PointF;
 import android.os.Handler;
 import android.os.Message;
-import android.os.Vibrator;
 import android.support.annotation.NonNull;
 import android.text.TextUtils;
 import android.util.Log;
-import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.ImageView;
@@ -24,7 +21,7 @@ import com.casc.rfidscanner.activity.ConfigActivity;
 import com.casc.rfidscanner.bean.Bucket;
 import com.casc.rfidscanner.helper.InsHelper;
 import com.casc.rfidscanner.helper.NetHelper;
-import com.casc.rfidscanner.helper.param.MessageScrap;
+import com.casc.rfidscanner.helper.param.MsgScrap;
 import com.casc.rfidscanner.helper.param.Reply;
 import com.casc.rfidscanner.message.ConfigUpdatedMessage;
 import com.casc.rfidscanner.message.MultiStatusMessage;
@@ -39,7 +36,6 @@ import org.greenrobot.eventbus.ThreadMode;
 
 import java.lang.ref.WeakReference;
 import java.util.Arrays;
-import java.util.Objects;
 
 import butterknife.BindView;
 import butterknife.OnClick;
@@ -77,10 +73,7 @@ public class R1Fragment extends BaseFragment implements QRCodeReaderView.OnQRCod
     private int mReadCount, mReadNoneCount;
 
     // 报废所必需的相关元素标志位
-    private boolean mIsBucketEPCRead, mIsNetworkReady, mIsBodyCodeWritten;
-
-    // 系统震动辅助类
-    private Vibrator mVibrator;
+    private boolean mIsBucketEPCRead, mIsReaderReady, mIsNetworkReady, mIsBodyCodeWritten;
 
     // Fragment内部handler
     private Handler mHandler = new InnerHandler(this);
@@ -95,6 +88,7 @@ public class R1Fragment extends BaseFragment implements QRCodeReaderView.OnQRCod
             mIsNetworkReady = false;
             mScrapBtn.setEnabled(false);
         }
+        mIsReaderReady = message.readerStatus;
         if (!message.readerStatus) {
             mTagStatusIv.setImageResource(R.drawable.ic_connection_abnormal);
         }
@@ -151,11 +145,6 @@ public class R1Fragment extends BaseFragment implements QRCodeReaderView.OnQRCod
 
     @Override
     protected void initFragment() {
-        mMonitorStatusLl.setVisibility(View.GONE);
-        mReaderStatusLl.setVisibility(View.VISIBLE);
-
-        mVibrator = (Vibrator) mContext.getSystemService(Context.VIBRATOR_SERVICE);
-
         mBodyCodeIcl.setHeader(MyVars.config.getHeader());
         mBodyCodeReaderQrv.setOnQRCodeReadListener(this);
         mBodyCodeReaderQrv.setQRDecodingEnabled(true);
@@ -229,8 +218,7 @@ public class R1Fragment extends BaseFragment implements QRCodeReaderView.OnQRCod
     }
 
     private boolean canScrap() {
-        return ((MyVars.getReader().isConnected() && mIsBucketEPCRead) || mIsBodyCodeWritten) &&
-                mIsNetworkReady;
+        return ((mIsReaderReady && mIsBucketEPCRead) || mIsBodyCodeWritten) && mIsNetworkReady;
     }
 
     private void updateConfigViews() {
@@ -294,7 +282,7 @@ public class R1Fragment extends BaseFragment implements QRCodeReaderView.OnQRCod
         public void run() {
             byte[] data;
             try {
-                MessageScrap message = new MessageScrap();
+                MsgScrap msg = new MsgScrap();
                 if (mIsBucketEPCRead) {
                     if (mScannedEPC.length > MyParams.EPC_BUCKET_LENGTH) {
                         mScannedEPC = Arrays.copyOf(mScannedEPC, MyParams.EPC_BUCKET_LENGTH);
@@ -336,16 +324,16 @@ public class R1Fragment extends BaseFragment implements QRCodeReaderView.OnQRCod
                         writeHint("写入EPC\n成功");
                     }
 
-                    message.addBucket(CommonUtils.bytesToHex(mReadTID),
+                    msg.addBucket(CommonUtils.bytesToHex(mReadTID),
                             CommonUtils.bytesToHex(mScannedEPC),
                             MyVars.config.getDisableInfoByWord(mScrapReasonSpn.getText().toString()).getCode());
                 } else {
-                    message.addBucket(mBodyCodeIcl.getCode(),
+                    msg.addBucket(mBodyCodeIcl.getCode(),
                             MyVars.config.getDisableInfoByWord(mScrapReasonSpn.getText().toString()).getCode());
                 }
 
                 // 尝试上报平台
-                Response<Reply> responseR1 = NetHelper.getInstance().uploadScrapMessage(message).execute();
+                Response<Reply> responseR1 = NetHelper.getInstance().uploadScrapMsg(msg).execute();
                 Reply replyR1 = responseR1.body();
                 if (!responseR1.isSuccessful() || replyR1 == null) {
                     writeHint("平台内部\n错误");

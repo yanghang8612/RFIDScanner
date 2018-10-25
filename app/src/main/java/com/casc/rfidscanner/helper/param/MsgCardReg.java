@@ -7,7 +7,7 @@ import com.casc.rfidscanner.bean.Card;
 import com.casc.rfidscanner.helper.ConfigHelper;
 import com.casc.rfidscanner.utils.CommonUtils;
 
-public class MessageCardReg {
+public class MsgCardReg {
 
     private String card_TID;
 
@@ -33,7 +33,7 @@ public class MessageCardReg {
 
     private String usable;
 
-    public MessageCardReg(Card card) {
+    public MsgCardReg(Card card) {
         this.card_TID = CommonUtils.bytesToHex(card.getTid());
         this.card_type = card.getType();
         this.card_code = card.getBodyCode();

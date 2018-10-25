@@ -6,7 +6,7 @@ import com.casc.rfidscanner.helper.ConfigHelper;
 import java.util.ArrayList;
 import java.util.List;
 
-public class MessageScrap {
+public class MsgScrap {
 
     private String stage;
 
@@ -21,7 +21,7 @@ public class MessageScrap {
     // R1消息中包含的所有桶RFID及桶身码相关扫描信息
     private List<Bucket> bucket_info = new ArrayList<>();
 
-    public MessageScrap() {
+    public MsgScrap() {
         this.stage = "01";
         this.reader_TID = ConfigHelper.getString(MyParams.S_READER_ID);
         this.longitude = Double.valueOf(ConfigHelper.getString(MyParams.S_LONGITUDE));

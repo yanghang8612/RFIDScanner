@@ -16,7 +16,6 @@ import com.casc.rfidscanner.backend.impl.USBReaderImpl;
 import com.casc.rfidscanner.bean.Config;
 import com.casc.rfidscanner.helper.ConfigHelper;
 import com.casc.rfidscanner.helper.NetHelper;
-import com.casc.rfidscanner.helper.param.MessageConfig;
 import com.casc.rfidscanner.helper.param.Reply;
 import com.casc.rfidscanner.message.ConfigUpdatedMessage;
 import com.google.gson.Gson;
@@ -97,7 +96,7 @@ public class MyApplication extends Application {
     }
 
     private void getConfig() {
-        NetHelper.getInstance().getConfig(new MessageConfig()).enqueue(new Callback<Reply>() {
+        NetHelper.getInstance().getConfig().enqueue(new Callback<Reply>() {
             @Override
             public void onResponse(@NonNull Call<Reply> call, @NonNull Response<Reply> response) {
                 Reply reply = response.body();
@@ -117,8 +116,8 @@ public class MyApplication extends Application {
 
         @Override
         public void run() {
-            if (mWifiManager.getWifiState() == WifiManager.WIFI_STATE_DISABLED)
-                mWifiManager.setWifiEnabled(true);
+//            if (mWifiManager.getWifiState() == WifiManager.WIFI_STATE_DISABLED)
+//                mWifiManager.setWifiEnabled(true);
             NetworkCapabilities nc = mConnectivityManager.getNetworkCapabilities(
                     mConnectivityManager.getActiveNetwork());
             MyVars.status.setReaderStatus(MyVars.getReader().isConnected());

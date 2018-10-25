@@ -5,7 +5,6 @@ import android.util.Log;
 import com.casc.rfidscanner.MyParams;
 import com.casc.rfidscanner.MyParams.EPCType;
 import com.casc.rfidscanner.MyVars;
-import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
 import java.text.SimpleDateFormat;
@@ -13,7 +12,6 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Random;
 import java.util.UUID;
 

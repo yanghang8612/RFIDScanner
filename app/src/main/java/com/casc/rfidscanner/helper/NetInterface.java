@@ -7,8 +7,6 @@ import java.util.Map;
 import okhttp3.RequestBody;
 import retrofit2.Call;
 import retrofit2.http.Body;
-import retrofit2.http.Field;
-import retrofit2.http.FormUrlEncoded;
 import retrofit2.http.GET;
 import retrofit2.http.POST;
 import retrofit2.http.Query;
@@ -17,61 +15,51 @@ import retrofit2.http.Url;
 
 public interface NetInterface {
 
-    @POST
-    Call<Reply> checkBodyCodeAndTID(@Url String url, @QueryMap Map<String, String> header, @Body RequestBody query);
-
-    @POST
-    Call<Reply> uploadRegisterMessage(@Url String url, @QueryMap Map<String, String> header, @Body RequestBody register);
-
-    @POST
-    Call<Reply> uploadScrapMessage(@Url String url, @QueryMap Map<String, String> header, @Body RequestBody scrap);
-
-    @POST
-    Call<Reply> uploadCommonMessage(@Url String url, @QueryMap Map<String, String> header, @Body RequestBody common);
-
-    @POST
-    Call<Reply> uploadStackMessage(@Url String url, @QueryMap Map<String, String> header, @Body RequestBody stack);
-
-    @POST
-    Call<Reply> uploadDeliveryMessage(@Url String url, @QueryMap Map<String, String> header, @Body RequestBody delivery);
-
-    @POST
-    Call<Reply> uploadRefluxMessage(@Url String url, @QueryMap Map<String, String> header, @Body RequestBody reflux);
-
-    @POST
-    Call<Reply> uploadDealerMessage(@Url String url, @QueryMap Map<String, String> header, @Body RequestBody dealer);
-
-    @POST
-    Call<Reply> getConfig(@Url String url, @QueryMap Map<String, String> header, @Body RequestBody config);
-
     @GET
     Call<Reply> sendHeartbeat(@Url String url, @QueryMap Map<String, String> header);
 
     @POST
-    Call<Reply> uploadCardRegMessage(@Url String url, @QueryMap Map<String, String> header, @Body RequestBody card);
+    Call<Reply> getConfig(@Url String url, @QueryMap Map<String, String> header, @Body RequestBody params);
 
     @POST
-    Call<Reply> uploadAdminLoginInfo(@Url String url, @QueryMap Map<String, String> header, @Body RequestBody login);
+    Call<Reply> checkBodyCodeAndTID(@Url String url, @QueryMap Map<String, String> header, @Body RequestBody params);
+
+    @POST
+    Call<Reply> checkStackOrSingle(@Url String url, @QueryMap Map<String, String> header, @Body RequestBody params);
+
+    @POST
+    Call<Reply> queryDeliveryBill(@Url String url, @QueryMap Map<String, String> header, @Body RequestBody params);
+
+    @POST
+    Call<Reply> uploadRegisterMsg(@Url String url, @QueryMap Map<String, String> header, @Body RequestBody msg);
+
+    @POST
+    Call<Reply> uploadScrapMsg(@Url String url, @QueryMap Map<String, String> header, @Body RequestBody msg);
+
+    @POST
+    Call<Reply> uploadCommonMsg(@Url String url, @QueryMap Map<String, String> header, @Body RequestBody msg);
+
+    @POST
+    Call<Reply> uploadStackMsg(@Url String url, @QueryMap Map<String, String> header, @Body RequestBody msg);
+
+    @POST
+    Call<Reply> uploadDeliveryMsg(@Url String url, @QueryMap Map<String, String> header, @Body RequestBody msg);
+
+    @POST
+    Call<Reply> uploadRefluxMsg(@Url String url, @QueryMap Map<String, String> header, @Body RequestBody msg);
+
+    @POST
+    Call<Reply> uploadDealerMsg(@Url String url, @QueryMap Map<String, String> header, @Body RequestBody msg);
+
+    @POST
+    Call<Reply> uploadCardRegMsg(@Url String url, @QueryMap Map<String, String> header, @Body RequestBody msg);
+
+    @POST
+    Call<Reply> uploadAdminLoginInfo(@Url String url, @QueryMap Map<String, String> header, @Body RequestBody info);
+
+    @POST
+    Call<Reply> uploadUnstackInfo(@Url String url, @QueryMap Map<String, String> header, @Body RequestBody info);
 
     @POST
     Call<Reply> reportHeartbeat(@Url String url, @Query("line") String line);
-
-    @POST
-    Call<Reply> reportBillDelivery(@Url String url, @Query("line") String line, @Body RequestBody bill);
-
-    @POST
-    Call<Reply> reportBillReflux(@Url String url, @Query("line") String line, @Body RequestBody bill);
-
-    @POST
-    Call<Reply> reportBillBucket(@Url String url, @Query("line") String line, @Body RequestBody bucket);
-
-    @POST
-    Call<Reply> reportBillComplete(@Url String url, @Query("line") String line, @Body RequestBody message);
-
-    @POST
-    Call<String> traceBucket(@Url String url, @Body RequestBody body);
-
-    @POST
-    @FormUrlEncoded
-    Call<Reply> cacheData(@Url String url, @Field("stage") String stage, @Field("path") String path, @Field("content") String content);
 }

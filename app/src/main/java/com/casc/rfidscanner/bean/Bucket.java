@@ -38,11 +38,8 @@ public class Bucket {
 
     private String bodyCode;
 
-    private String flag;
-
-    public Bucket(byte[] epc, String flag) {
+    public Bucket(byte[] epc) {
         this.epc = epc;
-        this.flag = flag;
         this.time = System.currentTimeMillis();
         this.info = MyVars.config.getProductInfoByCode(epc[5]);
         this.bodyCode = "";
@@ -52,12 +49,8 @@ public class Bucket {
         this.bodyCode = MyVars.config.getHeader() + this.bodyCode;
     }
 
-    public Bucket(String epcStr, String flag) {
-        this(CommonUtils.hexToBytes(epcStr), flag);
-    }
-
-    public Bucket(byte[] epc) {
-        this(epc, "1");
+    public Bucket(String epcStr) {
+        this(CommonUtils.hexToBytes(epcStr));
     }
 
     public Bucket(String epcStr, long time) {
@@ -71,10 +64,6 @@ public class Bucket {
 
     public void setScraped() {
         epc[MyParams.EPC_TYPE_INDEX] = MyParams.EPCType.BUCKET_SCRAPED.getCode();
-    }
-
-    public String getKey() {
-        return flag + getEpcStr();
     }
 
     public byte[] getEpc() {
@@ -111,10 +100,6 @@ public class Bucket {
 
     public String getBodyCode() {
         return bodyCode;
-    }
-
-    public String getFlag() {
-        return flag;
     }
 
     @Override

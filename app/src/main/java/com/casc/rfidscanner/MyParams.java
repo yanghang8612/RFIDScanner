@@ -47,16 +47,16 @@ public class MyParams {
      */
     // APP参数配置
     public static final int HEARTBEAT_TIMEOUT = 2000; // ms
-    public static final int NET_CONNECT_TIMEOUT = 5; // s
-    public static final int NET_RW_TIMEOUT = 5; // s
+    public static final int NET_CONNECT_TIMEOUT = 2; // s
+    public static final int NET_RW_TIMEOUT = 2; // s
     public static final int CONFIG_UPDATE_INTERVAL = 60; // s
     public static final int INTERNET_STATUS_CHECK_INTERVAL = 990; // ms
     public static final int PLATFORM_STATUS_CHECK_INTERVAL = 5000; // ms
     // 运维人员配置
     public static final String S_LINK = "link"; // 工位
     public static final String S_SENSOR_SWITCH = "sensor_switch"; // 传感器检测开关
-    public static final String S_RSSI_THRESHOLD = "rssi_threshold"; // 发射功率
-    public static final String S_MIN_REACH_TIMES = "min_reach_times"; // 发射功率
+    public static final String S_RSSI_THRESHOLD = "rssi_threshold"; // 达标阈值
+    public static final String S_MIN_REACH_TIMES = "min_reach_times"; // 最少达标次数
     public static final String S_POWER = "power"; // 发射功率
     public static final String S_Q_VALUE = "q_value"; // Q值
     public static final String S_REST = "rest"; // 占空时间
@@ -74,7 +74,6 @@ public class MyParams {
     public static final String S_HEIGHT = "height"; // 高度
     public static final String S_COUNTER_HISTORY = "counter_history";
     public static final String S_DRIVER_HISTORY = "driver_history";
-    public static final String S_LINE_NAME = "line_name";
     // 平台软件外部接口，统一使用一个json字符串存储
     public static final String S_API_JSON = "api_json";
     public static final Map<String, String> CONFIG_DEFAULT_MAP = new HashMap<>();
@@ -101,7 +100,6 @@ public class MyParams {
         CONFIG_DEFAULT_MAP.put(S_API_JSON, "{}");
         CONFIG_DEFAULT_MAP.put(S_COUNTER_HISTORY, "");
         CONFIG_DEFAULT_MAP.put(S_DRIVER_HISTORY, "");
-        CONFIG_DEFAULT_MAP.put(S_LINE_NAME, "");
     }
 
     /**
@@ -112,7 +110,6 @@ public class MyParams {
     public static final boolean ENABLE_BACKDOOR = true;
     public static final boolean PRINT_COMMAND = true;
     public static final boolean PRINT_JSON = true;
-    public static final boolean MONITOR_ON = false;
 
     /**
      * EPC各种类型

@@ -2,8 +2,9 @@
 <android.support.v7.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:id="@+id/cv_deliver_bill_root"
-    android:layout_width="match_parent"
+    android:layout_width="300dp"
     android:layout_height="match_parent"
+    android:layout_weight="1"
     android:layout_margin="8dp"
     app:cardCornerRadius="8dp"
     app:cardElevation="4dp"
@@ -16,49 +17,56 @@
         android:layout_margin="@dimen/item_delivery_bill_margin">
 
         <LinearLayout
-            android:orientation="horizontal"
+            android:orientation="vertical"
+            android:theme="@style/AppTheme.BillText"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginStart="4dp"
-            android:layout_marginEnd="4dp">
+            android:gravity="start">
 
             <LinearLayout
-                android:layout_width="0dp"
-                android:layout_height="match_parent"
-                android:layout_weight="1"
-                android:gravity="start">
+                android:orientation="horizontal"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
 
                 <TextView
-                    android:theme="@style/AppTheme.BillText"
                     android:layout_width="wrap_content"
-                    android:layout_height="match_parent"
-                    android:text="@string/card_id_label" />
+                    android:layout_height="wrap_content"
+                    android:text="经销商:"/>
 
                 <TextView
-                    android:id="@+id/tv_delivery_bill_card_id"
-                    android:theme="@style/AppTheme.BillText"
+                    android:id="@+id/tv_bill_dealer"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="頓汉布什（中国）"
+                    android:gravity="start" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="司机:"/>
+
+                <TextView
+                    android:id="@+id/tv_bill_driver"
                     android:layout_width="wrap_content"
                     android:layout_height="match_parent"
-                    android:background="@drawable/bg_bill_card_normal"
-                    android:text="HYC001" />
+                    android:text="金建春" />
 
             </LinearLayout>
 
             <LinearLayout
-                android:layout_width="0dp"
-                android:layout_height="match_parent"
-                android:layout_weight="2"
-                android:gravity="end">
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/item_delivery_bill_margin">
 
                 <TextView
-                    android:theme="@style/AppTheme.BillText"
                     android:layout_width="wrap_content"
                     android:layout_height="match_parent"
                     android:text="@string/delivery_bill_id_label" />
 
                 <TextView
                     android:id="@+id/tv_bill_id"
-                    android:theme="@style/AppTheme.BillText"
                     android:layout_width="wrap_content"
                     android:layout_height="match_parent"
                     android:text="HY020171212001" />
@@ -78,7 +86,7 @@
             <TextView
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:layout_weight="1"
+                android:layout_weight="2"
                 android:gravity="start"
                 android:text="产品名称" />
 
@@ -87,140 +95,21 @@
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:gravity="end"
-                android:text="剩余应出" />
+                android:text="已出库" />
 
             <TextView
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:gravity="end"
-                android:text="成垛出" />
-
-            <TextView
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:gravity="end"
-                android:text="单桶出" />
-
-            <TextView
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:gravity="end"
-                android:text="已退库" />
-
-            <TextView
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:gravity="end"
-                android:text="数量" />
+                android:text="总数量" />
 
         </LinearLayout>
 
         <android.support.v7.widget.RecyclerView
             android:id="@+id/rv_delivery_bill_goods"
             android:layout_width="match_parent"
-            android:layout_height="0dp"
-            android:layout_weight="1" />
-
-        <LinearLayout
-            android:orientation="horizontal"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:paddingStart="@dimen/item_delivery_bill_padding"
-            android:paddingEnd="@dimen/item_delivery_bill_padding"
-            android:gravity="bottom">
-
-            <LinearLayout
-                android:orientation="vertical"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1">
-
-                <LinearLayout
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content">
-
-                    <Button
-                        android:id="@+id/btn_state_stack"
-                        android:theme="@style/ButtonGrey"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="整垛模式"
-                        android:textSize="30sp" />
-
-                    <Button
-                        android:visibility="gone"
-                        android:id="@+id/btn_state_single"
-                        android:theme="@style/ButtonOrange"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="单桶模式"
-                        android:textSize="30sp" />
-
-                    <Button
-                        android:visibility="gone"
-                        android:id="@+id/btn_state_back"
-                        android:theme="@style/ButtonRed"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="退库模式"
-                        android:textSize="30sp" />
-
-                    <Button
-                        android:id="@+id/btn_confirm_delivery"
-                        android:theme="@style/ButtonPrimary"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="确认提交"
-                        android:textSize="30sp" />
-
-                </LinearLayout>
-
-            </LinearLayout>
-
-            <LinearLayout
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:gravity="end">
-
-                <TextView
-                    android:theme="@style/AppTheme.BillText"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="2"
-                    android:text="@string/delivery_count_label" />
-
-                <com.casc.rfidscanner.view.NumberSwitcher
-                    android:id="@+id/ns_delivery_count"
-                    android:theme="@style/AppTheme.BigNumber"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="3" />
-
-                <TextView
-                    android:theme="@style/AppTheme.BillText"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="2"
-                    android:paddingStart="@dimen/item_delivery_bill_margin"
-                    android:text="@string/total_count_label" />
-
-                <TextView
-                    android:id="@+id/tv_total_count"
-                    android:theme="@style/AppTheme.BigNumber"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="3"
-                    android:gravity="end"
-                    android:text="@string/number_default_value" />
-
-            </LinearLayout>
-
-        </LinearLayout>
+            android:layout_height="wrap_content" />
 
     </LinearLayout>
 

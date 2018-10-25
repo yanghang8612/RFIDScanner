@@ -6,7 +6,7 @@ import com.casc.rfidscanner.helper.ConfigHelper;
 import java.util.ArrayList;
 import java.util.List;
 
-public class MessageStack {
+public class MsgCommon {
 
     private String stage;
 
@@ -18,21 +18,19 @@ public class MessageStack {
 
     private double height;
 
-    private long time;
-
-    private String packageflag;
-
-    // R5消息中包含的所有桶RFID及桶身码相关扫描信息
+    // R3、R4、R7消息中包含的所有桶RFID及桶身码相关扫描信息
     private List<Bucket> bucket_info = new ArrayList<>();
 
-    public MessageStack(String packageflag) {
+    public MsgCommon() {
         this.stage = ConfigHelper.getString(MyParams.S_LINK);
         this.reader_TID = ConfigHelper.getString(MyParams.S_READER_ID);
         this.longitude = Double.valueOf(ConfigHelper.getString(MyParams.S_LONGITUDE));
         this.latitude = Double.valueOf(ConfigHelper.getString(MyParams.S_LATITUDE));
         this.height = Double.valueOf(ConfigHelper.getString(MyParams.S_HEIGHT));
-        this.time = System.currentTimeMillis();
-        this.packageflag = packageflag;
+    }
+
+    public void addBucket(String tid, String epc) {
+        bucket_info.add(new Bucket(tid, epc));
     }
 
     public void addBucket(String epc) {

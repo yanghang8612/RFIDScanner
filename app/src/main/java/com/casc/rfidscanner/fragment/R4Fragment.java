@@ -2,7 +2,6 @@ package com.casc.rfidscanner.fragment;
 
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
-import android.view.View;
 
 import com.casc.rfidscanner.MyParams;
 import com.casc.rfidscanner.MyVars;
@@ -93,9 +92,6 @@ public class R4Fragment extends BaseFragment {
 
     @Override
     protected void initFragment() {
-        mMonitorStatusLl.setVisibility(View.GONE);
-        mReaderStatusLl.setVisibility(View.VISIBLE);
-
         mScannedCountNs.setNumber(0);
         mUploadedCountNs.setNumber(0);
         mStoredCountNs.setNumber((int) MyVars.cache.getStoredCount());

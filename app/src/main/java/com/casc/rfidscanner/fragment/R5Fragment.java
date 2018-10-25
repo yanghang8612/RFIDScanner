@@ -2,9 +2,6 @@ package com.casc.rfidscanner.fragment;
 
 import android.os.Handler;
 import android.os.Message;
-import android.support.v7.widget.RecyclerView;
-import android.util.Log;
-import android.view.View;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
@@ -12,17 +9,12 @@ import com.casc.rfidscanner.MyParams;
 import com.casc.rfidscanner.MyVars;
 import com.casc.rfidscanner.R;
 import com.casc.rfidscanner.activity.ConfigActivity;
-import com.casc.rfidscanner.adapter.HintAdapter;
 import com.casc.rfidscanner.bean.Bucket;
-import com.casc.rfidscanner.bean.Hint;
 import com.casc.rfidscanner.dao.MessageDao;
 import com.casc.rfidscanner.helper.DBHelper;
-import com.casc.rfidscanner.helper.NetHelper;
-import com.casc.rfidscanner.helper.param.MessageStack;
-import com.casc.rfidscanner.helper.param.Reply;
+import com.casc.rfidscanner.helper.param.MsgStack;
 import com.casc.rfidscanner.message.AbnormalBucketMessage;
 import com.casc.rfidscanner.message.PollingResultMessage;
-import com.casc.rfidscanner.message.TagCountChangedMessage;
 import com.casc.rfidscanner.utils.CommonUtils;
 import com.casc.rfidscanner.view.NumberSwitcher;
 
@@ -30,19 +22,11 @@ import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
 
 import java.lang.ref.WeakReference;
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.Map;
-import java.util.Objects;
-import java.util.Set;
 
 import butterknife.BindView;
 import butterknife.OnClick;
-import retrofit2.Call;
-import retrofit2.Callback;
-import retrofit2.Response;
 
 /**
  * 成品打垛Fragment
@@ -70,6 +54,8 @@ public class R5Fragment extends BaseFragment {
 
     private Map<String, Integer> mBucketsToRemove = new LinkedHashMap<>();
 
+    private Map<String, Integer> mTestEPCs = new LinkedHashMap<>();
+
     private MessageDao mDao = new MessageDao(DBHelper.TABLE_NAME_STACK_DETAIL);
 
     private final Object mLock = new Object();
@@ -91,6 +77,13 @@ public class R5Fragment extends BaseFragment {
             String epcStr = CommonUtils.bytesToHex(message.epc);
             switch (CommonUtils.validEPC(message.epc)) {
                 case NONE: // 检测到未注册标签，是否提示
+//                    if (!mTestEPCs.containsKey(epcStr)) {
+//                        playSound();
+//                        mScannedCountNs.increaseNumber();
+//                        mTestEPCs.put(epcStr, 1);
+//                    } else {
+//                        mTestEPCs.put(epcStr, mTestEPCs.get(epcStr) + 1);
+//                    }
                     break;
                 case BUCKET:
                     synchronized (mLock) {
@@ -131,9 +124,6 @@ public class R5Fragment extends BaseFragment {
 
     @Override
     protected void initFragment() {
-        mMonitorStatusLl.setVisibility(View.GONE);
-        mReaderStatusLl.setVisibility(View.VISIBLE);
-
         mStatus = WorkStatus.IS_IDLE;
         mScannedCountNs.setNumber(mBucketsToStack.size());
         mStackCountNs.setNumber(0);
@@ -155,7 +145,6 @@ public class R5Fragment extends BaseFragment {
             mScannedCountNs.setNumber(0);
             mHandler.sendMessageDelayed(mHandler.obtainMessage(MSG_COMPLETE), 20000);
         }
-
     }
 
     @OnClick(R.id.ll_bulk_buckets)
@@ -169,7 +158,8 @@ public class R5Fragment extends BaseFragment {
             mScannedCountNs.setNumber(0);
             mHandler.sendMessageDelayed(mHandler.obtainMessage(MSG_COMPLETE), 20000);
         }
-
+//        mTestEPCs.clear();
+//        mScannedCountNs.setNumber(0);
     }
 
     private static class InnerHandler extends Handler {
@@ -192,12 +182,13 @@ public class R5Fragment extends BaseFragment {
                             outer.mBucketsToStack.remove(epcStr);
                         }
 //                        outer.storeBucketsMap(outer.mBucketsToStack);
-                        outer.uploadStackMessage(outer.mBucketsToStack,
-                                outer.mStatus == WorkStatus.IS_BULK);
+                        if (!outer.mBucketsToStack.isEmpty()) {
+                            outer.uploadStackMessage(outer.mBucketsToStack,
+                                    outer.mStatus == WorkStatus.IS_BULK);
+                            outer.mStackCountNs.increaseNumber();
+                        }
                         outer.mBucketsToStack = outer.mBucketsToRemove;
                         outer.mBucketsToRemove = new LinkedHashMap<>();
-                        outer.mScannedCountNs.setNumber(outer.mBucketsToStack.size());
-                        outer.mStackCountNs.increaseNumber();
                         outer.mStatus = WorkStatus.IS_IDLE;
                         outer.mStackBucketsLl.setEnabled(true);
                         outer.mStackBucketsLl.getBackground().setTint(outer.mContext.getColor(R.color.light_gray));
@@ -224,7 +215,7 @@ public class R5Fragment extends BaseFragment {
     }
 
     private void uploadStackMessage(Map<String, Integer> buckets, boolean isBulk) {
-        MessageStack stack = new MessageStack(isBulk ? "0" : "1");
+        MsgStack stack = new MsgStack(isBulk ? "0" : "1");
         for (String epcStr : buckets.keySet()) {
             stack.addBucket(epcStr);
         }

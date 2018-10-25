@@ -20,9 +20,7 @@ import com.casc.rfidscanner.activity.ConfigActivity;
 import com.casc.rfidscanner.adapter.RNBucketAdapter;
 import com.casc.rfidscanner.bean.RNBucket;
 import com.casc.rfidscanner.helper.ConfigHelper;
-import com.casc.rfidscanner.helper.NetHelper;
-import com.casc.rfidscanner.helper.param.MessageDealer;
-import com.casc.rfidscanner.helper.param.Reply;
+import com.casc.rfidscanner.helper.param.MsgDealer;
 import com.casc.rfidscanner.message.AbnormalBucketMessage;
 import com.casc.rfidscanner.message.BillStoredMessage;
 import com.casc.rfidscanner.message.BillUploadedMessage;
@@ -32,7 +30,6 @@ import com.chad.library.adapter.base.callback.ItemDragAndSwipeCallback;
 import com.chad.library.adapter.base.listener.OnItemSwipeListener;
 import com.weiwangcn.betterspinner.library.BetterSpinner;
 
-import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
 
@@ -44,9 +41,6 @@ import java.util.Objects;
 
 import butterknife.BindView;
 import butterknife.OnClick;
-import retrofit2.Call;
-import retrofit2.Callback;
-import retrofit2.Response;
 
 /**
  * 水站库存管理Fragment
@@ -142,9 +136,6 @@ public class RNFragment extends BaseFragment {
 
     @Override
     protected void initFragment() {
-        mMonitorStatusLl.setVisibility(View.GONE);
-        mReaderStatusLl.setVisibility(View.VISIBLE);
-
         mStoredBillCountTv.setText(String.valueOf(MyVars.cache.getStoredDealerBillCount()));
         mLinks = getResources().getStringArray(R.array.rn_link);
         mRNLinkSpn.setText(mLinks[0]);
@@ -259,7 +250,7 @@ public class RNFragment extends BaseFragment {
                         String driver = mRNDriverAct.getText().toString();
                         saveHistory(mRNCounterAct, MyParams.S_COUNTER_HISTORY);
                         saveHistory(mRNDriverAct, MyParams.S_DRIVER_HISTORY);
-                        MessageDealer dealer = new MessageDealer(stage, counter, driver);
+                        MsgDealer dealer = new MsgDealer(stage, counter, driver);
                         for (RNBucket bucket : mBuckets) {
                             dealer.addBucket(System.currentTimeMillis() / 1000, bucket.getEpc());
                         }

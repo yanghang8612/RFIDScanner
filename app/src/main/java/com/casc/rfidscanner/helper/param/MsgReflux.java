@@ -6,7 +6,7 @@ import com.casc.rfidscanner.helper.ConfigHelper;
 import java.util.ArrayList;
 import java.util.List;
 
-public class MessageDealer {
+public class MsgReflux {
 
     private String stage;
 
@@ -20,30 +20,29 @@ public class MessageDealer {
 
     private long time;
 
-    private String counterparty;
+    private String dealer;
 
     private String driver;
 
-    // 成品出库的桶身码相关扫描信息
+    private int unknown;
+
+    // 成品回流的桶身码相关扫描信息
     private List<Bucket> bucket_info = new ArrayList<>();
 
-    public MessageDealer(String stage, String counterparty, String driver) {
-        this.stage = stage;
+    public MsgReflux(String dealer, String driver, int unknown) {
+        this.stage = ConfigHelper.getString(MyParams.S_LINK);
         this.reader_TID = ConfigHelper.getString(MyParams.S_READER_ID);
         this.longitude = Double.valueOf(ConfigHelper.getString(MyParams.S_LONGITUDE));
         this.latitude = Double.valueOf(ConfigHelper.getString(MyParams.S_LATITUDE));
         this.height = Double.valueOf(ConfigHelper.getString(MyParams.S_HEIGHT));
-        this.time = System.currentTimeMillis() - (MyParams.DELAY * (14 - Integer.valueOf(stage)));
-        this.counterparty = counterparty;
+        this.time = System.currentTimeMillis();
+        this.dealer = dealer;
         this.driver = driver;
+        this.unknown = unknown;
     }
 
-    public String getStage() {
-        return stage;
-    }
-
-    public void addBucket(long time, String epc) {
-        bucket_info.add(new Bucket(time, epc));
+    public void addBucket(long time, String epc, String bodyCode) {
+        bucket_info.add(new Bucket(time, epc, bodyCode));
     }
 
     // 桶信息的内部类
@@ -53,9 +52,12 @@ public class MessageDealer {
 
         private String bucket_epc;
 
-        private Bucket(long time, String epc) {
+        private String bodycode;
+
+        private Bucket(long time, String epc, String bodycode) {
+            this.bucket_time = time;
             this.bucket_epc = epc;
-            this.bucket_time = time - (MyParams.DELAY * (14 - Integer.valueOf(stage)));
+            this.bodycode = bodycode;
         }
     }
 }

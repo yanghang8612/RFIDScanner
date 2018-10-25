@@ -80,14 +80,6 @@
             android:name=".activity.ConfigActivity"
             android:screenOrientation="landscape" />
         <activity
-            android:name=".activity.DeliveryDetailActivity"
-            android:screenOrientation="landscape"
-            android:theme="@style/AppTheme.Transparent" />
-        <activity
-            android:name=".activity.RefluxDetailActivity"
-            android:screenOrientation="landscape"
-            android:theme="@style/AppTheme.Transparent" />
-        <activity
             android:name=".activity.BillConfirmActivity"
             android:screenOrientation="landscape"
             android:theme="@style/AppTheme.LightTransparent" />
@@ -103,8 +95,6 @@
             android:name=".activity.ErrorRemindActivity"
             android:screenOrientation="landscape"
             android:theme="@style/AppTheme.LightTransparent" />
-
-        <service android:name=".service.HttpService" />
 
     </application>
 

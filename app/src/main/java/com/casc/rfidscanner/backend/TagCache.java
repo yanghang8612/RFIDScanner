@@ -10,11 +10,11 @@ import com.casc.rfidscanner.dao.MessageDao;
 import com.casc.rfidscanner.helper.ConfigHelper;
 import com.casc.rfidscanner.helper.DBHelper;
 import com.casc.rfidscanner.helper.NetHelper;
-import com.casc.rfidscanner.helper.param.MessageCommon;
-import com.casc.rfidscanner.helper.param.MessageDealer;
-import com.casc.rfidscanner.helper.param.MessageDelivery;
-import com.casc.rfidscanner.helper.param.MessageReflux;
-import com.casc.rfidscanner.helper.param.MessageStack;
+import com.casc.rfidscanner.helper.param.MsgCommon;
+import com.casc.rfidscanner.helper.param.MsgDealer;
+import com.casc.rfidscanner.helper.param.MsgDelivery;
+import com.casc.rfidscanner.helper.param.MsgReflux;
+import com.casc.rfidscanner.helper.param.MsgStack;
 import com.casc.rfidscanner.helper.param.Reply;
 import com.casc.rfidscanner.message.BillUploadedMessage;
 import com.casc.rfidscanner.message.TagCountChangedMessage;
@@ -93,7 +93,7 @@ public class TagCache {
         }
     }
 
-    public synchronized void storeStackMessage(MessageStack stack) {
+    public synchronized void storeStackMessage(MsgStack stack) {
         stackDao.insert(CommonUtils.toJson(stack));
     }
 
@@ -101,7 +101,7 @@ public class TagCache {
         return stackDao.rowCount();
     }
 
-    public synchronized void storeDeliveryBill(MessageDelivery delivery) {
+    public synchronized void storeDeliveryBill(MsgDelivery delivery) {
         deliveryDao.insert(CommonUtils.toJson(delivery));
     }
 
@@ -109,7 +109,7 @@ public class TagCache {
         return deliveryDao.rowCount();
     }
 
-    public synchronized void storeRefluxBill(MessageReflux reflux) {
+    public synchronized void storeRefluxBill(MsgReflux reflux) {
         refluxDao.insert(CommonUtils.toJson(reflux));
     }
 
@@ -117,7 +117,7 @@ public class TagCache {
         return refluxDao.rowCount();
     }
 
-    public synchronized void storeDealerBill(MessageDealer dealer) {
+    public synchronized void storeDealerBill(MsgDealer dealer) {
         dealerDao.insert(CommonUtils.toJson(dealer));
     }
 
@@ -126,17 +126,17 @@ public class TagCache {
     }
 
     private void upload(String tid, final String epc) {
-        final MessageCommon common = new MessageCommon();
-        common.addBucket(tid, epc);
+        final MsgCommon msg = new MsgCommon();
+        msg.addBucket(tid, epc);
         if (MyVars.status.canSendRequest() && tagDao.rowCount() == 0) {
-            NetHelper.getInstance().uploadCommonMessage(common)
+            NetHelper.getInstance().uploadCommonMsg(msg)
                     .enqueue(new Callback<Reply>() {
                         @Override
                         public void onResponse(@NonNull Call<Reply> call, @NonNull Response<Reply> response) {
                             Reply body = response.body();
                             if (!response.isSuccessful() || body == null || body.getCode() != 200) {
                                 synchronized (TagCache.this) {
-                                    tagDao.insert(CommonUtils.toJson(common));
+                                    tagDao.insert(CommonUtils.toJson(msg));
                                 }
                                 cache.get(epc).status = TagStatus.STORED;
                             }
@@ -149,14 +149,14 @@ public class TagCache {
                         @Override
                         public void onFailure(@NonNull Call<Reply> call, @NonNull Throwable t) {
                             synchronized (TagCache.this) {
-                                tagDao.insert(CommonUtils.toJson(common));
+                                tagDao.insert(CommonUtils.toJson(msg));
                             }
                             cache.get(epc).status = TagStatus.STORED;
                         }
                     });
         } else {
             synchronized (TagCache.this) {
-                tagDao.insert(CommonUtils.toJson(common));
+                tagDao.insert(CommonUtils.toJson(msg));
             }
         }
     }
@@ -215,8 +215,8 @@ public class TagCache {
                             final Pair<Integer, String> tagPair = tagDao.findOne();
                             try {
                                 Response<Reply> response = NetHelper.getInstance()
-                                        .uploadCommonMessage(
-                                                new Gson().fromJson(tagPair.second, MessageCommon.class))
+                                        .uploadCommonMsg(
+                                                new Gson().fromJson(tagPair.second, MsgCommon.class))
                                         .execute();
                                 Reply body = response.body();
                                 if (response.isSuccessful() && body != null && body.getCode() == 200) {
@@ -231,8 +231,8 @@ public class TagCache {
                             final Pair<Integer, String> stackPair = stackDao.findOne();
                             try {
                                 Response<Reply> response = NetHelper.getInstance()
-                                        .uploadStackMessage(
-                                                new Gson().fromJson(stackPair.second, MessageStack.class))
+                                        .uploadStackMsg(
+                                                new Gson().fromJson(stackPair.second, MsgStack.class))
                                         .execute();
                                 Reply body = response.body();
                                 if (response.isSuccessful() && body != null && body.getCode() == 200) {
@@ -246,8 +246,8 @@ public class TagCache {
                             final Pair<Integer, String> refluxPair = refluxDao.findOne();
                             try {
                                 Response<Reply> response = NetHelper.getInstance()
-                                        .uploadRefluxMessage(
-                                                new Gson().fromJson(refluxPair.second, MessageReflux.class))
+                                        .uploadRefluxMsg(
+                                                new Gson().fromJson(refluxPair.second, MsgReflux.class))
                                         .execute();
                                 Reply body = response.body();
                                 if (response.isSuccessful() && body != null && body.getCode() == 200) {
@@ -262,8 +262,8 @@ public class TagCache {
                             final Pair<Integer, String> deliveryPair = deliveryDao.findOne();
                             try {
                                 Response<Reply> response = NetHelper.getInstance()
-                                        .uploadDeliveryMessage(
-                                                new Gson().fromJson(deliveryPair.second, MessageDelivery.class))
+                                        .uploadDeliveryMsg(
+                                                new Gson().fromJson(deliveryPair.second, MsgDelivery.class))
                                         .execute();
                                 Reply body = response.body();
                                 if (response.isSuccessful() && body != null && body.getCode() == 200) {
@@ -278,7 +278,7 @@ public class TagCache {
                             final Pair<Integer, String> dealer = dealerDao.findOne();
                             try {
                                 Response<Reply> response = NetHelper.getInstance()
-                                        .uploadDealerMessage(new Gson().fromJson(dealer.second, MessageDealer.class))
+                                        .uploadDealerMsg(new Gson().fromJson(dealer.second, MsgDealer.class))
                                         .execute();
                                 Reply body = response.body();
                                 if (response.isSuccessful() && body != null && body.getCode() == 200) {

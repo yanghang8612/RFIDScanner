@@ -8,14 +8,8 @@ public class Goods {
     // 总数量
     private int totalCount;
 
-    // 成垛数量
-    private int stackCount;
-
-    // 散货数量
-    private int singleCount;
-
-    // 退库数量
-    private int backCount;
+    // 出库数量
+    private int curCount;
 
     public Goods(ProductInfo info, int totalCount) {
         this.info = info;
@@ -39,47 +33,19 @@ public class Goods {
     }
 
     public int getLeftCount() {
-        return Math.max(0, totalCount - getCurCount());
+        return Math.max(0, totalCount - curCount);
     }
 
     public int getCurCount() {
-        return 32 * stackCount + singleCount - backCount;
+        return curCount;
     }
 
-    public int getStackCount() {
-        return stackCount;
+    public void addCurCount() {
+        this.curCount++;
     }
 
-    public int getSingleCount() {
-        return singleCount;
-    }
-
-    public int getBackCount() {
-        return backCount;
-    }
-
-    public void addStack() {
-        this.stackCount++;
-    }
-
-    public void minusStack() {
-        this.stackCount--;
-    }
-
-    public void addSingle() {
-        this.singleCount++;
-    }
-
-    public void minusSingle() {
-        this.singleCount--;
-    }
-
-    public void addBack() {
-        this.backCount++;
-    }
-
-    public void minusBack() {
-        this.backCount--;
+    public void minusCurCount() {
+        this.curCount--;
     }
 
     public boolean isBucketMatched(Bucket bucket) {

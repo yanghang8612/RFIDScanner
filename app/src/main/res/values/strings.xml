@@ -59,7 +59,7 @@
     <string name="cur_reflux_count_label">回收数量</string>
 
     <string name="card_id_label">专用卡号：</string>
-    <string name="delivery_bill_id_label">提货单号：</string>
+    <string name="delivery_bill_id_label">提货单:</string>
     <string name="view_buckets_button_text">桶详细信息</string>
     <string name="view_brief_button_text">简要信息</string>
     <string name="confirm_delivery_button_text">确认出库</string>

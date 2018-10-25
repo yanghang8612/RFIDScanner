@@ -6,7 +6,7 @@ import com.casc.rfidscanner.helper.ConfigHelper;
 import java.util.ArrayList;
 import java.util.List;
 
-public class MessageCommon {
+public class MsgDealer {
 
     private String stage;
 
@@ -18,38 +18,44 @@ public class MessageCommon {
 
     private double height;
 
-    // R3、R4、R7消息中包含的所有桶RFID及桶身码相关扫描信息
+    private long time;
+
+    private String counterparty;
+
+    private String driver;
+
+    // 成品出库的桶身码相关扫描信息
     private List<Bucket> bucket_info = new ArrayList<>();
 
-    public MessageCommon() {
-        this.stage = ConfigHelper.getString(MyParams.S_LINK);
+    public MsgDealer(String stage, String counterparty, String driver) {
+        this.stage = stage;
         this.reader_TID = ConfigHelper.getString(MyParams.S_READER_ID);
         this.longitude = Double.valueOf(ConfigHelper.getString(MyParams.S_LONGITUDE));
         this.latitude = Double.valueOf(ConfigHelper.getString(MyParams.S_LATITUDE));
         this.height = Double.valueOf(ConfigHelper.getString(MyParams.S_HEIGHT));
+        this.time = System.currentTimeMillis() - (MyParams.DELAY * (14 - Integer.valueOf(stage)));
+        this.counterparty = counterparty;
+        this.driver = driver;
     }
 
-    public void addBucket(String tid, String epc) {
-        bucket_info.add(new Bucket(tid, epc));
+    public String getStage() {
+        return stage;
     }
 
-    public void addBucket(String epc) {
-        bucket_info.add(new Bucket("", epc));
+    public void addBucket(long time, String epc) {
+        bucket_info.add(new Bucket(time, epc));
     }
 
     // 桶信息的内部类
     private class Bucket {
 
-        private String bucket_TID;
-
         private long bucket_time;
 
         private String bucket_epc;
 
-        private Bucket(String tid, String epc) {
-            this.bucket_TID = tid;
-            this.bucket_time = System.currentTimeMillis() - (MyParams.DELAY * (10 - Integer.valueOf(stage)));
+        private Bucket(long time, String epc) {
             this.bucket_epc = epc;
+            this.bucket_time = time - (MyParams.DELAY * (14 - Integer.valueOf(stage)));
         }
     }
 }

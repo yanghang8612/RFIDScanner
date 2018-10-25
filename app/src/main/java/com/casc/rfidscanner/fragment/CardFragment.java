@@ -1,10 +1,8 @@
 package com.casc.rfidscanner.fragment;
 
-import android.content.Context;
 import android.graphics.Color;
 import android.os.Handler;
 import android.os.Message;
-import android.os.Vibrator;
 import android.support.v7.widget.CardView;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -27,7 +25,7 @@ import com.casc.rfidscanner.bean.Card;
 import com.casc.rfidscanner.bean.Hint;
 import com.casc.rfidscanner.helper.InsHelper;
 import com.casc.rfidscanner.helper.NetHelper;
-import com.casc.rfidscanner.helper.param.MessageCardReg;
+import com.casc.rfidscanner.helper.param.MsgCardReg;
 import com.casc.rfidscanner.helper.param.Reply;
 import com.casc.rfidscanner.message.MultiStatusMessage;
 import com.casc.rfidscanner.message.PollingResultMessage;
@@ -100,9 +98,6 @@ public class CardFragment extends BaseFragment {
     // 要注册的桶实例
     private Card mCardToRegister;
 
-    // 系统震动辅助类
-    private Vibrator mVibrator;
-
     // Fragment内部handler
     private Handler mHandler = new InnerHandler(this);
 
@@ -152,12 +147,8 @@ public class CardFragment extends BaseFragment {
 
     @Override
     protected void initFragment() {
-        mMonitorStatusLl.setVisibility(View.GONE);
-        mReaderStatusLl.setVisibility(View.VISIBLE);
-
         mCardAdapter = new CardAdapter(mCards);
         mHintAdapter = new HintAdapter(mHints);
-        mVibrator = (Vibrator) mContext.getSystemService(Context.VIBRATOR_SERVICE);
 
         mBodyCodeIcl.setHeader(MyVars.config.getCompanySymbol() + "C");
         mCardTypeSpn.setText(getResources().getStringArray(R.array.card_type)[0]);
@@ -281,8 +272,8 @@ public class CardFragment extends BaseFragment {
     }
 
     private boolean canRegister() {
-        return MyVars.getReader().isConnected() & !mIsRegistering &&
-                mIsAllConnectionsReady && mIsUnregisteredEPCRead && mIsBodyCodeWritten;
+        return !mIsRegistering && mIsAllConnectionsReady
+                && mIsUnregisteredEPCRead && mIsBodyCodeWritten;
     }
 
     private static class InnerHandler extends Handler {
@@ -382,8 +373,8 @@ public class CardFragment extends BaseFragment {
 
                 // 尝试上报平台
                 writeHint("上报平台");
-                MessageCardReg message = new MessageCardReg(mCardToRegister);
-                Response<Reply> responseCardReg = NetHelper.getInstance().uploadCardRegMessage(message).execute();
+                MsgCardReg msg = new MsgCardReg(mCardToRegister);
+                Response<Reply> responseCardReg = NetHelper.getInstance().uploadCardRegMsg(msg).execute();
                 Reply replyCardReg = responseCardReg.body();
                 if (!responseCardReg.isSuccessful()) {
                     writeHint("平台连接失败");

@@ -1,19 +1,13 @@
 package com.casc.rfidscanner.fragment;
 
-import android.content.Context;
 import android.graphics.PointF;
 import android.os.Handler;
 import android.os.Message;
-import android.os.Vibrator;
-import android.support.annotation.NonNull;
 import android.text.TextUtils;
-import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
 
-import com.afollestad.materialdialogs.DialogAction;
-import com.afollestad.materialdialogs.MaterialDialog;
 import com.casc.rfidscanner.MyParams;
 import com.casc.rfidscanner.MyVars;
 import com.casc.rfidscanner.R;
@@ -21,12 +15,8 @@ import com.casc.rfidscanner.activity.BillConfirmActivity;
 import com.casc.rfidscanner.activity.ConfigActivity;
 import com.casc.rfidscanner.bean.Bucket;
 import com.casc.rfidscanner.helper.ConfigHelper;
-import com.casc.rfidscanner.helper.NetHelper;
-import com.casc.rfidscanner.helper.param.MessageReflux;
-import com.casc.rfidscanner.helper.param.Reply;
+import com.casc.rfidscanner.helper.param.MsgReflux;
 import com.casc.rfidscanner.message.AbnormalBucketMessage;
-import com.casc.rfidscanner.message.BillStoredMessage;
-import com.casc.rfidscanner.message.BillUploadedMessage;
 import com.casc.rfidscanner.message.DealerAndDriverSelectedMessage;
 import com.casc.rfidscanner.message.PollingResultMessage;
 import com.casc.rfidscanner.utils.CommonUtils;
@@ -34,7 +24,6 @@ import com.casc.rfidscanner.view.InputCodeLayout;
 import com.casc.rfidscanner.view.NumberSwitcher;
 import com.dlazaro66.qrcodereaderview.QRCodeReaderView;
 
-import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
 
@@ -45,9 +34,6 @@ import java.util.Map;
 
 import butterknife.BindView;
 import butterknife.OnClick;
-import retrofit2.Call;
-import retrofit2.Callback;
-import retrofit2.Response;
 
 /**
  * 空桶回流Fragment
@@ -81,15 +67,12 @@ public class R2Fragment extends BaseFragment implements QRCodeReaderView.OnQRCod
 
     private Map<String, Long> mBodyCodes = new HashMap<>();
 
-    // 系统震动辅助类
-    private Vibrator mVibrator;
-
     // Fragment内部handler
     private Handler mHandler = new InnerHandler(this);
 
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void onMessageEvent(DealerAndDriverSelectedMessage message) {
-        MessageReflux reflux = new MessageReflux(message.dealer, message.driver, 0);
+        MsgReflux reflux = new MsgReflux(message.dealer, message.driver, 0);
         for (Bucket bucket : mEPCBuckets.values()) {
             reflux.addBucket(bucket.getTime(), bucket.getEpcStr(), bucket.getBodyCode());
         }
@@ -161,11 +144,6 @@ public class R2Fragment extends BaseFragment implements QRCodeReaderView.OnQRCod
 
     @Override
     protected void initFragment() {
-        mMonitorStatusLl.setVisibility(View.GONE);
-        mReaderStatusLl.setVisibility(View.VISIBLE);
-
-        mVibrator = (Vibrator) mContext.getSystemService(Context.VIBRATOR_SERVICE);
-
         mUnknownCount = -1;
         mScannedCountNs.setNumber(0);
         mBodyCodeReaderQrv.setOnQRCodeReadListener(this);

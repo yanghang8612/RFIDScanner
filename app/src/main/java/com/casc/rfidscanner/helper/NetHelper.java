@@ -1,32 +1,29 @@
 package com.casc.rfidscanner.helper;
 
 import android.support.annotation.NonNull;
+import android.util.Log;
 
 import com.casc.rfidscanner.MyParams;
-import com.casc.rfidscanner.MyVars;
-import com.casc.rfidscanner.helper.param.MessageBillBucket;
-import com.casc.rfidscanner.helper.param.MessageBillComplete;
-import com.casc.rfidscanner.helper.param.MessageBillDelivery;
-import com.casc.rfidscanner.helper.param.MessageCardReg;
-import com.casc.rfidscanner.helper.param.MessageCommon;
-import com.casc.rfidscanner.helper.param.MessageConfig;
-import com.casc.rfidscanner.helper.param.MessageDealer;
-import com.casc.rfidscanner.helper.param.MessageDelivery;
-import com.casc.rfidscanner.helper.param.MessageQuery;
-import com.casc.rfidscanner.helper.param.MessageReflux;
-import com.casc.rfidscanner.helper.param.MessageRegister;
-import com.casc.rfidscanner.helper.param.MessageScrap;
-import com.casc.rfidscanner.helper.param.MessageStack;
+import com.casc.rfidscanner.helper.param.MsgAdminLogin;
+import com.casc.rfidscanner.helper.param.MsgCardReg;
+import com.casc.rfidscanner.helper.param.MsgChkBodyCodeAndTID;
+import com.casc.rfidscanner.helper.param.MsgChkStackOrSingle;
+import com.casc.rfidscanner.helper.param.MsgCommon;
+import com.casc.rfidscanner.helper.param.MsgDealer;
+import com.casc.rfidscanner.helper.param.MsgDelivery;
+import com.casc.rfidscanner.helper.param.MsgReaderTID;
+import com.casc.rfidscanner.helper.param.MsgReflux;
+import com.casc.rfidscanner.helper.param.MsgRegister;
+import com.casc.rfidscanner.helper.param.MsgScrap;
+import com.casc.rfidscanner.helper.param.MsgStack;
+import com.casc.rfidscanner.helper.param.MsgUnstack;
 import com.casc.rfidscanner.helper.param.Reply;
-import com.casc.rfidscanner.message.ResendAllBillsMessage;
 import com.casc.rfidscanner.utils.CommonUtils;
 
-import org.greenrobot.eventbus.EventBus;
-
+import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 
 import okhttp3.OkHttpClient;
-import okhttp3.RequestBody;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
@@ -60,58 +57,85 @@ public class NetHelper {
         return SingletonHolder.instance;
     }
 
-    public Call<Reply> checkBodyCodeAndTID(MessageQuery query) {
+    public Call<Reply> sendHeartbeat() {
+        return netInterface.sendHeartbeat(
+                ConfigHelper.getString(MyParams.S_MAIN_PLATFORM_ADDR) + "/api/message/heartbeat",
+                CommonUtils.generateRequestHeader("02"));
+    }
+
+    public Call<Reply> getConfig() {
+        return netInterface.getConfig(
+                ConfigHelper.getString(MyParams.S_MAIN_PLATFORM_ADDR) + "/api/device/parameter",
+                CommonUtils.generateRequestHeader("02"),
+                CommonUtils.generateRequestBody(new MsgReaderTID()));
+    }
+
+    public Call<Reply> checkBodyCodeAndTID(MsgChkBodyCodeAndTID params) {
         return netInterface.checkBodyCodeAndTID(
                 ConfigHelper.getString(MyParams.S_MAIN_PLATFORM_ADDR) + "/api/message/bucket/query",
                 CommonUtils.generateRequestHeader("02"),
-                CommonUtils.generateRequestBody(query));
+                CommonUtils.generateRequestBody(params));
     }
 
-    public Call<Reply> uploadRegisterMessage(MessageRegister register) {
-        return netInterface.uploadRegisterMessage(
+    public Call<Reply> checkStackOrSingle(String bucketEPCStr) {
+        return netInterface.checkStackOrSingle(
+                ConfigHelper.getString(MyParams.S_MAIN_PLATFORM_ADDR) + "/api/message/bucket/issinglequery",
+                CommonUtils.generateRequestHeader("02"),
+                CommonUtils.generateRequestBody(new MsgChkStackOrSingle(bucketEPCStr)));
+    }
+
+    public Call<Reply> queryDeliveryBill() {
+        return netInterface.queryDeliveryBill(
+                ConfigHelper.getString(MyParams.S_MAIN_PLATFORM_ADDR) + "/api/device/formquery",
+                CommonUtils.generateRequestHeader("02"),
+                CommonUtils.generateRequestBody(new MsgReaderTID()));
+    }
+
+    public Call<Reply> uploadRegisterMsg(MsgRegister msg) {
+        return netInterface.uploadRegisterMsg(
                 ConfigHelper.getString(MyParams.S_MAIN_PLATFORM_ADDR) + "/api/message/bucket/register",
                 CommonUtils.generateRequestHeader("02"),
-                CommonUtils.generateRequestBody(register));
+                CommonUtils.generateRequestBody(msg));
     }
 
-    public Call<Reply> uploadScrapMessage(MessageScrap scrap) {
-        return netInterface.uploadScrapMessage(
+    public Call<Reply> uploadScrapMsg(MsgScrap msg) {
+        return netInterface.uploadScrapMsg(
                 ConfigHelper.getString(MyParams.S_MAIN_PLATFORM_ADDR) + "/api/message/bucket/scrap",
                 CommonUtils.generateRequestHeader("02"),
-                CommonUtils.generateRequestBody(scrap));
+                CommonUtils.generateRequestBody(msg));
     }
 
-    public Call<Reply> uploadCommonMessage(MessageCommon common) {
-        return netInterface.uploadCommonMessage(
+    public Call<Reply> uploadCommonMsg(MsgCommon msg) {
+        return netInterface.uploadCommonMsg(
                 ConfigHelper.getString(MyParams.S_MAIN_PLATFORM_ADDR) + "/api/message/bucket/common",
                 CommonUtils.generateRequestHeader("02"),
-                CommonUtils.generateRequestBody(common));
+                CommonUtils.generateRequestBody(msg));
     }
 
-    public Call<Reply> uploadStackMessage(MessageStack stack) {
-        return netInterface.uploadStackMessage(
+    public Call<Reply> uploadStackMsg(MsgStack msg) {
+        return netInterface.uploadStackMsg(
                 ConfigHelper.getString(MyParams.S_MAIN_PLATFORM_ADDR) + "/api/message/bucket/package",
                 CommonUtils.generateRequestHeader("02"),
-                CommonUtils.generateRequestBody(stack));
+                CommonUtils.generateRequestBody(msg));
     }
 
-    public Call<Reply> uploadDeliveryMessage(MessageDelivery delivery) {
-        return netInterface.uploadDeliveryMessage(
+    public Call<Reply> uploadDeliveryMsg(MsgDelivery msg) {
+        return netInterface.uploadDeliveryMsg(
                 ConfigHelper.getString(MyParams.S_MAIN_PLATFORM_ADDR) + "/api/message/bucket/elecformout",
                 CommonUtils.generateRequestHeader("02"),
-                CommonUtils.generateRequestBody(delivery));
+                CommonUtils.generateRequestBody(msg));
     }
 
-    public Call<Reply> uploadRefluxMessage(MessageReflux reflux) {
-        return netInterface.uploadRefluxMessage(
+    public Call<Reply> uploadRefluxMsg(MsgReflux msg) {
+        return netInterface.uploadRefluxMsg(
                 ConfigHelper.getString(MyParams.S_MAIN_PLATFORM_ADDR) + "/api/message/bucket/elecformin",
                 CommonUtils.generateRequestHeader("02"),
-                CommonUtils.generateRequestBody(reflux));
+                CommonUtils.generateRequestBody(msg));
     }
 
-    public Call<Reply> uploadDealerMessage(MessageDealer dealer) {
+    public Call<Reply> uploadDealerMsg(MsgDealer msg) {
         String path = "";
-        switch (dealer.getStage()) {
+        switch (msg.getStage()) {
             case "10":
                 path = "fullelecformin";
                 break;
@@ -125,102 +149,43 @@ public class NetHelper {
                 path = "emptyelecformout";
                 break;
         }
-        return netInterface.uploadDealerMessage(
+        return netInterface.uploadDealerMsg(
                 ConfigHelper.getString(MyParams.S_MAIN_PLATFORM_ADDR) + "/api/dealermessage/bucket/" + path,
                 CommonUtils.generateRequestHeader("03"),
-                CommonUtils.generateRequestBody(dealer));
+                CommonUtils.generateRequestBody(msg));
     }
 
-    public Call<Reply> getConfig(MessageConfig config) {
-        return netInterface.getConfig(
-                ConfigHelper.getString(MyParams.S_MAIN_PLATFORM_ADDR) + "/api/device/parameter",
-                CommonUtils.generateRequestHeader("02"),
-                CommonUtils.generateRequestBody(config));
-    }
-
-    public Call<Reply> sendHeartbeat() {
-        return netInterface.sendHeartbeat(
-                ConfigHelper.getString(MyParams.S_MAIN_PLATFORM_ADDR) + "/api/message/heartbeat",
-                CommonUtils.generateRequestHeader("02"));
-    }
-
-    public Call<Reply> uploadCardRegMessage(MessageCardReg card) {
-        return netInterface.uploadCardRegMessage(
+    public Call<Reply> uploadCardRegMsg(MsgCardReg msg) {
+        return netInterface.uploadCardRegMsg(
                 ConfigHelper.getString(MyParams.S_MAIN_PLATFORM_ADDR) + "/api/device/card/register",
                 CommonUtils.generateRequestHeader("02"),
-                CommonUtils.generateRequestBody(card));
+                CommonUtils.generateRequestBody(msg));
     }
 
-    public Call<Reply> uploadAdminLoginInfo(RequestBody login) {
+    public Call<Reply> uploadAdminLoginInfo(String cardEPCStr) {
         return netInterface.uploadAdminLoginInfo(
                 ConfigHelper.getString(MyParams.S_MAIN_PLATFORM_ADDR) + "/api/message/bucket/login",
-                CommonUtils.generateRequestHeader("02"), login);
+                CommonUtils.generateRequestHeader("02"),
+                CommonUtils.generateRequestBody(new MsgAdminLogin(cardEPCStr)));
     }
 
-    public void reportHeartbeat() {
-        if (MyParams.MONITOR_ON) {
-            netInterface.reportHeartbeat(
-                    ConfigHelper.getString(MyParams.S_MONITOR_APP_ADDR) + "/heartbeat",
-                    ConfigHelper.getString(MyParams.S_LINE_NAME))
-                    .enqueue(new BillCallback());
-        }
-    }
-
-    public void reportBillDelivery(MessageBillDelivery bill) {
-        if (MyParams.MONITOR_ON) {
-            netInterface.reportBillDelivery(
-                    ConfigHelper.getString(MyParams.S_MONITOR_APP_ADDR) + "/bill_delivery",
-                    ConfigHelper.getString(MyParams.S_LINE_NAME),
-                    CommonUtils.generateRequestBody(bill)).enqueue(new BillCallback());
-        }
-    }
-
-    public void reportBillReflux(MessageBillDelivery bill) {
-        if (MyParams.MONITOR_ON) {
-            netInterface.reportBillReflux(
-                    ConfigHelper.getString(MyParams.S_MONITOR_APP_ADDR) + "/bill_reflux",
-                    ConfigHelper.getString(MyParams.S_LINE_NAME),
-                    CommonUtils.generateRequestBody(bill)).enqueue(new BillCallback());
-        }
-    }
-
-    public void reportBillBucket(MessageBillBucket bucket) {
-        if (MyParams.MONITOR_ON) {
-            netInterface.reportBillBucket(
-                    ConfigHelper.getString(MyParams.S_MONITOR_APP_ADDR) + "/bill_bucket",
-                    ConfigHelper.getString(MyParams.S_LINE_NAME),
-                    CommonUtils.generateRequestBody(bucket)).enqueue(new BillCallback());
-        }
-    }
-
-    public void reportBillComplete(MessageBillComplete message) {
-        if (MyParams.MONITOR_ON) {
-            netInterface.reportBillComplete(
-                    ConfigHelper.getString(MyParams.S_MONITOR_APP_ADDR) + "/bill_complete",
-                    ConfigHelper.getString(MyParams.S_LINE_NAME),
-                    CommonUtils.generateRequestBody(message)).enqueue(new BillCallback());
-        }
-    }
-
-    private class BillCallback implements Callback<Reply> {
-
-        @Override
-        public void onResponse(@NonNull Call<Reply> call, @NonNull Response<Reply> response) {
-            Reply reply = response.body();
-            if (!response.isSuccessful()) { // 如果出现有响应但没成功，证明监控Server在线，但是处理异常，重新发送
-                call.clone().enqueue(this);
-            } else if (reply != null) { // 正常从服务端获得响应，更新MyVars中的server更新时间以及LineName
-                MyVars.server.update();
-                MyVars.server.setLineName(reply.getMessage());
-                if (reply.getCode() == 201) { // code:201，说明是新客户端
-                    EventBus.getDefault().post(new ResendAllBillsMessage());
+    public void uploadUnstackInfo(String bodyCode) {
+        netInterface.uploadUnstackInfo(
+                ConfigHelper.getString(MyParams.S_MAIN_PLATFORM_ADDR) + "/api/message/bucket/unstacker",
+                CommonUtils.generateRequestHeader("02"),
+                CommonUtils.generateRequestBody(new MsgUnstack(bodyCode))).enqueue(new Callback<Reply>() {
+            @Override
+            public void onResponse(@NonNull Call<Reply> call, @NonNull Response<Reply> response) {
+                Reply reply = response.body();
+                if (!response.isSuccessful() || reply == null || reply.getCode() != 200) {
+                    Log.i(TAG, "Unstack error: " + Objects.requireNonNull(reply).getContent());
                 }
             }
-        }
 
-        @Override
-        public void onFailure(@NonNull Call<Reply> call, @NonNull Throwable t) {
-            //t.printStackTrace();
-        }
+            @Override
+            public void onFailure(@NonNull Call<Reply> call, @NonNull Throwable t) {
+                Log.i(TAG, "Unstack error: Net error.");
+            }
+        });
     }
 }

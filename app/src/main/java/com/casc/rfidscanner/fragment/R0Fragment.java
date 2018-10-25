@@ -1,12 +1,9 @@
 package com.casc.rfidscanner.fragment;
 
-import android.content.Context;
 import android.graphics.PointF;
 import android.os.Handler;
 import android.os.Message;
-import android.os.Vibrator;
 import android.util.Log;
-import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.RelativeLayout;
@@ -23,8 +20,8 @@ import com.casc.rfidscanner.bean.Bucket;
 import com.casc.rfidscanner.helper.ConfigHelper;
 import com.casc.rfidscanner.helper.InsHelper;
 import com.casc.rfidscanner.helper.NetHelper;
-import com.casc.rfidscanner.helper.param.MessageQuery;
-import com.casc.rfidscanner.helper.param.MessageRegister;
+import com.casc.rfidscanner.helper.param.MsgChkBodyCodeAndTID;
+import com.casc.rfidscanner.helper.param.MsgRegister;
 import com.casc.rfidscanner.helper.param.Reply;
 import com.casc.rfidscanner.message.ConfigUpdatedMessage;
 import com.casc.rfidscanner.message.MultiStatusMessage;
@@ -97,9 +94,6 @@ public class R0Fragment extends BaseFragment implements QRCodeReaderView.OnQRCod
 
     // 要注册的桶实例
     private Bucket mBucketToRegister;
-
-    // 系统震动辅助类
-    private Vibrator mVibrator;
 
     // Fragment内部handler
     private Handler mHandler = new InnerHandler(this);
@@ -203,11 +197,6 @@ public class R0Fragment extends BaseFragment implements QRCodeReaderView.OnQRCod
 
     @Override
     protected void initFragment() {
-        mMonitorStatusLl.setVisibility(View.GONE);
-        mReaderStatusLl.setVisibility(View.VISIBLE);
-
-        mVibrator = (Vibrator) mContext.getSystemService(Context.VIBRATOR_SERVICE);
-
         mBodyCodeIcl.setHeader(MyVars.config.getHeader());
         mRegisteredCountNs.setNumber(0);
         mBodyCodeReaderQrv.setOnQRCodeReadListener(this);
@@ -215,7 +204,6 @@ public class R0Fragment extends BaseFragment implements QRCodeReaderView.OnQRCod
         mBodyCodeReaderQrv.setAutofocusInterval(100L);
         mBodyCodeReaderQrv.setTorchEnabled(true);
         mBodyCodeReaderQrv.setBackCamera();
-
         ProductSelectActivity.actionStart(mContext);
     }
 
@@ -288,8 +276,8 @@ public class R0Fragment extends BaseFragment implements QRCodeReaderView.OnQRCod
     }
 
     private boolean canRegister() {
-        return MyVars.getReader().isConnected() & !mIsRegistering &&
-                mIsUnregisteredEPCRead && mIsAllConnectionsReady && mIsBodyCodeWritten;
+        return !mIsRegistering && mIsAllConnectionsReady
+                && mIsUnregisteredEPCRead  && mIsBodyCodeWritten;
     }
 
     private static class InnerHandler extends Handler {
@@ -379,9 +367,9 @@ public class R0Fragment extends BaseFragment implements QRCodeReaderView.OnQRCod
                 if (CommonUtils.validEPC(mScannedEPC) == MyParams.EPCType.BUCKET) {
                     bodyCode = new Bucket(mScannedEPC).getBodyCode();
                 }
-                MessageQuery messageQuery = new MessageQuery(
+                MsgChkBodyCodeAndTID msgChkBodyCodeAndTID = new MsgChkBodyCodeAndTID(
                         CommonUtils.bytesToHex(mBucketToRegister.getTid()), bodyCode);
-                Response<Reply> queryResponse = NetHelper.getInstance().checkBodyCodeAndTID(messageQuery).execute();
+                Response<Reply> queryResponse = NetHelper.getInstance().checkBodyCodeAndTID(msgChkBodyCodeAndTID).execute();
                 Reply replyQuery = queryResponse.body();
                 Log.i(TAG, "" + replyQuery.getCode());
                 if (!queryResponse.isSuccessful() || replyQuery == null) {
@@ -461,12 +449,11 @@ public class R0Fragment extends BaseFragment implements QRCodeReaderView.OnQRCod
                 }
 
                 // 尝试上报平台
-                MessageRegister message = new MessageRegister(mProductName);
-                message.addBucket(
-                        CommonUtils.bytesToHex(mBucketToRegister.getTid()),
+                MsgRegister msg = new MsgRegister(mProductName);
+                msg.addBucket(CommonUtils.bytesToHex(mBucketToRegister.getTid()),
                         CommonUtils.bytesToHex(mBucketToRegister.getEpc()),
                         mBucketToRegister.getBodyCode());
-                Response<Reply> responseR0 = NetHelper.getInstance().uploadRegisterMessage(message).execute();
+                Response<Reply> responseR0 = NetHelper.getInstance().uploadRegisterMsg(msg).execute();
                 Reply replyR0 = responseR0.body();
                 if (!responseR0.isSuccessful() || replyR0 == null) {
                     writeHint("平台内部错误,请联系运维人员");

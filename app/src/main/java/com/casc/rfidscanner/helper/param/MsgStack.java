@@ -6,9 +6,9 @@ import com.casc.rfidscanner.helper.ConfigHelper;
 import java.util.ArrayList;
 import java.util.List;
 
-public class MessageRegister {
+public class MsgStack {
 
-    private String stage = "00";
+    private String stage;
 
     private String reader_TID;
 
@@ -18,25 +18,29 @@ public class MessageRegister {
 
     private double height;
 
-    private String productname;
+    private long time;
 
-    // R0注册消息中包含的所有桶RFID及桶身码相关扫描信息
-    private List<BucketInfo> bucket_info = new ArrayList<>();
+    private String packageflag;
 
-    public MessageRegister(String productname) {
+    // R5消息中包含的所有桶RFID及桶身码相关扫描信息
+    private List<Bucket> bucket_info = new ArrayList<>();
+
+    public MsgStack(String packageflag) {
+        this.stage = ConfigHelper.getString(MyParams.S_LINK);
         this.reader_TID = ConfigHelper.getString(MyParams.S_READER_ID);
         this.longitude = Double.valueOf(ConfigHelper.getString(MyParams.S_LONGITUDE));
         this.latitude = Double.valueOf(ConfigHelper.getString(MyParams.S_LATITUDE));
         this.height = Double.valueOf(ConfigHelper.getString(MyParams.S_HEIGHT));
-        this.productname = productname;
+        this.time = System.currentTimeMillis();
+        this.packageflag = packageflag;
     }
 
-    public void addBucket(String tid, String epc, String code) {
-        bucket_info.add(new BucketInfo(tid, epc, code));
+    public void addBucket(String epc) {
+        bucket_info.add(new Bucket("", epc));
     }
 
     // 桶信息的内部类
-    private class BucketInfo {
+    private class Bucket {
 
         private String bucket_TID;
 
@@ -44,13 +48,10 @@ public class MessageRegister {
 
         private String bucket_epc;
 
-        private String bodycode;
-
-        private BucketInfo(String tid, String epc, String code) {
+        private Bucket(String tid, String epc) {
             this.bucket_TID = tid;
-            this.bucket_time = System.currentTimeMillis() - (MyParams.DELAY * 8);
+            this.bucket_time = System.currentTimeMillis() - (MyParams.DELAY * (10 - Integer.valueOf(stage)));
             this.bucket_epc = epc;
-            this.bodycode = code;
         }
     }
 }

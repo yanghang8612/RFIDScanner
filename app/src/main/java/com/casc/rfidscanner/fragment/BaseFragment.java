@@ -4,12 +4,12 @@ import android.content.Context;
 import android.media.AudioAttributes;
 import android.media.SoundPool;
 import android.os.Bundle;
+import android.os.Vibrator;
 import android.support.annotation.CallSuper;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.annotation.StringRes;
 import android.support.v4.app.Fragment;
-import android.util.Log;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -23,15 +23,12 @@ import android.widget.Toast;
 import com.casc.rfidscanner.MyParams;
 import com.casc.rfidscanner.MyVars;
 import com.casc.rfidscanner.R;
-import com.casc.rfidscanner.activity.ConfigActivity;
 import com.casc.rfidscanner.activity.SafeCodeActivity;
 import com.casc.rfidscanner.bean.LinkType;
 import com.casc.rfidscanner.helper.NetHelper;
-import com.casc.rfidscanner.helper.param.MessageAdminLogin;
 import com.casc.rfidscanner.helper.param.Reply;
 import com.casc.rfidscanner.message.BatteryStatusMessage;
 import com.casc.rfidscanner.message.MultiStatusMessage;
-import com.casc.rfidscanner.utils.CommonUtils;
 
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
@@ -57,9 +54,6 @@ public abstract class BaseFragment extends Fragment {
     private static final String TAG = BaseFragment.class.getSimpleName();
 
     @BindView(R.id.ll_connection_status) LinearLayout mConnectionStatusLl;
-    @BindView(R.id.ll_monitor_status) LinearLayout mMonitorStatusLl;
-    @BindView(R.id.ll_reader_status) LinearLayout mReaderStatusLl;
-    @BindView(R.id.iv_monitor_status) ImageView mMonitorStatusIv;
     @BindView(R.id.iv_reader_status) ImageView mReaderStatusIv;
     @BindView(R.id.iv_network_status ) ImageView mNetworkStatusIv;
     @BindView(R.id.iv_platform_status) ImageView mPlatformStatusIv;
@@ -90,6 +84,9 @@ public abstract class BaseFragment extends Fragment {
     private int mBackdoorCount;
 
     private Toast mToast;
+
+    // 系统震动辅助类
+    protected Vibrator mVibrator;
 
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void onMessageEvent(BatteryStatusMessage message) {
@@ -133,8 +130,6 @@ public abstract class BaseFragment extends Fragment {
     @CallSuper
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void onMessageEvent(MultiStatusMessage message) {
-        mMonitorStatusIv.setImageResource(MyVars.server.isOnline() ?
-                R.drawable.ic_connection_normal : R.drawable.ic_connection_abnormal);
         mReaderStatusIv.setImageResource(message.readerStatus ?
                 R.drawable.ic_connection_normal : R.drawable.ic_connection_abnormal);
         mNetworkStatusIv.setImageResource(message.networkStatus ?
@@ -160,6 +155,7 @@ public abstract class BaseFragment extends Fragment {
         TextView tv = (TextView) layout.getChildAt(0);
         tv.setTextSize(24);
         mToast.setGravity(Gravity.CENTER, 0, 0);
+        mVibrator = (Vibrator) mContext.getSystemService(Context.VIBRATOR_SERVICE);
         EventBus.getDefault().register(this);
     }
 
@@ -183,10 +179,6 @@ public abstract class BaseFragment extends Fragment {
     public void onResume() {
         super.onResume();
         mAdminCardScannedCount = 0;
-        if (LinkType.getType().isNeedReader)
-            MyVars.getReader().start();
-        else
-            MyVars.getReader().stop();
     }
 
     @Override
@@ -222,10 +214,9 @@ public abstract class BaseFragment extends Fragment {
         view.setText(String.valueOf(--count));
     }
 
-    protected void sendAdminLoginMessage(String epc) {
-        final MessageAdminLogin login = new MessageAdminLogin(epc);
+    protected void sendAdminLoginMessage(String cardEPCStr) {
         NetHelper.getInstance()
-                .uploadAdminLoginInfo(CommonUtils.generateRequestBody(login))
+                .uploadAdminLoginInfo(cardEPCStr)
                 .enqueue(new Callback<Reply>() {
                     @Override
                     public void onResponse(@NonNull Call<Reply> call, @NonNull Response<Reply> response) {

@@ -1,24 +1,24 @@
 package com.casc.rfidscanner.adapter;
 
 import android.content.Context;
+import android.support.v7.widget.CardView;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
-import android.text.TextUtils;
+import android.view.View;
 
 import com.casc.rfidscanner.R;
 import com.casc.rfidscanner.bean.DeliveryBill;
-import com.casc.rfidscanner.view.NumberSwitcher;
 import com.chad.library.adapter.base.BaseQuickAdapter;
 import com.chad.library.adapter.base.BaseViewHolder;
 
-import java.util.ArrayList;
+import java.util.List;
 
-public class DeliveryBillAdapter extends BaseQuickAdapter<DeliveryBill, BaseViewHolder>  {
+public class DeliveryBillAdapter extends BaseQuickAdapter<DeliveryBill, BaseViewHolder> implements BaseQuickAdapter.OnItemClickListener {
 
     private Context mContext;
 
-    public DeliveryBillAdapter(Context context) {
-        super(R.layout.item_delivery_bill, new ArrayList<DeliveryBill>());
+    public DeliveryBillAdapter(Context context, List<DeliveryBill> data) {
+        super(R.layout.item_delivery_bill, data);
         this.mContext = context;
     }
 
@@ -31,28 +31,26 @@ public class DeliveryBillAdapter extends BaseQuickAdapter<DeliveryBill, BaseView
             goodsListView.setLayoutManager(new LinearLayoutManager(mContext));
         }
         if (goodsListView.getAdapter() != item.getGoodsAdapter()) {
+            item.getGoodsAdapter().setOnItemClickListener(this);
             goodsListView.setAdapter(item.getGoodsAdapter());
         }
         goodsListView.getAdapter().notifyDataSetChanged();
 
-        ((NumberSwitcher) helper.getView(R.id.ns_delivery_count))
-                .setNumber(item.getDeliveryCount());
-        helper.setText(R.id.tv_delivery_bill_card_id, item.getCardID())
-                .setText(R.id.tv_bill_id,
-                        TextUtils.isEmpty(item.getBillID()) ? "待补单" : item.getBillID())
-                .setText(R.id.tv_total_count, String.valueOf(item.getTotalCount()))
-                .setGone(R.id.btn_state_stack, item.isStack())
-                .setGone(R.id.btn_state_single, item.isSingle())
-                .setGone(R.id.btn_state_back, item.isBack())
-                .addOnClickListener(R.id.btn_state_stack)
-                .addOnClickListener(R.id.btn_state_single)
-                .addOnClickListener(R.id.btn_state_back)
-                .addOnClickListener(R.id.btn_confirm_delivery);
+        helper.setText(R.id.tv_bill_id, item.getBillID())
+                .setText(R.id.tv_bill_dealer, item.getDealer())
+                .setText(R.id.tv_bill_driver, item.getDriver());
     }
 
-    public void showBill(DeliveryBill bill) {
-        getData().clear();
-        if (bill != null) getData().add(bill);
+    public void moveToFirst(DeliveryBill bill) {
+        if (bill != null) {
+            getData().remove(bill);
+            getData().add(0, bill);
+        }
         notifyDataSetChanged();
+    }
+
+    @Override
+    public void onItemClick(BaseQuickAdapter adapter, View view, int position) {
+        ((CardView) view.getParent().getParent().getParent()).callOnClick();
     }
 }

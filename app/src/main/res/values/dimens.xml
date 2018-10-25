@@ -39,7 +39,7 @@
     <dimen name="r2_monitor_margin">16dp</dimen>
 
     <dimen name="r6_padding">8dp</dimen>
-    <dimen name="r6_margin">16dp</dimen>
+    <dimen name="r6_margin">8dp</dimen>
 
     <dimen name="r3_padding">8dp</dimen>
     <dimen name="r3_margin">16dp</dimen>
@@ -71,7 +71,7 @@
     <dimen name="item_config_padding">8dp</dimen>
     <dimen name="item_config_height">36dp</dimen>
 
-    <dimen name="item_delivery_bill_margin">16dp</dimen>
+    <dimen name="item_delivery_bill_margin">8dp</dimen>
     <dimen name="item_delivery_bill_padding">8dp</dimen>
 
     <dimen name="item_reflux_bill_margin">16dp</dimen>

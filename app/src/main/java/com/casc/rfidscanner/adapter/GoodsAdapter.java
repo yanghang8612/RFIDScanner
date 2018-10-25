@@ -26,23 +26,15 @@ public class GoodsAdapter extends BaseQuickAdapter<Goods, BaseViewHolder> {
 
     @Override
     protected void convert(BaseViewHolder helper, Goods item) {
-        ((NumberSwitcher) helper.getView(R.id.ns_goods_left_count))
-                .setNumber(item.getLeftCount());
-        ((NumberSwitcher) helper.getView(R.id.ns_goods_stack_count))
-                .setNumber(item.getStackCount());
-        ((NumberSwitcher) helper.getView(R.id.ns_goods_single_count))
-                .setNumber(item.getSingleCount());
-        ((NumberSwitcher) helper.getView(R.id.ns_goods_back_count))
-                .setNumber(item.getBackCount());
+        ((NumberSwitcher) helper.getView(R.id.ns_goods_cur_count))
+                .setNumber(item.getCurCount());
 //        ((NumberSwitcher) helper.getView(R.id.ns_goods_cur_count))
 //                .setTextColor(item.getCurCount() > item.getTotalCount() && item.getTotalCount() != -1 ?
 //                        MyApplication.getInstance().getColor(R.color.indian_red) :
 //                        MyApplication.getInstance().getColor(R.color.black));
         helper.setText(R.id.tv_goods_name, item.getName())
-                .setText(R.id.tv_goods_total_count, String.valueOf(item.getTotalCount()))
-                .setGone(R.id.ns_goods_left_count, isShowLeftCount);
-        helper.getView(R.id.tv_goods_total_count).setVisibility(
-                item.getTotalCount() == -1 ? View.GONE :
-                        item.getTotalCount() == 0 ? View.INVISIBLE : View.VISIBLE);
+                .setText(R.id.tv_goods_total_count, String.valueOf(item.getTotalCount()));
+        helper.getView(R.id.tv_goods_total_count)
+                .setVisibility(item.getTotalCount() == 0 ? View.INVISIBLE : View.VISIBLE);
     }
 }

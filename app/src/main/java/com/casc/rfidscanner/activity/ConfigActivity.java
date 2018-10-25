@@ -12,8 +12,6 @@ import android.support.annotation.NonNull;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
-import android.text.Editable;
-import android.text.TextWatcher;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.ArrayAdapter;
@@ -30,7 +28,6 @@ import com.casc.rfidscanner.bean.Config;
 import com.casc.rfidscanner.bean.LinkType;
 import com.casc.rfidscanner.helper.ConfigHelper;
 import com.casc.rfidscanner.helper.NetHelper;
-import com.casc.rfidscanner.helper.param.MessageConfig;
 import com.casc.rfidscanner.helper.param.Reply;
 import com.casc.rfidscanner.message.ConfigUpdatedMessage;
 import com.casc.rfidscanner.utils.ActivityCollector;
@@ -194,24 +191,6 @@ public class ConfigActivity extends BaseActivity {
         mLinkSpn.setText(linkType.comment);
         mLinkSpn.setAdapter(new ArrayAdapter<>(this,
                 R.layout.item_config, getResources().getStringArray(R.array.link)));
-        mLinkSpn.addTextChangedListener(new TextWatcher() {
-            @Override
-            public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
-
-            @Override
-            public void onTextChanged(CharSequence s, int start, int before, int count) {}
-
-            @Override
-            public void afterTextChanged(Editable s) {
-                if (LinkType.R2.comment.equals(s.toString()) ||
-                        LinkType.R6.comment.equals(s.toString())) {
-                    mLineNameLl.setVisibility(View.VISIBLE);
-                    mLineNameMet.setText(ConfigHelper.getString(MyParams.S_LINE_NAME));
-                } else {
-                    mLineNameLl.setVisibility(View.GONE);
-                }
-            }
-        });
 
         mSensorSw.setChecked(ConfigHelper.getBool(MyParams.S_SENSOR_SWITCH));
 
@@ -253,10 +232,6 @@ public class ConfigActivity extends BaseActivity {
         mHeightMet.addValidator(new RegexpValidator("格式错误(2位小数)",
                 "^-?(0|[0-9]+)[.][0-9]{2}$"));
 
-        mLineNameLl.setVisibility(linkType == LinkType.R2 || linkType == LinkType.R6 ?
-                View.VISIBLE : View.GONE);
-        mLineNameMet.setText(ConfigHelper.getString(MyParams.S_LINE_NAME));
-
         mReaderIDMet.setText(ConfigHelper.getString(MyParams.S_READER_ID));
         mReaderIDMet.addValidator(new RegexpValidator("24位读写器ID(字符仅含0-9、A-F)",
                 "^([0-9A-F]{24})$"));
@@ -284,7 +259,6 @@ public class ConfigActivity extends BaseActivity {
             ConfigHelper.setParam(MyParams.S_BLANK_INTERVAL, mBlankIntervalSpn.getText().toString());
             ConfigHelper.setParam(MyParams.S_DISCOVERY_INTERVAL, mDiscoveryIntervalSpn.getText().toString());
 
-            ConfigHelper.setParam(MyParams.S_LINE_NAME, mLineNameMet.getText().toString());
             ConfigHelper.setParam(MyParams.S_MAIN_PLATFORM_ADDR, mMainPlatformAddrMet.getText().toString());
             ConfigHelper.setParam(MyParams.S_MONITOR_APP_ADDR, mMonitorAppAddrMet.getText().toString());
             ConfigHelper.setParam(MyParams.S_LONGITUDE, mLongitudeMet.getText().toString());
@@ -293,7 +267,7 @@ public class ConfigActivity extends BaseActivity {
 
             if (!ConfigHelper.getString(MyParams.S_READER_ID).equals(mReaderIDMet.getText().toString())) {
                 ConfigHelper.setParam(MyParams.S_READER_ID, mReaderIDMet.getText().toString());
-                NetHelper.getInstance().getConfig(new MessageConfig()).enqueue(new Callback<Reply>() {
+                NetHelper.getInstance().getConfig().enqueue(new Callback<Reply>() {
                     @Override
                     public void onResponse(@NonNull Call<Reply> call, @NonNull Response<Reply> response) {
                         Reply reply = response.body();
