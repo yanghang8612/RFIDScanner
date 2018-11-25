@@ -172,6 +172,7 @@ public class ConfigActivity extends BaseActivity {
         super.finish();
         mDiscoveryTimer.cancel();
         mBLEAdapter.cancelDiscovery();
+        MyVars.getReader().start();
     }
 
     @Override

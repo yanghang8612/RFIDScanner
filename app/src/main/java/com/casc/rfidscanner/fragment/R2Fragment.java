@@ -99,6 +99,8 @@ public class R2Fragment extends BaseFragment implements QRCodeReaderView.OnQRCod
             String epcStr = CommonUtils.bytesToHex(message.epc);
             switch (CommonUtils.validEPC(message.epc)) {
                 case NONE: // 检测到未注册标签，是否提示
+                    mReadNoneCount = 0;
+                    writeHint("检测到\n未注册标签");
                     break;
                 case BUCKET:
                     mReadNoneCount = 0;

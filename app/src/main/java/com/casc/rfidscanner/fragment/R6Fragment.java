@@ -5,6 +5,7 @@ import android.os.Message;
 import android.support.v7.widget.CardView;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.View;
 import android.widget.TextView;
 
@@ -44,6 +45,8 @@ import java.util.concurrent.TimeUnit;
 
 import butterknife.BindView;
 import butterknife.OnClick;
+import butterknife.OnItemLongClick;
+import butterknife.OnLongClick;
 import retrofit2.Response;
 
 /**
@@ -236,8 +239,27 @@ public class R6Fragment extends BaseFragment {
         }
     }
 
+    @OnLongClick({R.id.cv_r6_stack_1, R.id.cv_r6_stack_2, R.id.cv_r6_bulk, R.id.cv_r6_scanned})
+    boolean onStackLongClicked(CardView view) {
+        Log.i(TAG, "ShaBi");
+        mVibrator.vibrate(50);
+        synchronized (mLock) {
+            if (view == mStack1Cv) {
+                mStack1Buckets.clear();
+            } else if (view == mStack2Cv) {
+                mStack2Buckets.clear();
+            } else if (view == mBulkCv) {
+                mBulkBuckets.clear();
+            } else {
+                mUnidentifiedBuckets.clear();
+            }
+            Message.obtain(mHandler, MSG_UPDATE).sendToTarget();
+        }
+        return true;
+    }
+
     @OnClick({R.id.cv_r6_stack_1, R.id.cv_r6_stack_2, R.id.cv_r6_bulk, R.id.cv_r6_scanned})
-    void onKeyboardClicked(CardView view) {
+    void onStackClicked(CardView view) {
         if (mSelectedStackView == view) {
             mSelectedStackView.setCardBackgroundColor(mContext.getColor(R.color.snow));
             mSelectedStackView = null;
@@ -334,6 +356,7 @@ public class R6Fragment extends BaseFragment {
                                     .checkStackOrSingle(mUnidentifiedBuckets.get(0)).execute();
                             Reply reply = response.body();
                             if (response.isSuccessful() && reply != null && reply.getCode() == 200) {
+                                playSound();
                                 StackInfo info = new Gson().fromJson(reply.getContent(), StackInfo.class);
                                 if ("0".equals(info.getFlag()) || "2".equals(info.getFlag())) {
                                     mBulkBuckets.add(mUnidentifiedBuckets.remove(0));

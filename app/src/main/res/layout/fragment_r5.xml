@@ -123,7 +123,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_margin="@dimen/r7_margin"
-                    android:text="入散垛区"
+                    android:text="入散货区"
                     android:textSize="64sp"
                     android:textColor="@color/black"
                     android:textStyle="bold" />

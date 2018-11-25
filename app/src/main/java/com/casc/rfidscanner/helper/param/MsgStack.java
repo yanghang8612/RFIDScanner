@@ -35,8 +35,8 @@ public class MsgStack {
         this.packageflag = packageflag;
     }
 
-    public void addBucket(String epc) {
-        bucket_info.add(new Bucket("", epc));
+    public void addBucket(long time, String epc) {
+        bucket_info.add(new Bucket(time, epc));
     }
 
     // 桶信息的内部类
@@ -48,9 +48,9 @@ public class MsgStack {
 
         private String bucket_epc;
 
-        private Bucket(String tid, String epc) {
-            this.bucket_TID = tid;
-            this.bucket_time = System.currentTimeMillis() - (MyParams.DELAY * (10 - Integer.valueOf(stage)));
+        private Bucket(long time, String epc) {
+            this.bucket_TID = "";
+            this.bucket_time = time;
             this.bucket_epc = epc;
         }
     }

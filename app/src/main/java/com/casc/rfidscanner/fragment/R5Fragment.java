@@ -50,9 +50,9 @@ public class R5Fragment extends BaseFragment {
 
     private WorkStatus mStatus;
 
-    private Map<String, Integer> mBucketsToStack = new LinkedHashMap<>();
+    private Map<String, Long> mBucketsToStack = new LinkedHashMap<>();
 
-    private Map<String, Integer> mBucketsToRemove = new LinkedHashMap<>();
+    private Map<String, Long> mBucketsToRemove = new LinkedHashMap<>();
 
     private Map<String, Integer> mTestEPCs = new LinkedHashMap<>();
 
@@ -92,9 +92,7 @@ public class R5Fragment extends BaseFragment {
                                 if (!mBucketsToStack.containsKey(epcStr)) {
                                     playSound();
                                     mScannedCountNs.increaseNumber();
-                                    mBucketsToStack.put(epcStr, 1);
-                                } else {
-                                    mBucketsToStack.put(epcStr, mBucketsToStack.get(epcStr) + 1);
+                                    mBucketsToStack.put(epcStr, System.currentTimeMillis());
                                 }
                                 break;
                             case IS_STACK:
@@ -102,9 +100,7 @@ public class R5Fragment extends BaseFragment {
                                 if (!mBucketsToRemove.containsKey(epcStr)) {
                                     playSound();
                                     mScannedCountNs.increaseNumber();
-                                    mBucketsToRemove.put(epcStr, 1);
-                                } else {
-                                    mBucketsToRemove.put(epcStr, mBucketsToRemove.get(epcStr) + 1);
+                                    mBucketsToRemove.put(epcStr, System.currentTimeMillis());
                                 }
                                 break;
                         }
@@ -156,7 +152,7 @@ public class R5Fragment extends BaseFragment {
             mBulkBucketsLl.getBackground().setTint(mContext.getColor(R.color.red));
             mBulkBucketsTv.setText("打垛中...");
             mScannedCountNs.setNumber(0);
-            mHandler.sendMessageDelayed(mHandler.obtainMessage(MSG_COMPLETE), 20000);
+            mHandler.sendMessageDelayed(mHandler.obtainMessage(MSG_COMPLETE), 60000);
         }
 //        mTestEPCs.clear();
 //        mScannedCountNs.setNumber(0);
@@ -195,14 +191,14 @@ public class R5Fragment extends BaseFragment {
                         outer.mStackBucketsTv.setText("入整垛区");
                         outer.mBulkBucketsLl.setEnabled(true);
                         outer.mBulkBucketsLl.getBackground().setTint(outer.mContext.getColor(R.color.light_gray));
-                        outer.mBulkBucketsTv.setText("入散垛区");
+                        outer.mBulkBucketsTv.setText("入散货区");
                     }
                     break;
             }
         }
     }
 
-    private void storeBucketsMap(Map<String, Integer> buckets) {
+    private void storeBucketsMap(Map<String, Long> buckets) {
         StringBuilder result = new StringBuilder("{\"size\":" + buckets.size() + ",");
         for (String epcStr : buckets.keySet()) {
             result.append("\"")
@@ -214,10 +210,10 @@ public class R5Fragment extends BaseFragment {
         mDao.insert(result.toString());
     }
 
-    private void uploadStackMessage(Map<String, Integer> buckets, boolean isBulk) {
+    private void uploadStackMessage(Map<String, Long> buckets, boolean isBulk) {
         MsgStack stack = new MsgStack(isBulk ? "0" : "1");
-        for (String epcStr : buckets.keySet()) {
-            stack.addBucket(epcStr);
+        for (Map.Entry<String, Long> entry : buckets.entrySet()) {
+            stack.addBucket(entry.getValue(), entry.getKey());
         }
         MyVars.cache.storeStackMessage(stack);
     }
