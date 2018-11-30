@@ -17,9 +17,6 @@ import com.casc.rfidscanner.activity.StackDetailActivity;
 import com.casc.rfidscanner.adapter.DeliveryBillAdapter;
 import com.casc.rfidscanner.bean.Bucket;
 import com.casc.rfidscanner.bean.DeliveryBill;
-import com.casc.rfidscanner.bean.Stack;
-import com.casc.rfidscanner.helper.EmptyAdapter;
-import com.casc.rfidscanner.helper.NetAdapter;
 import com.casc.rfidscanner.helper.NetHelper;
 import com.casc.rfidscanner.helper.param.MsgDelivery;
 import com.casc.rfidscanner.helper.param.Reply;
@@ -29,7 +26,6 @@ import com.casc.rfidscanner.message.PollingResultMessage;
 import com.casc.rfidscanner.message.StackDeletedMessage;
 import com.casc.rfidscanner.utils.CommonUtils;
 import com.casc.rfidscanner.view.NumberSwitcher;
-import com.casc.rfidscanner.view.R6CardView;
 import com.chad.library.adapter.base.BaseQuickAdapter;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
@@ -65,10 +61,14 @@ public class R6Fragment extends BaseFragment {
 
     @BindView(R.id.tv_r6_title) TextView mTitleTv;
     @BindView(R.id.rv_r6_bills) RecyclerView mBillsRv;
-    @BindView(R.id.cv_r6_stack_1) R6CardView mStack1Cv;
-    @BindView(R.id.cv_r6_stack_2) R6CardView mStack2Cv;
-    @BindView(R.id.cv_r6_bulk) R6CardView mBulkCv;
-    @BindView(R.id.cv_r6_scanned) R6CardView mScannedCv;
+    @BindView(R.id.cv_r6_stack_1) CardView mStack1Cv;
+    @BindView(R.id.ns_r6_stack_1_count) NumberSwitcher mStack1CountNs;
+    @BindView(R.id.cv_r6_stack_2) CardView mStack2Cv;
+    @BindView(R.id.ns_r6_stack_2_count) NumberSwitcher mStack2CountNs;
+    @BindView(R.id.cv_r6_bulk) CardView mBulkCv;
+    @BindView(R.id.ns_r6_bulk_count) NumberSwitcher mBulkCountNs;
+    @BindView(R.id.cv_r6_scanned) CardView mScannedCv;
+    @BindView(R.id.ns_r6_scanned_count) NumberSwitcher mScannedCountNs;
 //    @BindView(R.id.tv_r6_uploaded_bill_count) TextView mUploadedBillCountTv;
 //    @BindView(R.id.tv_r6_stored_bill_count) TextView mStoredBillCountTv;
 
@@ -83,15 +83,19 @@ public class R6Fragment extends BaseFragment {
 
     private DeliveryBill mSelectedBill, mCurBill;
 
-    private CardView mSelectedBillView;
+    private CardView mSelectedBillView, mSelectedStackView, mStackViewToDelete;
 
-    private R6CardView mSelectedStackView, mStackViewToDelete;
+    private List<String> mUnidentifiedBuckets = new LinkedList<>();
 
-    private List<String> mIdentifiedBuckets = new LinkedList<>();
+    private List<String> mStack1Buckets = new LinkedList<>();
+
+    private List<String> mStack2Buckets = new LinkedList<>();
+
+    private List<String> mBulkBuckets = new LinkedList<>();
 
     private List<String> mCache = new LinkedList<>();
 
-    private List<Stack> mStacks = new LinkedList<>();
+    private final Object mLock = new Object();
 
     // 错误已提示标识
     private boolean mIsErrorNoticed, mIsBacking;
@@ -101,9 +105,22 @@ public class R6Fragment extends BaseFragment {
 
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void onMessageEvent(StackDeletedMessage message) {
-        mStackViewToDelete.clear();
-        mSelectedStackView = mStackViewToDelete = null;
-        Message.obtain(mHandler, MSG_UPDATE).sendToTarget();
+        synchronized (mLock) {
+            if (mStackViewToDelete == mStack1Cv) {
+                mStack1Buckets.clear();
+            } else if (mStackViewToDelete == mStack2Cv) {
+                mStack2Buckets.clear();
+            } else if (mStackViewToDelete == mBulkCv) {
+                mBulkBuckets.clear();
+            } else {
+                mUnidentifiedBuckets.clear();
+            }
+            if (mSelectedStackView != null) {
+                mSelectedStackView.setCardBackgroundColor(mContext.getColor(R.color.snow));
+            }
+            mSelectedStackView = mStackViewToDelete = null;
+            Message.obtain(mHandler, MSG_UPDATE).sendToTarget();
+        }
     }
 
     @Subscribe(threadMode = ThreadMode.MAIN)
@@ -144,14 +161,20 @@ public class R6Fragment extends BaseFragment {
                 case BUCKET:
                     if (mIsBacking) {
                         if (mSelectedBill != null && mSelectedBill.removeBucket(epcStr)) {
-                            mCache.remove(epcStr);
-                            NetHelper.getInstance().uploadUnstackInfo(Bucket.getBodyCode(epcStr))
-                                    .enqueue(new EmptyAdapter());
+                            synchronized (mLock) {
+                                mCache.remove(epcStr);
+                            }
+                            NetHelper.getInstance().uploadUnstackInfo(Bucket.getBodyCode(epcStr));
                             EventBus.getDefault().post(new BillUpdatedMessage());
                         }
                     } else {
-                        if (!mCache.contains(epcStr) && !mIdentifiedBuckets.contains(epcStr)) {
-                            mScannedCv.add(epcStr);
+                        synchronized (mLock) {
+                            if (!mCache.contains(epcStr)
+                                    && !mStack1Buckets.contains(epcStr) && !mStack2Buckets.contains(epcStr)
+                                    && !mBulkBuckets.contains(epcStr) && !mUnidentifiedBuckets.contains(epcStr)) {
+                                mUnidentifiedBuckets.add(epcStr);
+                                Message.obtain(mHandler, MSG_UPDATE).sendToTarget();
+                            }
                         }
                     }
                     break;
@@ -177,6 +200,10 @@ public class R6Fragment extends BaseFragment {
 
     @Override
     protected void initFragment() {
+        mStack1CountNs.setNumber(0);
+        mStack2CountNs.setNumber(0);
+        mBulkCountNs.setNumber(0);
+        mScannedCountNs.setNumber(0);
         mBillAdapter = new DeliveryBillAdapter(mContext, mBills);
         mBillAdapter.setOnItemClickListener(new BaseQuickAdapter.OnItemClickListener() {
             @Override
@@ -233,7 +260,7 @@ public class R6Fragment extends BaseFragment {
     }
 
     @OnClick({R.id.cv_r6_stack_1, R.id.cv_r6_stack_2, R.id.cv_r6_bulk, R.id.cv_r6_scanned})
-    void onStackClicked(R6CardView view) {
+    void onStackClicked(CardView view) {
         if (mSelectedStackView == view) {
             mSelectedStackView.setCardBackgroundColor(mContext.getColor(R.color.snow));
             mSelectedStackView = null;
@@ -248,27 +275,47 @@ public class R6Fragment extends BaseFragment {
     }
 
     @OnLongClick({R.id.cv_r6_stack_1, R.id.cv_r6_stack_2, R.id.cv_r6_bulk, R.id.cv_r6_scanned})
-    boolean onStackLongClicked(R6CardView view) {
+    boolean onStackLongClicked(CardView view) {
         mVibrator.vibrate(50);
         mStackViewToDelete = view;
-        StackDetailActivity.actionStart(mContext, mStackViewToDelete.getAll(), true);
+        if (mStackViewToDelete == mStack1Cv) {
+            StackDetailActivity.actionStart(mContext, mStack1Buckets, true);
+        } else if (mStackViewToDelete == mStack2Cv) {
+            StackDetailActivity.actionStart(mContext, mStack2Buckets, true);
+        } else if (mStackViewToDelete == mBulkCv) {
+            StackDetailActivity.actionStart(mContext, mBulkBuckets, false);
+        } else {
+            StackDetailActivity.actionStart(mContext, mUnidentifiedBuckets, false);
+        }
         return true;
     }
 
     private void merge() {
         if (mSelectedStackView != null && mSelectedBillView != null) {
-            List<String> buckets = mSelectedStackView.getAll();
-            for (String bucket : buckets) {
-                mSelectedBill.addBucket(bucket);
+            synchronized (mLock) {
+                List<String> buckets;
+                if (mSelectedStackView == mStack1Cv) {
+                    buckets = mStack1Buckets;
+                } else if (mSelectedStackView == mStack2Cv) {
+                    buckets = mStack2Buckets;
+                } else if (mSelectedStackView == mBulkCv) {
+                    buckets = mBulkBuckets;
+                } else {
+                    buckets = mUnidentifiedBuckets;
+                }
+                for (String bucket : buckets) {
+                    mSelectedBill.addBucket(bucket);
+                }
+                EventBus.getDefault().post(new BillUpdatedMessage());
+                mCache.addAll(buckets);
+                mSelectedStackView.setCardBackgroundColor(mContext.getColor(R.color.snow));
+                mSelectedStackView = null;
+                mSelectedBillView.setCardBackgroundColor(mContext.getColor(R.color.snow));
+                mSelectedBillView = null;
+                mSelectedBill = null;
+                buckets.clear();
+                Message.obtain(mHandler, MSG_UPDATE).sendToTarget();
             }
-            EventBus.getDefault().post(new BillUpdatedMessage());
-            mIdentifiedBuckets.removeAll(buckets);
-            mCache.addAll(buckets);
-            mSelectedStackView.clear();
-            mSelectedStackView = null;
-            mSelectedBillView.setCardBackgroundColor(mContext.getColor(R.color.snow));
-            mSelectedBillView = null;
-            mSelectedBill = null;
         }
     }
 
@@ -285,6 +332,13 @@ public class R6Fragment extends BaseFragment {
             R6Fragment outer = mOuter.get();
             switch (msg.what) {
                 case MSG_UPDATE:
+                    outer.mStack1Cv.setVisibility(outer.mStack1Buckets.isEmpty() ? View.INVISIBLE : View.VISIBLE);
+                    outer.mStack1CountNs.setNumber(outer.mStack1Buckets.size());
+                    outer.mStack2Cv.setVisibility(outer.mStack2Buckets.isEmpty() ? View.INVISIBLE : View.VISIBLE);
+                    outer.mStack2CountNs.setNumber(outer.mStack2Buckets.size());
+                    outer.mBulkCv.setVisibility(outer.mBulkBuckets.isEmpty() ? View.INVISIBLE : View.VISIBLE);
+                    outer.mBulkCountNs.setNumber(outer.mBulkBuckets.size());
+                    outer.mScannedCountNs.setNumber(outer.mUnidentifiedBuckets.size());
                     break;
             }
         }
@@ -300,11 +354,11 @@ public class R6Fragment extends BaseFragment {
 
             private List<String> bucketepcinfo;
 
-            private String getFlag() {
+            public String getFlag() {
                 return flag;
             }
 
-            private List<String> getBuckets() {
+            public List<String> getBuckets() {
                 return bucketepcinfo;
             }
         }
@@ -313,43 +367,28 @@ public class R6Fragment extends BaseFragment {
         public void run() {
             while (true) {
                 try {
-                    Iterator<Stack> i = mStacks.iterator();
-                    while (i.hasNext()) {
-                        Stack stack = i.next();
-                        if (stack.isFound()) {
-                            if (mStack1Cv.isEmpty()) {
-                                mStack1Cv.bindData(stack.getBuckets());
-                                i.remove();
-                            } else if (mStack2Cv.isEmpty()) {
-                                mStack2Cv.bindData(stack.getBuckets());
-                                i.remove();
-                            }
-                        }
-                    }
-                    if (!mScannedCv.isEmpty()) {
-                        String bucket = mScannedCv.get(0);
-                        boolean inStack = false;
-                        for (Stack stack : mStacks) {
-                            if (stack.containBucket(bucket)) {
-                                mScannedCv.remove(0);
-                                inStack = true;
-                                break;
-                            }
-                        }
-                        if (inStack) {
+                    synchronized (mLock) {
+                        if (!mUnidentifiedBuckets.isEmpty() && MyVars.status.platformStatus) {
                             Response<Reply> response = NetHelper.getInstance()
-                                    .checkStackOrSingle(bucket).execute();
+                                    .checkStackOrSingle(mUnidentifiedBuckets.get(0)).execute();
                             Reply reply = response.body();
                             if (response.isSuccessful() && reply != null && reply.getCode() == 200) {
                                 playSound();
                                 StackInfo info = new Gson().fromJson(reply.getContent(), StackInfo.class);
                                 if ("0".equals(info.getFlag()) || "2".equals(info.getFlag())) {
-                                    mBulkCv.add(bucket);
-                                    mIdentifiedBuckets.add(bucket);
+                                    mBulkBuckets.add(mUnidentifiedBuckets.remove(0));
                                 } else {
-                                    mStacks.add(new Stack(info.getBuckets()));
-                                    mIdentifiedBuckets.addAll(info.getBuckets());
+                                    if (mStack1Buckets.isEmpty()) {
+                                        mStack1Buckets.addAll(info.getBuckets());
+                                        mUnidentifiedBuckets.removeAll(mStack1Buckets);
+                                    } else if (mStack2Buckets.isEmpty()) {
+                                        mStack2Buckets.addAll(info.getBuckets());
+                                        mUnidentifiedBuckets.removeAll(mStack2Buckets);
+                                    } else {
+                                        // TODO: 2018.10.18 第三垛提示
+                                    }
                                 }
+                                Message.obtain(mHandler, MSG_UPDATE).sendToTarget();
                             }
                         }
                     }
@@ -381,14 +420,26 @@ public class R6Fragment extends BaseFragment {
                     return productcode;
                 }
 
-                private int getQuantity() {
+                public int getQuantity() {
                     return productquantity;
                 }
             }
 
             private List<ProductInfo> productinfo;
 
-            private List<ProductInfo> getProductinfo() {
+            public String getFormid() {
+                return formid;
+            }
+
+            public String getDealer() {
+                return dealer;
+            }
+
+            public String getDriver() {
+                return driver;
+            }
+
+            public List<ProductInfo> getProductinfo() {
                 return productinfo == null ? new ArrayList<ProductInfo>() : productinfo;
             }
         }
@@ -402,8 +453,8 @@ public class R6Fragment extends BaseFragment {
                     List<Form> forms = new Gson().fromJson(reply.getContent(),
                             new TypeToken<List<Form>>(){}.getType());
                     for (Form form : forms) {
-                        if (!mBillsMap.containsKey(form.formid)) {
-                            DeliveryBill bill = new DeliveryBill(form.formid, form.dealer, form.driver);
+                        if (!mBillsMap.containsKey(form.getFormid())) {
+                            DeliveryBill bill = new DeliveryBill(form.getFormid(), form.getDealer(), form.getDriver());
                             for (Form.ProductInfo productInfo : form.getProductinfo()) {
                                 bill.addGoods(productInfo.getCode(), productInfo.getQuantity());
                             }
@@ -417,7 +468,7 @@ public class R6Fragment extends BaseFragment {
                         if (!e.getValue().isFromCard()) {
                             boolean isFormsContained = false;
                             for (Form form : forms) {
-                                if (form.formid.equals(e.getKey())) {
+                                if (form.getFormid().equals(e.getKey())) {
                                     isFormsContained = true;
                                 }
                             }
