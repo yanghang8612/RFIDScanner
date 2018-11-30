@@ -24,7 +24,6 @@ import com.casc.rfidscanner.MyParams;
 import com.casc.rfidscanner.MyVars;
 import com.casc.rfidscanner.R;
 import com.casc.rfidscanner.activity.SafeCodeActivity;
-import com.casc.rfidscanner.bean.LinkType;
 import com.casc.rfidscanner.helper.NetHelper;
 import com.casc.rfidscanner.helper.param.Reply;
 import com.casc.rfidscanner.message.BatteryStatusMessage;

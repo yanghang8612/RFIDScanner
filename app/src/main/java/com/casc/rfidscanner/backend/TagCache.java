@@ -13,10 +13,10 @@ import com.casc.rfidscanner.helper.NetHelper;
 import com.casc.rfidscanner.helper.param.MsgCommon;
 import com.casc.rfidscanner.helper.param.MsgDealer;
 import com.casc.rfidscanner.helper.param.MsgDelivery;
+import com.casc.rfidscanner.helper.param.MsgOnline;
 import com.casc.rfidscanner.helper.param.MsgReflux;
 import com.casc.rfidscanner.helper.param.MsgStack;
 import com.casc.rfidscanner.helper.param.Reply;
-import com.casc.rfidscanner.message.BillUploadedMessage;
 import com.casc.rfidscanner.message.TagCountChangedMessage;
 import com.casc.rfidscanner.utils.CommonUtils;
 import com.google.gson.Gson;
@@ -41,6 +41,8 @@ public class TagCache {
     // 缓存map，key为epc，value为Tag类型的实例
     private final Map<String, Tag> cache = new HashMap<>();
 
+    private final MessageDao onlineDao;
+
     private final MessageDao tagDao;
 
     private final MessageDao stackDao;
@@ -54,12 +56,13 @@ public class TagCache {
     private int scannedCount = 0, uploadCount = 0;
 
     public TagCache() {
+        this.onlineDao = new MessageDao(DBHelper.TABLE_NAME_ONLINE_MESSAGE);
         this.tagDao = new MessageDao(DBHelper.TABLE_NAME_TAG_MESSAGE);
         this.stackDao = new MessageDao(DBHelper.TABLE_NAME_STACK_MESSAGE);
         this.deliveryDao = new MessageDao(DBHelper.TABLE_NAME_DELIVERY_MESSAGE);
         this.refluxDao = new MessageDao(DBHelper.TABLE_NAME_REFLUX_MESSAGE);
         this.dealerDao = new MessageDao(DBHelper.TABLE_NAME_DEALER_MESSAGE);
-        MyVars.executor.scheduleWithFixedDelay(new LifecycleCheckTask(), 0, 100, TimeUnit.MILLISECONDS);
+        MyVars.executor.scheduleWithFixedDelay(new LifecycleCheckTask(), 3000, 100, TimeUnit.MILLISECONDS);
         MyVars.executor.scheduleWithFixedDelay(new StoredUploadTask(), 3000, 500, TimeUnit.MILLISECONDS); // 延迟5秒开始，便于界面有时间显示
     }
 
@@ -70,6 +73,14 @@ public class TagCache {
     public synchronized void clear() {
         cache.clear();
         scannedCount = uploadCount = 0;
+    }
+
+    public synchronized void storeOnlineMessage(MsgOnline online) {
+        onlineDao.insert(CommonUtils.toJson(online));
+    }
+
+    public synchronized int getStoredOnlineMessageCount() {
+        return onlineDao.rowCount();
     }
 
     public synchronized boolean insert(String epc) {
@@ -126,8 +137,7 @@ public class TagCache {
     }
 
     private void upload(String tid, final String epc) {
-        final MsgCommon msg = new MsgCommon();
-        msg.addBucket(tid, epc);
+        final MsgCommon msg = new MsgCommon().addBucket(tid, epc);
         if (MyVars.status.canSendRequest() && tagDao.rowCount() == 0) {
             NetHelper.getInstance().uploadCommonMsg(msg)
                     .enqueue(new Callback<Reply>() {
@@ -252,7 +262,6 @@ public class TagCache {
                                 Reply body = response.body();
                                 if (response.isSuccessful() && body != null && body.getCode() == 200) {
                                     refluxDao.deleteById(refluxPair.first);
-                                    EventBus.getDefault().post(new BillUploadedMessage(true));
                                 }
                             } catch (IOException ignored) {}
                         }
@@ -268,7 +277,6 @@ public class TagCache {
                                 Reply body = response.body();
                                 if (response.isSuccessful() && body != null && body.getCode() == 200) {
                                     deliveryDao.deleteById(deliveryPair.first);
-                                    EventBus.getDefault().post(new BillUploadedMessage(true));
                                 }
                             } catch (IOException ignored) {}
                         }
@@ -283,7 +291,6 @@ public class TagCache {
                                 Reply body = response.body();
                                 if (response.isSuccessful() && body != null && body.getCode() == 200) {
                                     dealerDao.deleteById(dealer.first);
-                                    EventBus.getDefault().post(new BillUploadedMessage(true));
                                 }
                             } catch (IOException ignored) {}
                         }

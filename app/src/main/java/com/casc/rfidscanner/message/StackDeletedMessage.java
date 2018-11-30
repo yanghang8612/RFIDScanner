@@ -1,3 +1,3 @@
 package com.casc.rfidscanner.message;
 
-public class LongTimeNoTouchMessage {}
+public class StackDeletedMessage {}

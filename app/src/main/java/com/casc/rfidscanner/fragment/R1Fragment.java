@@ -180,7 +180,6 @@ public class R1Fragment extends BaseFragment implements QRCodeReaderView.OnQRCod
     @OnClick(R.id.btn_r1_scrap)
     public void onButtonClicked() {
         new MaterialDialog.Builder(mContext)
-                .title("提示信息")
                 .content("桶身码：" + mBodyCodeIcl.getCode() + "\n" + "报废原因：" + mScrapReasonSpn.getText())
                 .positiveText("确认报废")
                 .positiveColorRes(R.color.white)
@@ -194,12 +193,6 @@ public class R1Fragment extends BaseFragment implements QRCodeReaderView.OnQRCod
                         mScrapBtn.setEnabled(false);
                         mHintContentTv.setText("");
                         MyVars.fragmentExecutor.execute(new ScrapTask());
-                    }
-                })
-                .onNegative(new MaterialDialog.SingleButtonCallback() {
-                    @Override
-                    public void onClick(@NonNull MaterialDialog dialog, @NonNull DialogAction which) {
-                        dialog.dismiss();
                     }
                 })
                 .show();

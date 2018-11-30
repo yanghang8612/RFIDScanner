@@ -6,7 +6,6 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.BatteryManager;
 import android.os.Bundle;
-import android.os.CountDownTimer;
 import android.os.Handler;
 import android.os.Message;
 import android.support.v4.app.Fragment;
@@ -17,7 +16,6 @@ import com.casc.rfidscanner.MyVars;
 import com.casc.rfidscanner.R;
 import com.casc.rfidscanner.bean.LinkType;
 import com.casc.rfidscanner.message.BatteryStatusMessage;
-import com.casc.rfidscanner.message.LongTimeNoTouchMessage;
 
 import org.greenrobot.eventbus.EventBus;
 
@@ -34,16 +32,6 @@ public class MainActivity extends BaseActivity {
     private Handler mHandler = new InnerHandler(this);
 
     private Fragment mCurFragment;
-
-    private CountDownTimer mTouchTimer = new CountDownTimer(60 * 60 * 1000, 1000) {
-        @Override
-        public void onTick(long millisUntilFinished) {}
-
-        @Override
-        public void onFinish() {
-            EventBus.getDefault().post(new LongTimeNoTouchMessage());
-        }
-    };
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {

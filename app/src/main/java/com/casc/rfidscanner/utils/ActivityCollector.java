@@ -2,36 +2,32 @@ package com.casc.rfidscanner.utils;
 
 import android.app.Activity;
 
+import com.casc.rfidscanner.activity.BaseActivity;
+
 import java.util.ArrayList;
 import java.util.List;
 
 public class ActivityCollector {
 
-    private static List<Activity> activities = new ArrayList<>();
+    private static List<BaseActivity> activities = new ArrayList<>();
 
     private ActivityCollector(){}
 
     public static Activity getTopActivity() {
-        return activities.isEmpty() ? null : activities.get(activities.size() - 1);
+        return activities.get(activities.size() - 1);
     }
 
-    public static void addActivity(Activity activity) {
-        if (activities == null) return;
+    public static void addActivity(BaseActivity activity) {
         activities.add(activity);
     }
 
-    public static void removeActivity(Activity activity) {
-        if (activity == null) {
-            return;
-        }
+    public static void removeActivity(BaseActivity activity) {
         activities.remove(activity);
     }
 
-    public static void removeActivityAndFinish(Activity activity) {
-        if (activity == null) {
-            return;
-        }
-        if (activities.remove(activity) && !activity.isFinishing()) {
+    public static void removeActivityAndFinish(BaseActivity activity) {
+        if (activity != null && !activity.isFinishing()) {
+            activities.remove(activity);
             activity.finish();
         }
     }
@@ -48,20 +44,5 @@ public class ActivityCollector {
         } finally {
             System.exit(0);
         }
-    }
-
-    public static void backToLogin() {
-        for (int i = activities.size() - 1; i > 0; i--) {
-            if (!activities.get(i).isFinishing()) {
-                activities.get(i).finish();
-            }
-        }
-//        SharedPreferences defaultPref = activities.get(0).getSharedPreferences("default", Activity.MODE_PRIVATE);
-//        SharedPreferences.Editor editor = defaultPref.edit();
-//        editor.remove("phoneNumber");
-//        editor.remove("password");
-//        editor.apply();
-//        LoginActivity.actionStart(activities.get(0));
-//        activities.get(0).shutdown();
     }
 }

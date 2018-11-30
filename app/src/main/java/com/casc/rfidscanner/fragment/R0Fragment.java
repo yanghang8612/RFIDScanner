@@ -127,8 +127,8 @@ public class R0Fragment extends BaseFragment implements QRCodeReaderView.OnQRCod
         if (message.isRead) {
             String epcStr = CommonUtils.bytesToHex(message.epc);
             switch (CommonUtils.validEPC(mScannedEPC)) {
-                case BUCKET: // 检测到注册桶标签，也允许注册
                 case NONE: // 检测到未注册桶标签，允许注册
+                case BUCKET: // 检测到注册桶标签，允许注册
                     mReadNoneCount = 0;
                     if (mEPCs.contains(epcStr) && mBucketToRegister == null) {
                         mTagStatusIv.setImageResource(R.drawable.ic_connection_abnormal);
@@ -201,7 +201,7 @@ public class R0Fragment extends BaseFragment implements QRCodeReaderView.OnQRCod
         mRegisteredCountNs.setNumber(0);
         mBodyCodeReaderQrv.setOnQRCodeReadListener(this);
         mBodyCodeReaderQrv.setQRDecodingEnabled(true);
-        mBodyCodeReaderQrv.setAutofocusInterval(100L);
+        mBodyCodeReaderQrv.setAutofocusInterval(500L);
         mBodyCodeReaderQrv.setTorchEnabled(true);
         mBodyCodeReaderQrv.setBackCamera();
         ProductSelectActivity.actionStart(mContext);
@@ -456,7 +456,7 @@ public class R0Fragment extends BaseFragment implements QRCodeReaderView.OnQRCod
                 Response<Reply> responseR0 = NetHelper.getInstance().uploadRegisterMsg(msg).execute();
                 Reply replyR0 = responseR0.body();
                 if (!responseR0.isSuccessful() || replyR0 == null) {
-                    writeHint("平台内部错误,请联系运维人员");
+                    writeHint("平台内部错误" + responseR0.code() + ",请联系运维人员");
                     writeTaskFailed(false);
                     return;
                 } else if (replyR0.getCode() != 200) {
@@ -494,7 +494,7 @@ public class R0Fragment extends BaseFragment implements QRCodeReaderView.OnQRCod
                             return;
                         default:
                             Log.i(TAG, String.valueOf(replyR0.getCode()));
-                            writeHint(replyR0.getMessage() + ",请联系运维");
+                            writeHint(replyR0.getMessage() + ",请联系运维人员");
                             writeTaskFailed(false);
                             return;
                     }

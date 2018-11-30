@@ -139,7 +139,7 @@ public class R5Fragment extends BaseFragment {
             mStackBucketsTv.setText("打垛中...");
             mBulkBucketsLl.setEnabled(false);
             mScannedCountNs.setNumber(0);
-            mHandler.sendMessageDelayed(mHandler.obtainMessage(MSG_COMPLETE), 20000);
+            mHandler.sendMessageDelayed(mHandler.obtainMessage(MSG_COMPLETE), 3000);
         }
     }
 
@@ -152,7 +152,7 @@ public class R5Fragment extends BaseFragment {
             mBulkBucketsLl.getBackground().setTint(mContext.getColor(R.color.red));
             mBulkBucketsTv.setText("打垛中...");
             mScannedCountNs.setNumber(0);
-            mHandler.sendMessageDelayed(mHandler.obtainMessage(MSG_COMPLETE), 60000);
+            mHandler.sendMessageDelayed(mHandler.obtainMessage(MSG_COMPLETE), 3000);
         }
 //        mTestEPCs.clear();
 //        mScannedCountNs.setNumber(0);

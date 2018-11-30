@@ -70,6 +70,7 @@
             android:screenOrientation="landscape">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
+                <action android:name="android.intent.action.VIEW" />
 
                 <category android:name="android.intent.category.LAUNCHER" />
                 <category android:name="android.intent.category.HOME" />
@@ -95,7 +96,13 @@
             android:name=".activity.ErrorRemindActivity"
             android:screenOrientation="landscape"
             android:theme="@style/AppTheme.LightTransparent" />
-
+        <activity
+            android:name=".activity.QRCodeReaderActivity"
+            android:screenOrientation="landscape"/>
+        <activity
+            android:name=".activity.StackDetailActivity"
+            android:screenOrientation="landscape"
+            android:theme="@style/AppTheme.LightTransparent" />
     </application>
 
 </manifest>

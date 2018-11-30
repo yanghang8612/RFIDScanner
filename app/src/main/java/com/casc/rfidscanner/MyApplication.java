@@ -76,9 +76,9 @@ public class MyApplication extends Application {
         if (MyVars.config == null) {
             MyVars.config = new Gson().fromJson(ConfigHelper.getString(MyParams.S_API_JSON), Config.class);
         }
-        MyVars.executor.scheduleWithFixedDelay(new UpdateConfigTask(), 0 , MyParams.CONFIG_UPDATE_INTERVAL, TimeUnit.SECONDS);
-        MyVars.executor.scheduleWithFixedDelay(new InternetStatusCheckTask(), 0, MyParams.INTERNET_STATUS_CHECK_INTERVAL, TimeUnit.MILLISECONDS);
-        MyVars.executor.scheduleWithFixedDelay(new PlatformStatusCheckTask(), 0, MyParams.PLATFORM_STATUS_CHECK_INTERVAL, TimeUnit.MILLISECONDS);
+        MyVars.executor.scheduleWithFixedDelay(new UpdateConfigTask(), 1000 , MyParams.CONFIG_UPDATE_INTERVAL, TimeUnit.MILLISECONDS);
+        MyVars.executor.scheduleWithFixedDelay(new InternetStatusCheckTask(), 1000, MyParams.INTERNET_STATUS_CHECK_INTERVAL, TimeUnit.MILLISECONDS);
+        MyVars.executor.scheduleWithFixedDelay(new PlatformStatusCheckTask(), 1000, MyParams.PLATFORM_STATUS_CHECK_INTERVAL, TimeUnit.MILLISECONDS);
 
         // 开启Http Server
         //startService(new Intent(this, HttpService.class));
@@ -88,8 +88,7 @@ public class MyApplication extends Application {
 
         @Override
         public void run() {
-            if (MyVars.status.networkStatus &&
-                    MyVars.getReader().getState() != TagReader.STATE_CONNECTING) {
+            if (MyVars.status.networkStatus) {
                 getConfig();
             }
         }

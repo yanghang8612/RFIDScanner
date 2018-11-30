@@ -17,13 +17,11 @@ import com.casc.rfidscanner.MyParams;
 import com.casc.rfidscanner.MyVars;
 import com.casc.rfidscanner.R;
 import com.casc.rfidscanner.activity.ConfigActivity;
-import com.casc.rfidscanner.adapter.RNBucketAdapter;
-import com.casc.rfidscanner.bean.RNBucket;
+import com.casc.rfidscanner.adapter.BucketAdapter;
+import com.casc.rfidscanner.bean.Bucket;
 import com.casc.rfidscanner.helper.ConfigHelper;
 import com.casc.rfidscanner.helper.param.MsgDealer;
 import com.casc.rfidscanner.message.AbnormalBucketMessage;
-import com.casc.rfidscanner.message.BillStoredMessage;
-import com.casc.rfidscanner.message.BillUploadedMessage;
 import com.casc.rfidscanner.message.PollingResultMessage;
 import com.casc.rfidscanner.utils.CommonUtils;
 import com.chad.library.adapter.base.callback.ItemDragAndSwipeCallback;
@@ -59,28 +57,15 @@ public class RNFragment extends BaseFragment {
     @BindView(R.id.tv_rn_uploaded_bill_count) TextView mUploadedBillCountTv;
     @BindView(R.id.tv_rn_stored_bill_count) TextView mStoredBillCountTv;
 
-    private RNBucketAdapter mAdapter;
+    private List<Bucket> mBuckets = new ArrayList<>();
 
-    private List<RNBucket> mBuckets = new ArrayList<>();
+    private BucketAdapter mAdapter = new BucketAdapter(mBuckets);
 
-    private Map<String, RNBucket> mBucketsMap = new HashMap<>();
+    private Map<String, Bucket> mBucketsMap = new HashMap<>();
 
     private String mReadEPC;
 
     private String[] mLinks;
-
-    @Subscribe(threadMode = ThreadMode.MAIN)
-    public void onMessageEvent(BillStoredMessage message) {
-        increaseCount(mStoredBillCountTv);
-    }
-
-    @Subscribe(threadMode = ThreadMode.MAIN)
-    public void onMessageEvent(BillUploadedMessage message) {
-        if (message.isFromDB) {
-            decreaseCount(mStoredBillCountTv);
-        }
-        increaseCount(mUploadedBillCountTv);
-    }
 
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void onMessageEvent(AbnormalBucketMessage message) {
@@ -97,7 +82,7 @@ public class RNFragment extends BaseFragment {
                 case BUCKET:
                     String epcStr = CommonUtils.bytesToHex(message.epc);
                     if (!mBucketsMap.containsKey(epcStr)) {
-                        RNBucket bucket = new RNBucket(message.epc);
+                        Bucket bucket = new Bucket(message.epc);
                         mBuckets.add(0, bucket);
                         mBucketsMap.put(epcStr, bucket);
                         increaseCount(mBucketCountTv);
@@ -163,7 +148,6 @@ public class RNFragment extends BaseFragment {
             }
         });
 
-        mAdapter = new RNBucketAdapter(mBuckets);
         mAdapter.enableSwipeItem();
         mAdapter.setOnItemSwipeListener(new OnItemSwipeListener() {
 
@@ -178,7 +162,7 @@ public class RNFragment extends BaseFragment {
 
             @Override
             public void onItemSwiped(RecyclerView.ViewHolder viewHolder, int pos) {
-                String epcStr = mBuckets.get(pos).getEpc();
+                String epcStr = mBuckets.get(pos).getEpcStr();
                 mBucketsMap.remove(epcStr);
                 if (epcStr.equals(mReadEPC)) {
                     mReadEPC = null;
@@ -203,7 +187,6 @@ public class RNFragment extends BaseFragment {
     @OnClick(R.id.btn_rn_clear)
     void onClearButtonClicked() {
         new MaterialDialog.Builder(mContext)
-                .title("提示信息")
                 .content("确认清空当前扫描桶列表吗？")
                 .positiveText("确认")
                 .positiveColorRes(R.color.white)
@@ -217,19 +200,12 @@ public class RNFragment extends BaseFragment {
                         dialog.dismiss();
                     }
                 })
-                .onNegative(new MaterialDialog.SingleButtonCallback() {
-                    @Override
-                    public void onClick(@NonNull MaterialDialog dialog, @NonNull DialogAction which) {
-                        dialog.dismiss();
-                    }
-                })
                 .show();
     }
 
     @OnClick(R.id.btn_rn_commit)
     void onCommitButtonClicked() {
         new MaterialDialog.Builder(mContext)
-                .title("提示信息")
                 .content("确认提交当前的" + mRNLinkSpn.getText().toString() + "吗？")
                 .positiveText("确认")
                 .positiveColorRes(R.color.white)
@@ -251,17 +227,11 @@ public class RNFragment extends BaseFragment {
                         saveHistory(mRNCounterAct, MyParams.S_COUNTER_HISTORY);
                         saveHistory(mRNDriverAct, MyParams.S_DRIVER_HISTORY);
                         MsgDealer dealer = new MsgDealer(stage, counter, driver);
-                        for (RNBucket bucket : mBuckets) {
-                            dealer.addBucket(System.currentTimeMillis() / 1000, bucket.getEpc());
+                        for (Bucket bucket : mBuckets) {
+                            dealer.addBucket(System.currentTimeMillis() / 1000, bucket.getEpcStr());
                         }
                         MyVars.cache.storeDealerBill(dealer);
                         clearBuckets();
-                        dialog.dismiss();
-                    }
-                })
-                .onNegative(new MaterialDialog.SingleButtonCallback() {
-                    @Override
-                    public void onClick(@NonNull MaterialDialog dialog, @NonNull DialogAction which) {
                         dialog.dismiss();
                     }
                 })

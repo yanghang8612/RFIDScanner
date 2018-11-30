@@ -3,7 +3,8 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:orientation="vertical"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    android:focusableInTouchMode="true">
 
     <android.support.design.widget.AppBarLayout
         android:id="@+id/appbar_r7"
@@ -143,6 +144,7 @@
             </LinearLayout>
 
             <LinearLayout
+                android:orientation="vertical"
                 android:layout_width="0dp"
                 android:layout_height="match_parent"
                 android:layout_weight="1"
@@ -150,12 +152,143 @@
                 android:background="@drawable/sp_corner"
                 android:gravity="center">
 
-                <android.support.v7.widget.RecyclerView
-                    android:id="@+id/rv_r7_hint_list"
+                <LinearLayout
+                    android:visibility="visible"
+                    android:id="@+id/ll_task_choose"
+                    android:orientation="vertical"
                     android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:padding="@dimen/r7_padding"
-                    android:background="@drawable/sp_corner" />
+                    android:layout_height="match_parent">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="64dp"
+                        android:layout_margin="@dimen/r7_margin">
+
+                        <TextView
+                            android:theme="@style/AppTheme.CommonText"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_gravity="bottom"
+                            android:layout_marginBottom="4dp"
+                            android:text="上线任务单" />
+
+                        <com.weiwangcn.betterspinner.library.BetterSpinner
+                            android:id="@+id/spn_task_list"
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+                            android:layout_marginStart="@dimen/r7_margin"
+                            android:gravity="bottom"
+                            android:textSize="16sp"
+                            android:textColor="@color/black" />
+
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:padding="@dimen/r7_padding"
+                        android:gravity="bottom|end">
+
+                        <Button
+                            android:id="@+id/btn_task_start"
+                            android:theme="@style/ButtonGrey"
+                            android:layout_width="200dp"
+                            android:layout_height="56dp"
+                            android:text="开始任务单"/>
+
+                    </LinearLayout>
+
+                </LinearLayout>
+
+                <LinearLayout
+                    android:visibility="gone"
+                    android:id="@+id/ll_task_info"
+                    android:orientation="vertical"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent">
+
+                    <LinearLayout
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="@dimen/r7_margin"
+                        android:layout_marginTop="@dimen/r7_margin">
+
+                        <TextView
+                            android:theme="@style/AppTheme.CommonText"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="上线任务单号"/>
+
+                        <TextView
+                            android:id="@+id/tv_task_id"
+                            android:theme="@style/AppTheme.BigText"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="@dimen/r7_margin"
+                            android:text="HY181122001"/>
+
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="@dimen/r7_margin"
+                        android:layout_marginTop="@dimen/r7_margin">
+
+                        <TextView
+                            android:theme="@style/AppTheme.CommonText"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="上线产品名称"/>
+
+                        <TextView
+                            android:id="@+id/tv_task_product_name"
+                            android:theme="@style/AppTheme.BigText"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="@dimen/r7_margin"
+                            android:text="养生"/>
+
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="@dimen/r7_margin"
+                        android:layout_marginTop="@dimen/r3_margin">
+
+                        <TextView
+                            android:theme="@style/AppTheme.CommonText"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="上线产品数量"/>
+
+                        <TextView
+                            android:id="@+id/tv_task_product_count"
+                            android:theme="@style/AppTheme.BigText"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="@dimen/r3_margin"
+                            android:text="270(桶)"/>
+
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:padding="@dimen/r7_padding"
+                        android:gravity="bottom|end">
+
+                        <Button
+                            android:id="@+id/btn_task_stop"
+                            android:theme="@style/ButtonRed"
+                            android:layout_width="200dp"
+                            android:layout_height="56dp"
+                            android:text="提交任务单"/>
+
+                    </LinearLayout>
+
+                </LinearLayout>
 
             </LinearLayout>
 

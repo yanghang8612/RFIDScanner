@@ -191,6 +191,10 @@ public class CommonUtils {
         return new SimpleDateFormat("MM-dd HH:mm:ss", Locale.CHINA).format(time);
     }
 
+    public static String covertBucketNumToStr(int bucketNum) {
+        return bucketNum + " (桶)";
+    }
+
     public static void main(String[] args) {
         System.out.println(System.currentTimeMillis() + 12 * 30 * 24 * 60 * 60 * 1000);
         System.out.println(System.currentTimeMillis() + 12L * 30 * 24 * 60 * 60 * 1000);

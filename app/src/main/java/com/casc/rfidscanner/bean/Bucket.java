@@ -38,6 +38,8 @@ public class Bucket {
 
     private String bodyCode;
 
+    private boolean isHighlight = false;
+
     public Bucket(byte[] epc) {
         this.epc = epc;
         this.time = System.currentTimeMillis();
@@ -100,6 +102,14 @@ public class Bucket {
 
     public String getBodyCode() {
         return bodyCode;
+    }
+
+    public boolean isHighlight() {
+        return isHighlight;
+    }
+
+    public void setHighlight(boolean highlight) {
+        isHighlight = highlight;
     }
 
     @Override

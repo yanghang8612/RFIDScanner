@@ -87,6 +87,9 @@
     <dimen name="reflux_detail_padding">24dp</dimen>
     <dimen name="reflux_detail_margin">16dp</dimen>
 
+    <dimen name="stack_detail_padding">24dp</dimen>
+    <dimen name="stack_detail_margin">16dp</dimen>
+
     <dimen name="config_item_height">48dp</dimen>
     <dimen name="config_item_margin">16dp</dimen>
 

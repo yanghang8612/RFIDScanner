@@ -49,7 +49,7 @@ public class MyParams {
     public static final int HEARTBEAT_TIMEOUT = 2000; // ms
     public static final int NET_CONNECT_TIMEOUT = 2; // s
     public static final int NET_RW_TIMEOUT = 2; // s
-    public static final int CONFIG_UPDATE_INTERVAL = 60; // s
+    public static final int CONFIG_UPDATE_INTERVAL = 60 * 1000; // s
     public static final int INTERNET_STATUS_CHECK_INTERVAL = 990; // ms
     public static final int PLATFORM_STATUS_CHECK_INTERVAL = 5000; // ms
     // 运维人员配置
@@ -87,7 +87,7 @@ public class MyParams {
         CONFIG_DEFAULT_MAP.put(S_REST, "20ms");
         CONFIG_DEFAULT_MAP.put(S_INTERVAL, "7ms");
         CONFIG_DEFAULT_MAP.put(S_TIME, "20");
-        CONFIG_DEFAULT_MAP.put(S_TAG_LIFECYCLE, "5Min");
+        CONFIG_DEFAULT_MAP.put(S_TAG_LIFECYCLE, "30Min");
         CONFIG_DEFAULT_MAP.put(S_BLANK_INTERVAL, "5");
         CONFIG_DEFAULT_MAP.put(S_DISCOVERY_INTERVAL, "2Sec");
         CONFIG_DEFAULT_MAP.put(S_MAIN_PLATFORM_ADDR, "http://59.252.100.114");

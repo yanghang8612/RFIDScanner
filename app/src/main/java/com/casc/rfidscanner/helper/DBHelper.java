@@ -14,6 +14,7 @@ public class DBHelper extends SQLiteOpenHelper {
     private final static int VERSION = 1;
     private final static String DB_NAME = "RFIDScanner.db";
 
+    public static final String TABLE_NAME_ONLINE_MESSAGE = "onlineMessageTable";
     public static final String TABLE_NAME_TAG_MESSAGE = "tagMessageTable";
     public static final String TABLE_NAME_STACK_MESSAGE = "stackMessageTable";
     public static final String TABLE_NAME_DELIVERY_MESSAGE = "deliveryMessageTable";
@@ -23,6 +24,8 @@ public class DBHelper extends SQLiteOpenHelper {
     public static final String TABLE_NAME_REFLUX_BILL = "refluxBillTable";
     public static final String TABLE_NAME_STACK_DETAIL = "stackDetailTable";
 
+    private static String CREATE_TBL_ONLINE_MESSAGE =
+            "CREATE TABLE if not exists " + TABLE_NAME_ONLINE_MESSAGE + "(id integer primary key autoincrement, content text)";
     private static String CREATE_TBL_TAG_MESSAGE =
             "CREATE TABLE if not exists " + TABLE_NAME_TAG_MESSAGE + "(id integer primary key autoincrement, content text)";
     private static String CREATE_TBL_STACK_MESSAGE =
@@ -61,6 +64,7 @@ public class DBHelper extends SQLiteOpenHelper {
     @Override
     public void onCreate(SQLiteDatabase db) {
         Log.i(TAG, "======Create Database START( DB_NAME = " + DB_NAME + ", VERSION = " + VERSION + ")");
+        db.execSQL(CREATE_TBL_ONLINE_MESSAGE);
         db.execSQL(CREATE_TBL_TAG_MESSAGE);
         db.execSQL(CREATE_TBL_STACK_MESSAGE);
         db.execSQL(CREATE_TBL_DELIVERY_MESSAGE);
