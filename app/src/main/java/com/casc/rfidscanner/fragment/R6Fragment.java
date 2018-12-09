@@ -17,6 +17,7 @@ import com.casc.rfidscanner.activity.StackDetailActivity;
 import com.casc.rfidscanner.adapter.DeliveryBillAdapter;
 import com.casc.rfidscanner.bean.Bucket;
 import com.casc.rfidscanner.bean.DeliveryBill;
+import com.casc.rfidscanner.helper.EmptyAdapter;
 import com.casc.rfidscanner.helper.NetHelper;
 import com.casc.rfidscanner.helper.param.MsgDelivery;
 import com.casc.rfidscanner.helper.param.Reply;
@@ -144,10 +145,13 @@ public class R6Fragment extends BaseFragment {
         }
         MyVars.cache.storeDeliveryBill(delivery);
         showToast("提交成功");
-        mBills.remove(mCurBill);
-        if (mCurBill.isFromCard()) {
-            mBillsMap.remove(mCurBill.getBillID());
+        if (mCurBill == mSelectedBill) {
+            mSelectedBillView.setCardBackgroundColor(mContext.getColor(R.color.snow));
+            mSelectedBillView = null;
+            mSelectedBill = null;
         }
+        mBills.remove(mCurBill);
+        mBillsMap.remove(mCurBill.getBillID());
         EventBus.getDefault().post(new BillUpdatedMessage());
     }
 
@@ -164,7 +168,8 @@ public class R6Fragment extends BaseFragment {
                             synchronized (mLock) {
                                 mCache.remove(epcStr);
                             }
-                            NetHelper.getInstance().uploadUnstackInfo(Bucket.getBodyCode(epcStr));
+                            NetHelper.getInstance().uploadUnstackInfo(Bucket.getBodyCode(epcStr))
+                                    .enqueue(new EmptyAdapter());
                             EventBus.getDefault().post(new BillUpdatedMessage());
                         }
                     } else {

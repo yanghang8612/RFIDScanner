@@ -239,7 +239,7 @@ public class ConfigActivity extends BaseActivity {
         mMainPlatformAddrMet.setText(ConfigHelper.getString(MyParams.S_MAIN_PLATFORM_ADDR));
         mMainPlatformAddrMet.addValidator(new RegexpValidator("网址格式错误",
                 "^((([hH][tT][tT][pP][sS]?|[fF][tT][pP])\\:\\/\\/)?([\\w\\.\\-]+(\\:[\\w\\.\\&%\\$\\-]+)*@)?((([^\\s\\(\\)\\<\\>\\\\\\\"\\.\\[\\]\\,@;:]+)(\\.[^\\s\\(\\)\\<\\>\\\\\\\"\\.\\[\\]\\,@;:]+)*(\\.[a-zA-Z]{2,4}))|((([01]?\\d{1,2}|2[0-4]\\d|25[0-5])\\.){3}([01]?\\d{1,2}|2[0-4]\\d|25[0-5])))(\\b\\:(6553[0-5]|655[0-2]\\d|65[0-4]\\d{2}|6[0-4]\\d{3}|[1-5]\\d{4}|[1-9]\\d{0,3}|0)\\b)?((\\/[^\\/][\\w\\.\\,\\?\\'\\\\\\/\\+&%\\$#\\=~_\\-@]*)*[^\\.\\,\\?\\\"\\'\\(\\)\\[\\]!;<>{}\\s\\x7F-\\xFF])?)$"));
-        mMonitorAppAddrMet.setText(ConfigHelper.getString(MyParams.S_MONITOR_APP_ADDR));
+        mMonitorAppAddrMet.setText(ConfigHelper.getString(MyParams.S_STANDBY_PLATFORM_ADDR));
         mMonitorAppAddrMet.addValidator(new RegexpValidator("网址格式错误",
                 "^((([hH][tT][tT][pP][sS]?|[fF][tT][pP])\\:\\/\\/)?([\\w\\.\\-]+(\\:[\\w\\.\\&%\\$\\-]+)*@)?((([^\\s\\(\\)\\<\\>\\\\\\\"\\.\\[\\]\\,@;:]+)(\\.[^\\s\\(\\)\\<\\>\\\\\\\"\\.\\[\\]\\,@;:]+)*(\\.[a-zA-Z]{2,4}))|((([01]?\\d{1,2}|2[0-4]\\d|25[0-5])\\.){3}([01]?\\d{1,2}|2[0-4]\\d|25[0-5])))(\\b\\:(6553[0-5]|655[0-2]\\d|65[0-4]\\d{2}|6[0-4]\\d{3}|[1-5]\\d{4}|[1-9]\\d{0,3}|0)\\b)?((\\/[^\\/][\\w\\.\\,\\?\\'\\\\\\/\\+&%\\$#\\=~_\\-@]*)*[^\\.\\,\\?\\\"\\'\\(\\)\\[\\]!;<>{}\\s\\x7F-\\xFF])?)$"));
         mReaderMacTv.setText(ConfigHelper.getString(MyParams.S_READER_MAC));
@@ -261,7 +261,7 @@ public class ConfigActivity extends BaseActivity {
             ConfigHelper.setParam(MyParams.S_DISCOVERY_INTERVAL, mDiscoveryIntervalSpn.getText().toString());
 
             ConfigHelper.setParam(MyParams.S_MAIN_PLATFORM_ADDR, mMainPlatformAddrMet.getText().toString());
-            ConfigHelper.setParam(MyParams.S_MONITOR_APP_ADDR, mMonitorAppAddrMet.getText().toString());
+            ConfigHelper.setParam(MyParams.S_STANDBY_PLATFORM_ADDR, mMonitorAppAddrMet.getText().toString());
             ConfigHelper.setParam(MyParams.S_LONGITUDE, mLongitudeMet.getText().toString());
             ConfigHelper.setParam(MyParams.S_LATITUDE, mLatitudeMet.getText().toString());
             ConfigHelper.setParam(MyParams.S_HEIGHT, mHeightMet.getText().toString());

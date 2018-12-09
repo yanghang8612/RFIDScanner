@@ -133,7 +133,7 @@
                 android:layout_margin="@dimen/r6_margin"
                 android:background="@color/black" />
 
-            <com.casc.rfidscanner.view.R6CardView
+            <android.support.v7.widget.CardView
                 android:visibility="invisible"
                 android:id="@+id/cv_r6_bulk"
                 android:layout_width="0dp"
@@ -169,7 +169,7 @@
 
                 </LinearLayout>
 
-            </com.casc.rfidscanner.view.R6CardView>
+            </android.support.v7.widget.CardView>
 
             <LinearLayout
                 android:layout_width="1dp"
@@ -177,7 +177,7 @@
                 android:layout_margin="@dimen/r6_margin"
                 android:background="@color/black" />
 
-            <com.casc.rfidscanner.view.R6CardView
+            <android.support.v7.widget.CardView
                 android:id="@+id/cv_r6_scanned"
                 android:layout_width="0dp"
                 android:layout_height="match_parent"
@@ -212,7 +212,7 @@
 
                 </LinearLayout>
 
-            </com.casc.rfidscanner.view.R6CardView>
+            </android.support.v7.widget.CardView>
 
         </LinearLayout>
 

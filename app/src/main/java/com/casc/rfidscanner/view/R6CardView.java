@@ -7,6 +7,7 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v7.widget.CardView;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.view.ViewGroup;
 
 import com.casc.rfidscanner.R;
@@ -32,19 +33,17 @@ public class R6CardView extends CardView {
 
     private Handler mHandler = new InnerHandler(this);
 
-    public R6CardView(@NonNull Context context) {
-        super(context);
-        mCountNs = (NumberSwitcher) ((ViewGroup) getChildAt(0)).getChildAt(1);
-    }
-
     public R6CardView(@NonNull Context context, @Nullable AttributeSet attrs) {
         super(context, attrs);
-        mCountNs = (NumberSwitcher) ((ViewGroup) getChildAt(0)).getChildAt(1);
     }
 
     public R6CardView(@NonNull Context context, @Nullable AttributeSet attrs, int defStyleAttr) {
         super(context, attrs, defStyleAttr);
-        mCountNs = (NumberSwitcher) ((ViewGroup) getChildAt(0)).getChildAt(1);
+    }
+
+    public void setCountNs(NumberSwitcher countNs) {
+        this.mCountNs = countNs;
+        mCountNs.setNumber(0);
     }
 
     public void bindData(List<String> buckets) {
@@ -65,7 +64,7 @@ public class R6CardView extends CardView {
     }
 
     public boolean add(String epcStr) {
-        if (mBuckets.contains(epcStr)) {
+        if (!mBuckets.contains(epcStr)) {
             mBuckets.add(epcStr);
             Message.obtain(mHandler, MSG_ADD_BUCKET).sendToTarget();
             return true;
@@ -101,11 +100,9 @@ public class R6CardView extends CardView {
             R6CardView outer = mOuter.get();
             switch (msg.what) {
                 case MSG_BIND_BUCKETS:
-                    outer.setVisibility(VISIBLE);
                     outer.mCountNs.setNumber(outer.mBuckets.size());
                     break;
                 case MSG_CLEAR_BUCKETS:
-                    outer.setVisibility(INVISIBLE);
                     outer.setCardBackgroundColor(outer.getContext().getColor(R.color.snow));
                     outer.mCountNs.setNumber(0);
                     break;
@@ -115,8 +112,8 @@ public class R6CardView extends CardView {
                 case MSG_REMOVE_BUCKET:
                     outer.mCountNs.decreaseNumber();
                     break;
-
             }
+            outer.setVisibility(outer.mBuckets.isEmpty() ? INVISIBLE : VISIBLE);
         }
     }
 }

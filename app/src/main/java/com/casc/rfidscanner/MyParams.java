@@ -66,7 +66,7 @@ public class MyParams {
     public static final String S_BLANK_INTERVAL = "blank_interval"; // 空白期间隔
     public static final String S_DISCOVERY_INTERVAL = "discovery_interval"; // 最小时间间隔
     public static final String S_MAIN_PLATFORM_ADDR = "main_platform_addr"; // 主平台软件地址
-    public static final String S_MONITOR_APP_ADDR = "standby_platform_addr"; // 监控APP地址
+    public static final String S_STANDBY_PLATFORM_ADDR = "standby_platform_addr"; // 监控APP地址
     public static final String S_READER_ID = "reader_id"; // 读写器ID
     public static final String S_READER_MAC = "reader_mac"; // 读写器蓝牙MAC地址
     public static final String S_LONGITUDE = "longitude"; // 经度
@@ -80,7 +80,7 @@ public class MyParams {
     static {
         CONFIG_DEFAULT_MAP.put(S_LINK, "00");
         CONFIG_DEFAULT_MAP.put(S_SENSOR_SWITCH, "false");
-        CONFIG_DEFAULT_MAP.put(S_RSSI_THRESHOLD, "-30dBm");
+        CONFIG_DEFAULT_MAP.put(S_RSSI_THRESHOLD, "-35dBm");
         CONFIG_DEFAULT_MAP.put(S_MIN_REACH_TIMES, "1");
         CONFIG_DEFAULT_MAP.put(S_POWER, "15dBm");
         CONFIG_DEFAULT_MAP.put(S_Q_VALUE, "0");
@@ -91,8 +91,8 @@ public class MyParams {
         CONFIG_DEFAULT_MAP.put(S_BLANK_INTERVAL, "5");
         CONFIG_DEFAULT_MAP.put(S_DISCOVERY_INTERVAL, "2Sec");
         CONFIG_DEFAULT_MAP.put(S_MAIN_PLATFORM_ADDR, "http://59.252.100.114");
-        CONFIG_DEFAULT_MAP.put(S_MONITOR_APP_ADDR, "http://192.168.1.8:8888");
-        CONFIG_DEFAULT_MAP.put(S_READER_ID, "100000000000000000000001");
+        CONFIG_DEFAULT_MAP.put(S_STANDBY_PLATFORM_ADDR, "http://192.168.1.8:8888");
+        CONFIG_DEFAULT_MAP.put(S_READER_ID, "100000000000000000000000");
         CONFIG_DEFAULT_MAP.put(S_READER_MAC, "00:00:00:00:00:00");
         CONFIG_DEFAULT_MAP.put(S_LONGITUDE, "121.39");
         CONFIG_DEFAULT_MAP.put(S_LATITUDE, "37.52");

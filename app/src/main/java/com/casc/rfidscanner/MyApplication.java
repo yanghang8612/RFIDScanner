@@ -48,7 +48,7 @@ public class MyApplication extends Application {
         super.onCreate();
 
         // 程序崩溃捕捉并打印响应信息
-        Thread.setDefaultUncaughtExceptionHandler(new CrashHandler());
+        CrashHandler.getInstance().init(this);
 
         // 初始化相关字段
         mInstance = this;
@@ -115,8 +115,8 @@ public class MyApplication extends Application {
 
         @Override
         public void run() {
-//            if (mWifiManager.getWifiState() == WifiManager.WIFI_STATE_DISABLED)
-//                mWifiManager.setWifiEnabled(true);
+            if (mWifiManager.getWifiState() == WifiManager.WIFI_STATE_DISABLED)
+                mWifiManager.setWifiEnabled(true);
             NetworkCapabilities nc = mConnectivityManager.getNetworkCapabilities(
                     mConnectivityManager.getActiveNetwork());
             MyVars.status.setReaderStatus(MyVars.getReader().isConnected());
