@@ -55,6 +55,7 @@
             android:padding="10dp">
 
             <LinearLayout
+                android:visibility="gone"
                 android:id="@+id/ll_config_line_name"
                 android:orientation="horizontal"
                 android:layout_width="match_parent"
@@ -108,6 +109,35 @@
             </LinearLayout>
 
             <LinearLayout
+                android:visibility="gone"
+                android:layout_width="match_parent"
+                android:layout_height="@dimen/config_item_height"
+                android:gravity="center_vertical">
+
+                <TextView
+                    android:theme="@style/AppTheme.CommonText"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:gravity="end"
+                    android:text="@string/config_use_switch_label" />
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="3"
+                    android:layout_marginStart="@dimen/config_item_margin">
+
+                    <Switch
+                        android:id="@+id/sw_config_usb_switch"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content" />
+
+                </LinearLayout>
+
+            </LinearLayout>
+
+            <LinearLayout
                 android:orientation="horizontal"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content">
@@ -144,7 +174,7 @@
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:gravity="end"
-                    android:text="@string/config_monitor_app_addr" />
+                    android:text="@string/config_monitor_app_addr_label" />
 
                 <com.rengwuxian.materialedittext.MaterialEditText
                     android:id="@+id/met_config_monitor_app_addr"
@@ -358,7 +388,7 @@
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:gravity="end"
-                    android:text="@string/config_sensor_switch" />
+                    android:text="@string/config_sensor_switch_label" />
 
                 <LinearLayout
                     android:layout_width="0dp"
@@ -386,7 +416,7 @@
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:gravity="end"
-                    android:text="@string/config_rssi_threshold" />
+                    android:text="@string/config_rssi_threshold_label" />
 
                 <com.weiwangcn.betterspinner.library.BetterSpinner
                     android:id="@+id/spn_config_rssi_threshold"
@@ -409,7 +439,7 @@
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:gravity="end"
-                    android:text="@string/config_min_reach_times" />
+                    android:text="@string/config_min_reach_times_label" />
 
                 <com.weiwangcn.betterspinner.library.BetterSpinner
                     android:id="@+id/spn_config_min_reach_times"

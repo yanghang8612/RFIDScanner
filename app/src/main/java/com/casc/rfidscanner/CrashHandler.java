@@ -10,6 +10,8 @@ import android.os.Process;
 import android.text.TextUtils;
 import android.widget.Toast;
 
+import com.casc.rfidscanner.helper.NetHelper;
+
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -96,7 +98,7 @@ public class CrashHandler implements Thread.UncaughtExceptionHandler {
      * @return true:已处理 false:未处理
      */
     private boolean handleException(Throwable e) {
-        if (e == null) {// 异常是否为空
+        if (e == null) { // 异常是否为空
             return false;
         }
         new Thread() {// 在主线程中弹出提示
@@ -107,6 +109,7 @@ public class CrashHandler implements Thread.UncaughtExceptionHandler {
                 Looper.loop();
             }
         }.start();
+        NetHelper.getInstance().sendLogRecord("主线线程出现异常: " + e.getLocalizedMessage());
         collectErrorMessages();
         saveErrorMessages(e);
         return false;

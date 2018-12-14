@@ -54,6 +54,7 @@ public class MyParams {
     public static final int PLATFORM_STATUS_CHECK_INTERVAL = 5000; // ms
     // 运维人员配置
     public static final String S_LINK = "link"; // 工位
+    public static final String S_USB_SWITCH = "usb_switch"; // 读写器USB开关
     public static final String S_SENSOR_SWITCH = "sensor_switch"; // 传感器检测开关
     public static final String S_RSSI_THRESHOLD = "rssi_threshold"; // 达标阈值
     public static final String S_MIN_REACH_TIMES = "min_reach_times"; // 最少达标次数
@@ -79,10 +80,11 @@ public class MyParams {
     public static final Map<String, String> CONFIG_DEFAULT_MAP = new HashMap<>();
     static {
         CONFIG_DEFAULT_MAP.put(S_LINK, "00");
+        CONFIG_DEFAULT_MAP.put(S_USB_SWITCH, "false");
         CONFIG_DEFAULT_MAP.put(S_SENSOR_SWITCH, "false");
         CONFIG_DEFAULT_MAP.put(S_RSSI_THRESHOLD, "-35dBm");
         CONFIG_DEFAULT_MAP.put(S_MIN_REACH_TIMES, "1");
-        CONFIG_DEFAULT_MAP.put(S_POWER, "15dBm");
+        CONFIG_DEFAULT_MAP.put(S_POWER, "18dBm");
         CONFIG_DEFAULT_MAP.put(S_Q_VALUE, "0");
         CONFIG_DEFAULT_MAP.put(S_REST, "20ms");
         CONFIG_DEFAULT_MAP.put(S_INTERVAL, "7ms");
@@ -91,7 +93,7 @@ public class MyParams {
         CONFIG_DEFAULT_MAP.put(S_BLANK_INTERVAL, "5");
         CONFIG_DEFAULT_MAP.put(S_DISCOVERY_INTERVAL, "2Sec");
         CONFIG_DEFAULT_MAP.put(S_MAIN_PLATFORM_ADDR, "http://59.252.100.114");
-        CONFIG_DEFAULT_MAP.put(S_STANDBY_PLATFORM_ADDR, "http://192.168.1.8:8888");
+        CONFIG_DEFAULT_MAP.put(S_STANDBY_PLATFORM_ADDR, "http://106.37.201.142:23333");
         CONFIG_DEFAULT_MAP.put(S_READER_ID, "100000000000000000000000");
         CONFIG_DEFAULT_MAP.put(S_READER_MAC, "00:00:00:00:00:00");
         CONFIG_DEFAULT_MAP.put(S_LONGITUDE, "121.39");

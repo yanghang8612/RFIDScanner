@@ -110,7 +110,7 @@ public class InputCodeLayout extends RelativeLayout implements TextWatcher, View
 
     private void initAttrs(AttributeSet attrs) {
         TypedArray a = mContext.obtainStyledAttributes(attrs, R.styleable.InputCodeLayout);
-        mHeader = (mHeader = a.getString(R.styleable.InputCodeLayout_icl_header)) == null ? "" : mHeader;
+        mHeader = TextUtils.isEmpty(mHeader = a.getString(R.styleable.InputCodeLayout_icl_header)) ? "" : mHeader;
         mNumber = a.getInt(R.styleable.InputCodeLayout_icl_number, -1) + mHeader.length();
         mWidth = a.getDimensionPixelSize(R.styleable.InputCodeLayout_icl_width, -1);
         mHeight = a.getDimensionPixelSize(R.styleable.InputCodeLayout_icl_height, -1);

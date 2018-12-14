@@ -96,6 +96,8 @@ public class R6Fragment extends BaseFragment {
 
     private List<String> mCache = new LinkedList<>();
 
+    private List<String> mErrors = new LinkedList<>();
+
     private final Object mLock = new Object();
 
     // 错误已提示标识
@@ -179,6 +181,10 @@ public class R6Fragment extends BaseFragment {
                                     && !mBulkBuckets.contains(epcStr) && !mUnidentifiedBuckets.contains(epcStr)) {
                                 mUnidentifiedBuckets.add(epcStr);
                                 Message.obtain(mHandler, MSG_UPDATE).sendToTarget();
+                            }
+                            if (mCache.contains(epcStr) && !mErrors.contains(epcStr)) {
+                                mErrors.add(epcStr);
+                                NetHelper.getInstance().sendLogRecord("重复出库: " + Bucket.getBodyCode(epcStr));
                             }
                         }
                     }

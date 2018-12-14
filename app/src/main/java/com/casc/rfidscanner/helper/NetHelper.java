@@ -8,6 +8,7 @@ import com.casc.rfidscanner.helper.param.MsgChkStackOrSingle;
 import com.casc.rfidscanner.helper.param.MsgCommon;
 import com.casc.rfidscanner.helper.param.MsgDealer;
 import com.casc.rfidscanner.helper.param.MsgDelivery;
+import com.casc.rfidscanner.helper.param.MsgLog;
 import com.casc.rfidscanner.helper.param.MsgOnline;
 import com.casc.rfidscanner.helper.param.MsgReaderTID;
 import com.casc.rfidscanner.helper.param.MsgReflux;
@@ -204,4 +205,10 @@ public class NetHelper {
 
     }
 
+    public void sendLogRecord(String content) {
+        netInterface.post(
+                ConfigHelper.getString(MyParams.S_STANDBY_PLATFORM_ADDR) + "/log",
+                CommonUtils.generateRequestHeader("02"),
+                CommonUtils.generateRequestBody(new MsgLog(content))).enqueue(new EmptyAdapter());
+    }
 }

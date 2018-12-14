@@ -17,6 +17,7 @@ import com.casc.rfidscanner.MyParams;
 import com.casc.rfidscanner.MyVars;
 import com.casc.rfidscanner.R;
 import com.casc.rfidscanner.activity.ConfigActivity;
+import com.casc.rfidscanner.bean.Bucket;
 import com.casc.rfidscanner.helper.NetHelper;
 import com.casc.rfidscanner.helper.param.MsgOnline;
 import com.casc.rfidscanner.helper.param.Reply;
@@ -78,6 +79,8 @@ public class R7Fragment extends BaseFragment {
 
     private Set<String> mBuckets = new HashSet<>();
 
+    private Set<String> mErrors = new HashSet<>();
+
     private boolean mTaskStarted;
 
     // Fragment内部handler
@@ -131,14 +134,10 @@ public class R7Fragment extends BaseFragment {
                             }
                         });
                     }
-//                    // 下发Mask指令
-//                    MyVars.getReader().sendCommand(InsHelper.getEPCSelectParameter(epc), MyParams.SELECT_MAX_TRY_COUNT);
-//                    // 下发TID读取指令
-//                    MyVars.getReader().sendCommand(InsHelper.getReadMemBank(
-//                            CommonUtils.hexToBytes("00000000"),
-//                            InsHelper.MemBankType.TID,
-//                            MyParams.TID_START_INDEX,
-//                            MyParams.TID_LENGTH), MyParams.READ_TID_MAX_TRY_COUNT);
+                    if (!mTaskStarted && !mErrors.contains(epcStr)) {
+                        mErrors.add(epcStr);
+                        NetHelper.getInstance().sendLogRecord("非法上线: " + Bucket.getBodyCode(epcStr));
+                    }
                     break;
                 case CARD_ADMIN:
                     if (++mAdminCardScannedCount == MyParams.ADMIN_CARD_SCANNED_COUNT) {

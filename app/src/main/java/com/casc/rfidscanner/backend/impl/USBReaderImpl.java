@@ -10,6 +10,7 @@ import android.hardware.usb.UsbManager;
 import android.util.Log;
 
 import com.casc.rfidscanner.MyVars;
+import com.casc.rfidscanner.helper.NetHelper;
 import com.hoho.android.usbserial.driver.Cp21xxSerialDriver;
 import com.hoho.android.usbserial.driver.UsbSerialPort;
 
@@ -81,21 +82,24 @@ public class USBReaderImpl extends BaseReaderImpl {
         } finally {
             mUsbDevice = null;
             mSerialPort = null;
+            NetHelper.getInstance().sendLogRecord("读写器断开连接(byUSB)");
         }
     }
 
     @Override
     public void start() {
         super.start();
-        if (mState != STATE_CONNECTED)
+        if (mState != STATE_CONNECTED) {
             buildConnection();
+        }
     }
 
     @Override
     public void stop() {
         super.stop();
-        if (mState == STATE_CONNECTED)
+        if (mState == STATE_CONNECTED) {
             lostConnection();
+        }
     }
 
     /**
@@ -115,6 +119,7 @@ public class USBReaderImpl extends BaseReaderImpl {
                 mSerialPort.open(mUsbManager.openDevice(mUsbDevice));
                 mSerialPort.setParameters(115200, UsbSerialPort.DATABITS_8, UsbSerialPort.STOPBITS_1, UsbSerialPort.PARITY_NONE);
                 mState = STATE_CONNECTED;
+                NetHelper.getInstance().sendLogRecord("读写器已连接(byUSB)");
                 EventBus.getDefault().post(MyVars.status.setReaderStatus(true));
             } catch (NullPointerException e) {
                 Log.i(TAG, "Need permission when build connection with reader by usb");

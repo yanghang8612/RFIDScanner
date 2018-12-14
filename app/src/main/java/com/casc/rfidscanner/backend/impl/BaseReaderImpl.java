@@ -9,6 +9,7 @@ import com.casc.rfidscanner.MyVars;
 import com.casc.rfidscanner.backend.TagReader;
 import com.casc.rfidscanner.helper.ConfigHelper;
 import com.casc.rfidscanner.helper.InsHelper;
+import com.casc.rfidscanner.helper.NetHelper;
 import com.casc.rfidscanner.message.AbnormalBucketMessage;
 import com.casc.rfidscanner.message.PollingResultMessage;
 import com.casc.rfidscanner.message.ReadResultMessage;
@@ -372,7 +373,7 @@ abstract class BaseReaderImpl implements TagReader {
                         Thread.sleep(1);
                     }
                 } catch (IOException e) {
-                    Log.i(TAG, "Reader disconnected");
+                    NetHelper.getInstance().sendLogRecord("读写器写线程IO异常: " + e.getMessage());
                     e.printStackTrace();
                     lostConnection();
                 } catch (Exception e) {
@@ -526,7 +527,7 @@ abstract class BaseReaderImpl implements TagReader {
                     }
                     System.arraycopy(data, endIndex + 1, data, 0, leftCount -= endIndex + 1);
                 } catch (IOException e) {
-                    Log.i(TAG, "Reader disconnected");
+                    NetHelper.getInstance().sendLogRecord("读写器读线程IO异常: " + e.getMessage());
                     e.printStackTrace();
                     lostConnection();
                 } catch (ArrayIndexOutOfBoundsException e) {

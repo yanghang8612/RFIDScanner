@@ -14,6 +14,7 @@ import com.baidu.tts.client.SpeechSynthesizer;
 import com.casc.rfidscanner.MyParams;
 import com.casc.rfidscanner.MyVars;
 import com.casc.rfidscanner.helper.ConfigHelper;
+import com.casc.rfidscanner.helper.NetHelper;
 
 import org.greenrobot.eventbus.EventBus;
 
@@ -40,6 +41,8 @@ public class BLEReaderImpl extends BaseReaderImpl {
     private BluetoothSocket mBLESocket;
     private InputStream mInStream; // 蓝牙输入流
     private OutputStream mOutStream; // 蓝牙输出流
+
+    private String mPreErrorMessage;
 
     public BLEReaderImpl(Context context) {
         super(context);
@@ -93,6 +96,7 @@ public class BLEReaderImpl extends BaseReaderImpl {
         } finally {
             mBLESocket = null;
             startDiscovery();
+            NetHelper.getInstance().sendLogRecord("读写器断开连接(by蓝牙)");
         }
     }
 
@@ -133,11 +137,16 @@ public class BLEReaderImpl extends BaseReaderImpl {
                 mInStream = mBLESocket.getInputStream();
                 mOutStream = mBLESocket.getOutputStream();
                 mState = STATE_CONNECTED;
+                NetHelper.getInstance().sendLogRecord(
+                        "读写器已连接(by蓝牙), cost " + (System.currentTimeMillis() - startTime));
                 SpeechSynthesizer.getInstance().speak("读写器已连接");
                 EventBus.getDefault().post(MyVars.status.setReaderStatus(true));
                 Log.i(TAG, "BLEConnectTask cost " + (System.currentTimeMillis() - startTime));
             } catch (IOException e) {
-                Log.i(TAG, "Error when connect to bluetooth reader");
+                if (!e.getMessage().equals(mPreErrorMessage)) {
+                    mPreErrorMessage = e.getMessage();
+                    NetHelper.getInstance().sendLogRecord("蓝牙连接异常: " + e.getMessage());
+                }
                 e.printStackTrace();
                 mState = STATE_NONE;
                 if (!mDiscoveryTimer.isRunning) {

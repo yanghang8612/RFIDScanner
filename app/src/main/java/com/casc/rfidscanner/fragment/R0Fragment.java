@@ -356,6 +356,7 @@ public class R0Fragment extends BaseFragment implements QRCodeReaderView.OnQRCod
                 if (data == null) {
                     writeHint("读取TID\n失败");
                     writeTaskFailed(true);
+                    reportLog("读取TID失败");
                     return;
                 } else {
                     writeHint("读取TID\n成功");
@@ -371,7 +372,6 @@ public class R0Fragment extends BaseFragment implements QRCodeReaderView.OnQRCod
                         CommonUtils.bytesToHex(mBucketToRegister.getTid()), bodyCode);
                 Response<Reply> queryResponse = NetHelper.getInstance().checkBodyCodeAndTID(msgChkBodyCodeAndTID).execute();
                 Reply replyQuery = queryResponse.body();
-                Log.i(TAG, "" + replyQuery.getCode());
                 if (!queryResponse.isSuccessful() || replyQuery == null) {
                     writeHint("注册失败,平台连接失败");
                     writeTaskFailed(true);
@@ -379,6 +379,7 @@ public class R0Fragment extends BaseFragment implements QRCodeReaderView.OnQRCod
                 } else if (replyQuery.getCode() == 211) {
                     writeHint("桶身码已使用,请更换后重试");
                     writeTaskFailed(false);
+                    reportLog("桶身码已使用");
                     return;
                 }
 
@@ -393,6 +394,7 @@ public class R0Fragment extends BaseFragment implements QRCodeReaderView.OnQRCod
                 if (data == null) {
                     writeHint("写入PC失败");
                     writeTaskFailed(true);
+                    reportLog("写入PC失败");
                     return;
                 } else {
                     writeHint("写入PC成功");
@@ -409,9 +411,10 @@ public class R0Fragment extends BaseFragment implements QRCodeReaderView.OnQRCod
                         != MyParams.EPC_BUCKET_LENGTH / 2) {
                     writeHint( "PC校验失败");
                     writeTaskFailed(true);
+                    reportLog("PC校验失败");
                     return;
                 } else {
-                    writeHint("校验PC成功");
+                    writeHint("PC校验成功");
                 }
 
                 // 写入EPC
@@ -424,6 +427,7 @@ public class R0Fragment extends BaseFragment implements QRCodeReaderView.OnQRCod
                 if (data == null) {
                     writeHint("写入EPC\n失败");
                     writeTaskFailed(true);
+                    reportLog("写入EPC失败");
                     return;
                 } else {
                     writeHint("写入EPC\n成功");
@@ -442,9 +446,10 @@ public class R0Fragment extends BaseFragment implements QRCodeReaderView.OnQRCod
                 if (data == null || !Arrays.equals(InsHelper.getReadContent(data), mBucketToRegister.getEpc())) {
                     writeHint("EPC校验\n失败");
                     writeTaskFailed(true);
+                    reportLog("EPC校验失败");
                     return;
                 } else {
-                    writeHint("校验EPC\n成功");
+                    writeHint("EPC校验\n成功");
                     //mBucketToRegister.setTid(InsHelper.getReadContent(data));
                 }
 
@@ -458,6 +463,7 @@ public class R0Fragment extends BaseFragment implements QRCodeReaderView.OnQRCod
                 if (!responseR0.isSuccessful() || replyR0 == null) {
                     writeHint("平台内部错误" + responseR0.code() + ",请联系运维人员");
                     writeTaskFailed(false);
+                    reportLog("平台内部错误" + responseR0.code());
                     return;
                 } else if (replyR0.getCode() != 200) {
                     switch (replyR0.getCode()) {
@@ -479,6 +485,7 @@ public class R0Fragment extends BaseFragment implements QRCodeReaderView.OnQRCod
                         case 215:
                             writeHint("桶身码更新\n成功");
                             updateTaskSuccess();
+                            reportLog("桶身码更新成功");
                             return;
                         case 216:
                             writeHint("该桶身码已\n报废");
@@ -487,6 +494,7 @@ public class R0Fragment extends BaseFragment implements QRCodeReaderView.OnQRCod
                         case 217:
                             writeHint("桶产品信息\n修改成功");
                             updateTaskSuccess();
+                            reportLog("桶产品信息修改成功");
                             return;
                         case 219:
                             writeHint("该桶已报废");
@@ -510,6 +518,12 @@ public class R0Fragment extends BaseFragment implements QRCodeReaderView.OnQRCod
             }
             writeHint(mBucketToRegister.getBodyCode() + "\n注册成功");
             writeTaskSuccess();
+        }
+
+        private void reportLog(String content) {
+            NetHelper.getInstance().sendLogRecord(
+                    content + ": " + mBucketToRegister.getBodyCode() +
+                            " (" + CommonUtils.bytesToHex(mScannedEPC) + ")");
         }
     }
 }

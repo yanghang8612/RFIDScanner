@@ -54,8 +54,11 @@ public class ConfigActivity extends BaseActivity {
 
     private static final String TAG = ConfigActivity.class.getSimpleName();
 
+    private static final int DISCOVERY_INTERVAL = 15; // s
+
     public static void actionStart(Context context) {
         if (!(ActivityCollector.getTopActivity() instanceof ConfigActivity)) {
+            MyVars.getReader().pause();
             Intent intent = new Intent(context, ConfigActivity.class);
             context.startActivity(intent);
         }
@@ -63,6 +66,7 @@ public class ConfigActivity extends BaseActivity {
 
     @BindView(R.id.toolbar_config) Toolbar mToolbar;
     @BindView(R.id.spn_config_link) BetterSpinner mLinkSpn;
+    @BindView(R.id.sw_config_usb_switch) Switch mUSBSw;
     @BindView(R.id.sw_config_sensor_switch) Switch mSensorSw;
     @BindView(R.id.spn_config_rssi_threshold) BetterSpinner mRSSIThreshold;
     @BindView(R.id.spn_config_min_reach_times) BetterSpinner mMinReachTimesSpn;
@@ -103,8 +107,9 @@ public class ConfigActivity extends BaseActivity {
         setContentView(R.layout.activity_config);
         ButterKnife.bind(this);
         setSupportActionBar(mToolbar);
-        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-        MyVars.getReader().pause();
+        if (getSupportActionBar() != null) {
+            getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        }
         initViews();
 
         // 注册蓝牙广播监听器
@@ -163,13 +168,19 @@ public class ConfigActivity extends BaseActivity {
         mReaderRv.setLayoutManager(new LinearLayoutManager(this));
         mReaderRv.setAdapter(mReaderAdapter);
 
-        mDiscoveryTimer = new DiscoveryTimer(5 * 1000, 1000);
+        mDiscoveryTimer = new DiscoveryTimer(DISCOVERY_INTERVAL * 1000, 1000);
         mDiscoveryTimer.start();
     }
 
     @Override
-    public void finish() {
-        super.finish();
+    protected void onStart() {
+        super.onStart();
+        MyVars.getReader().pause();
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
         mDiscoveryTimer.cancel();
         mBLEAdapter.cancelDiscovery();
         MyVars.getReader().start();
@@ -193,6 +204,7 @@ public class ConfigActivity extends BaseActivity {
         mLinkSpn.setAdapter(new ArrayAdapter<>(this,
                 R.layout.item_config, getResources().getStringArray(R.array.link)));
 
+        mUSBSw.setChecked(ConfigHelper.getBool(MyParams.S_USB_SWITCH));
         mSensorSw.setChecked(ConfigHelper.getBool(MyParams.S_SENSOR_SWITCH));
 
         mRSSIThreshold.setText(ConfigHelper.getString(MyParams.S_RSSI_THRESHOLD));
@@ -251,6 +263,7 @@ public class ConfigActivity extends BaseActivity {
                 mReaderIDMet.validate() && mMainPlatformAddrMet.validate() && mMonitorAppAddrMet.validate()) {
             LinkType linkType = LinkType.getTypeByComment(mLinkSpn.getText().toString());
             ConfigHelper.setParam(MyParams.S_LINK, linkType.link);
+            ConfigHelper.setParam(MyParams.S_USB_SWITCH, String.valueOf(mUSBSw.isChecked()));
             ConfigHelper.setParam(MyParams.S_SENSOR_SWITCH, String.valueOf(mSensorSw.isChecked()));
             ConfigHelper.setParam(MyParams.S_RSSI_THRESHOLD, mRSSIThreshold.getText().toString());
             ConfigHelper.setParam(MyParams.S_MIN_REACH_TIMES, mMinReachTimesSpn.getText().toString());
@@ -326,7 +339,7 @@ public class ConfigActivity extends BaseActivity {
         @Override
         public void onFinish() {
             mBLEAdapter.cancelDiscovery();
-            mDiscoveryTimer = new DiscoveryTimer(5 * 1000, 1000);
+            mDiscoveryTimer = new DiscoveryTimer(DISCOVERY_INTERVAL * 1000, 1000);
             mDiscoveryTimer.start();
         }
     }
