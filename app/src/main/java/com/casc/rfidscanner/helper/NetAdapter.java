@@ -15,7 +15,7 @@ public abstract class NetAdapter implements Callback<Reply> {
 
     public abstract void onSuccess(Reply reply);
 
-    public abstract void onFail();
+    public void onFail() { }
 
     @Override
     public void onResponse(@NonNull Call<Reply> call, @NonNull Response<Reply> response) {

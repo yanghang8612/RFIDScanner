@@ -522,7 +522,7 @@ public class R0Fragment extends BaseFragment implements QRCodeReaderView.OnQRCod
 
         private void reportLog(String content) {
             NetHelper.getInstance().sendLogRecord(
-                    content + ": " + mBucketToRegister.getBodyCode() +
+                    content + "：" + mBucketToRegister.getBodyCode() +
                             " (" + CommonUtils.bytesToHex(mScannedEPC) + ")");
         }
     }

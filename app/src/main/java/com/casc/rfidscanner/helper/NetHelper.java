@@ -4,7 +4,7 @@ import com.casc.rfidscanner.MyParams;
 import com.casc.rfidscanner.helper.param.MsgAdminLogin;
 import com.casc.rfidscanner.helper.param.MsgCardReg;
 import com.casc.rfidscanner.helper.param.MsgChkBodyCodeAndTID;
-import com.casc.rfidscanner.helper.param.MsgChkStackOrSingle;
+import com.casc.rfidscanner.helper.param.MsgChkStack;
 import com.casc.rfidscanner.helper.param.MsgCommon;
 import com.casc.rfidscanner.helper.param.MsgDealer;
 import com.casc.rfidscanner.helper.param.MsgDelivery;
@@ -79,7 +79,7 @@ public class NetHelper {
         return netInterface.post(
                 ConfigHelper.getString(MyParams.S_MAIN_PLATFORM_ADDR) + "/api/message/bucket/issinglequery",
                 CommonUtils.generateRequestHeader("02"),
-                CommonUtils.generateRequestBody(new MsgChkStackOrSingle(bucketEPCStr)));
+                CommonUtils.generateRequestBody(new MsgChkStack(bucketEPCStr)));
     }
 
     public Call<Reply> queryDeliveryBill() {
@@ -203,6 +203,13 @@ public class NetHelper {
                 CommonUtils.generateRequestHeader("02"),
                 CommonUtils.generateRequestBody(new MsgTask(taskID)));
 
+    }
+
+    public Call<Reply> sendStartInfo(String content) {
+        return netInterface.post(
+                ConfigHelper.getString(MyParams.S_STANDBY_PLATFORM_ADDR) + "/log",
+                CommonUtils.generateRequestHeader("02"),
+                CommonUtils.generateRequestBody(new MsgLog(content)));
     }
 
     public void sendLogRecord(String content) {

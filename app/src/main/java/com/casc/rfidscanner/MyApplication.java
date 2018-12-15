@@ -5,6 +5,7 @@ import android.content.Context;
 import android.net.ConnectivityManager;
 import android.net.NetworkCapabilities;
 import android.net.wifi.WifiManager;
+import android.os.SystemClock;
 import android.support.annotation.NonNull;
 
 import com.baidu.tts.client.SpeechSynthesizer;
@@ -15,9 +16,11 @@ import com.casc.rfidscanner.backend.impl.BLEReaderImpl;
 import com.casc.rfidscanner.backend.impl.USBReaderImpl;
 import com.casc.rfidscanner.bean.Config;
 import com.casc.rfidscanner.helper.ConfigHelper;
+import com.casc.rfidscanner.helper.NetAdapter;
 import com.casc.rfidscanner.helper.NetHelper;
 import com.casc.rfidscanner.helper.param.Reply;
 import com.casc.rfidscanner.message.ConfigUpdatedMessage;
+import com.casc.rfidscanner.utils.CommonUtils;
 import com.google.gson.Gson;
 
 import org.greenrobot.eventbus.EventBus;
@@ -39,6 +42,10 @@ public class MyApplication extends Application {
         return mInstance;
     }
 
+    private static long mAppStartTime;
+
+    private static boolean mIsStartInfoReported;
+
     private WifiManager mWifiManager;
 
     private ConnectivityManager mConnectivityManager;
@@ -52,6 +59,7 @@ public class MyApplication extends Application {
 
         // 初始化相关字段
         mInstance = this;
+        mAppStartTime = System.currentTimeMillis();
         mWifiManager = (WifiManager) getSystemService(Context.WIFI_SERVICE);
         mConnectivityManager = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
 
@@ -135,7 +143,7 @@ public class MyApplication extends Application {
         public void run() {
             if (MyVars.status.networkStatus &&
                     MyVars.getReader().getState() != TagReader.STATE_CONNECTING) {
-                NetHelper.getInstance().sendHeartbeat().enqueue(new Callback<Reply>() {
+                NetHelper.getInstance().sendHeartbeat().enqueue(new Callback<Reply>() { // 发送心跳信息
                     @Override
                     public void onResponse(@NonNull Call<Reply> call, @NonNull Response<Reply> response) {
                         if (response.isSuccessful()) {
@@ -155,6 +163,18 @@ public class MyApplication extends Application {
                         }
                     }
                 });
+
+                if (!mIsStartInfoReported) {
+                    String content = "平板启动于（" + CommonUtils.convertDateTime(System.currentTimeMillis() - SystemClock.elapsedRealtime())
+                            + "），软件启动于（" + CommonUtils.convertDateTime(mAppStartTime) + "）";
+                    NetHelper.getInstance().sendStartInfo(content).enqueue(new NetAdapter() {
+                        @Override
+                        public void onSuccess(Reply reply) {
+                            mIsStartInfoReported = true;
+                        }
+                    });
+
+                }
             }
         }
     }

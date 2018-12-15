@@ -373,7 +373,7 @@ abstract class BaseReaderImpl implements TagReader {
                         Thread.sleep(1);
                     }
                 } catch (IOException e) {
-                    NetHelper.getInstance().sendLogRecord("读写器写线程IO异常: " + e.getMessage());
+                    reportErrorLog("读写器写线程IO异常", e);
                     e.printStackTrace();
                     lostConnection();
                 } catch (Exception e) {
@@ -527,7 +527,7 @@ abstract class BaseReaderImpl implements TagReader {
                     }
                     System.arraycopy(data, endIndex + 1, data, 0, leftCount -= endIndex + 1);
                 } catch (IOException e) {
-                    NetHelper.getInstance().sendLogRecord("读写器读线程IO异常: " + e.getMessage());
+                    reportErrorLog("读写器读线程IO异常", e);
                     e.printStackTrace();
                     lostConnection();
                 } catch (ArrayIndexOutOfBoundsException e) {
@@ -549,5 +549,12 @@ abstract class BaseReaderImpl implements TagReader {
             signal.signal();
             mLock.unlock();
         }
+    }
+
+    private void reportErrorLog(String content, Exception e) {
+        NetHelper.getInstance().sendLogRecord(
+                content + "（" + (isConnected() ? "已连接" : "已断开")
+                        + "by" + getClass().getSimpleName().substring(0, 3) + "）："
+                        + e.getMessage());
     }
 }

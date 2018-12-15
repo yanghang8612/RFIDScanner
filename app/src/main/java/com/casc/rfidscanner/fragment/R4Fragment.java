@@ -51,7 +51,6 @@ public class R4Fragment extends BaseFragment {
 
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void onMessageEvent(AbnormalBucketMessage message) {
-        mScannedCountNs.increaseNumber();
         String content = message.isReadNone ?
                 "未发现桶标签" : "发现弱标签：" + new Bucket(message.epc).getBodyCode();
         mHints.add(0, new Hint(content));
@@ -61,11 +60,12 @@ public class R4Fragment extends BaseFragment {
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void onMessageEvent(PollingResultMessage message) {
         if (message.isRead) {
+            String epcStr = CommonUtils.bytesToHex(message.epc);
             switch (CommonUtils.validEPC(message.epc)) {
                 case NONE: // 检测到未注册标签，是否提示
                     break;
                 case BUCKET:
-                    if (MyVars.cache.insert(CommonUtils.bytesToHex(message.epc))) {
+                    if (MyVars.cache.insert(epcStr)) {
                         playSound();
                     }
 //                    // 下发Mask指令

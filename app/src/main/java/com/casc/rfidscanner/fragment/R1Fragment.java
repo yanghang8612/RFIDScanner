@@ -294,6 +294,7 @@ public class R1Fragment extends BaseFragment implements QRCodeReaderView.OnQRCod
                     if (data == null) {
                         writeHint("读取TID\n失败");
                         writeTaskFailed();
+                        reportLog("读取TID失败");
                         return;
                     } else {
                         writeHint("读取TID\n成功");
@@ -312,6 +313,7 @@ public class R1Fragment extends BaseFragment implements QRCodeReaderView.OnQRCod
                     if (data == null) {
                         writeHint("写入EPC\n失败");
                         writeTaskFailed();
+                        reportLog("写入EPC失败");
                         return;
                     } else {
                         writeHint("写入EPC\n成功");
@@ -331,6 +333,7 @@ public class R1Fragment extends BaseFragment implements QRCodeReaderView.OnQRCod
                 if (!responseR1.isSuccessful() || replyR1 == null) {
                     writeHint("平台内部\n错误");
                     writeTaskFailed();
+                    reportLog("平台内部错误" + responseR1.code());
                     return;
                 } else if (replyR1.getCode() != 200) {
                     writeHint("平台连接\n失败");
@@ -346,6 +349,11 @@ public class R1Fragment extends BaseFragment implements QRCodeReaderView.OnQRCod
             }
             writeHint((mIsBucketEPCRead ? new Bucket(mScannedEPC).getBodyCode() : mBodyCodeIcl.getCode()) + "报废成功");
             writeTaskSuccess();
+        }
+
+        private void reportLog(String content) {
+            NetHelper.getInstance().sendLogRecord(
+                    content + "："+ CommonUtils.bytesToHex(mScannedEPC));
         }
     }
 }

@@ -4,6 +4,7 @@ import android.graphics.PointF;
 import android.os.Handler;
 import android.os.Message;
 import android.text.TextUtils;
+import android.widget.Adapter;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
@@ -15,6 +16,7 @@ import com.casc.rfidscanner.activity.BillConfirmActivity;
 import com.casc.rfidscanner.activity.ConfigActivity;
 import com.casc.rfidscanner.bean.Bucket;
 import com.casc.rfidscanner.helper.ConfigHelper;
+import com.casc.rfidscanner.helper.NetHelper;
 import com.casc.rfidscanner.helper.param.MsgReflux;
 import com.casc.rfidscanner.message.AbnormalBucketMessage;
 import com.casc.rfidscanner.message.DealerAndDriverSelectedMessage;
@@ -30,7 +32,9 @@ import org.greenrobot.eventbus.ThreadMode;
 import java.lang.ref.WeakReference;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
 import butterknife.BindView;
 import butterknife.OnClick;
@@ -67,6 +71,8 @@ public class R2Fragment extends BaseFragment implements QRCodeReaderView.OnQRCod
 
     private Map<String, Long> mBodyCodes = new HashMap<>();
 
+    private Set<String> mErrors = new HashSet<>();
+
     // Fragment内部handler
     private Handler mHandler = new InnerHandler(this);
 
@@ -101,6 +107,10 @@ public class R2Fragment extends BaseFragment implements QRCodeReaderView.OnQRCod
                 case NONE: // 检测到未注册标签，是否提示
                     mReadNoneCount = 0;
                     writeHint("检测到\n未注册标签");
+                    if (!mErrors.contains(epcStr)) {
+                        mErrors.add(epcStr);
+                        NetHelper.getInstance().sendLogRecord("检测到未注册标签：" + epcStr);
+                    }
                     break;
                 case BUCKET:
                     mReadNoneCount = 0;

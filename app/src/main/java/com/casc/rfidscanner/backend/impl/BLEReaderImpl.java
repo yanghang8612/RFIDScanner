@@ -90,13 +90,15 @@ public class BLEReaderImpl extends BaseReaderImpl {
         super.lostConnection();
         try {
             mBLESocket.close();
-        } catch (Exception e) {
-            Log.i(TAG, "Close bluetooth socket error");
+            NetHelper.getInstance().sendLogRecord("读写器断开连接（by蓝牙）");
+            SpeechSynthesizer.getInstance().speak("读写器断开连接");
+        } catch (IOException e) {
             e.printStackTrace();
+            NetHelper.getInstance().sendLogRecord("读写器断开连接（by蓝牙）时IO异常：" + e.getMessage());
+        } catch (Exception ignored) {
         } finally {
             mBLESocket = null;
             startDiscovery();
-            NetHelper.getInstance().sendLogRecord("读写器断开连接(by蓝牙)");
         }
     }
 
@@ -138,14 +140,14 @@ public class BLEReaderImpl extends BaseReaderImpl {
                 mOutStream = mBLESocket.getOutputStream();
                 mState = STATE_CONNECTED;
                 NetHelper.getInstance().sendLogRecord(
-                        "读写器已连接(by蓝牙), cost " + (System.currentTimeMillis() - startTime));
+                        "读写器已连接（by蓝牙），用时" + (System.currentTimeMillis() - startTime) + "ms");
                 SpeechSynthesizer.getInstance().speak("读写器已连接");
                 EventBus.getDefault().post(MyVars.status.setReaderStatus(true));
                 Log.i(TAG, "BLEConnectTask cost " + (System.currentTimeMillis() - startTime));
             } catch (IOException e) {
                 if (!e.getMessage().equals(mPreErrorMessage)) {
                     mPreErrorMessage = e.getMessage();
-                    NetHelper.getInstance().sendLogRecord("蓝牙连接异常: " + e.getMessage());
+                    NetHelper.getInstance().sendLogRecord("蓝牙连接异常：" + e.getMessage());
                 }
                 e.printStackTrace();
                 mState = STATE_NONE;
