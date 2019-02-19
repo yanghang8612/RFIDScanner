@@ -184,7 +184,7 @@ public class R6Fragment extends BaseFragment {
                             }
                             if (mCache.contains(epcStr) && !mErrors.contains(epcStr)) {
                                 mErrors.add(epcStr);
-                                NetHelper.getInstance().sendLogRecord("重复出库: " + Bucket.getBodyCode(epcStr));
+                                MyVars.cache.storeLogMessage("重复出库: " + Bucket.getBodyCode(epcStr));
                             }
                         }
                     }

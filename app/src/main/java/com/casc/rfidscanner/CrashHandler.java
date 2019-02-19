@@ -109,7 +109,7 @@ public class CrashHandler implements Thread.UncaughtExceptionHandler {
                 Looper.loop();
             }
         }.start();
-        NetHelper.getInstance().sendLogRecord("主线线程出现异常：" + e.getLocalizedMessage());
+        MyVars.cache.storeLogMessage("主线线程出现异常：" + e.getLocalizedMessage());
         collectErrorMessages();
         saveErrorMessages(e);
         return false;

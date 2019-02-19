@@ -552,7 +552,7 @@ abstract class BaseReaderImpl implements TagReader {
     }
 
     private void reportErrorLog(String content, Exception e) {
-        NetHelper.getInstance().sendLogRecord(
+        MyVars.cache.storeLogMessage(
                 content + "（" + (isConnected() ? "已连接" : "已断开")
                         + "by" + getClass().getSimpleName().substring(0, 3) + "）："
                         + e.getMessage());

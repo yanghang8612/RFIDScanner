@@ -63,8 +63,7 @@
 
         <activity
             android:name=".activity.MainActivity"
-            android:launchMode="singleTask"
-            android:screenOrientation="landscape">
+            android:launchMode="singleTask">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <action android:name="android.intent.action.VIEW" />
@@ -75,30 +74,23 @@
             </intent-filter>
         </activity>
         <activity
-            android:name=".activity.ConfigActivity"
-            android:screenOrientation="landscape" />
+            android:name=".activity.ConfigActivity" />
         <activity
             android:name=".activity.BillConfirmActivity"
-            android:screenOrientation="landscape"
             android:theme="@style/AppTheme.LightTransparent" />
         <activity
             android:name=".activity.ProductSelectActivity"
-            android:screenOrientation="landscape"
             android:theme="@style/AppTheme.LightTransparent" />
         <activity
             android:name=".activity.SafeCodeActivity"
-            android:screenOrientation="landscape"
             android:theme="@style/AppTheme.LightTransparent" />
         <activity
             android:name=".activity.ErrorRemindActivity"
-            android:screenOrientation="landscape"
             android:theme="@style/AppTheme.LightTransparent" />
         <activity
-            android:name=".activity.QRCodeReaderActivity"
-            android:screenOrientation="landscape"/>
+            android:name=".activity.QRCodeReaderActivity"/>
         <activity
             android:name=".activity.StackDetailActivity"
-            android:screenOrientation="landscape"
             android:theme="@style/AppTheme.LightTransparent" />
     </application>
 

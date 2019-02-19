@@ -13,6 +13,7 @@ import com.casc.rfidscanner.helper.NetHelper;
 import com.casc.rfidscanner.helper.param.MsgCommon;
 import com.casc.rfidscanner.helper.param.MsgDealer;
 import com.casc.rfidscanner.helper.param.MsgDelivery;
+import com.casc.rfidscanner.helper.param.MsgLog;
 import com.casc.rfidscanner.helper.param.MsgOnline;
 import com.casc.rfidscanner.helper.param.MsgReflux;
 import com.casc.rfidscanner.helper.param.MsgStack;
@@ -41,6 +42,8 @@ public class TagCache {
     // 缓存map，key为epc，value为Tag类型的实例
     private final Map<String, Tag> cache = new HashMap<>();
 
+    private final MessageDao logDao;
+
     private final MessageDao onlineDao;
 
     private final MessageDao tagDao;
@@ -56,6 +59,7 @@ public class TagCache {
     private int scannedCount = 0, uploadCount = 0;
 
     public TagCache() {
+        this.logDao = new MessageDao(DBHelper.TABLE_NAME_LOG_MESSAGE);
         this.onlineDao = new MessageDao(DBHelper.TABLE_NAME_ONLINE_MESSAGE);
         this.tagDao = new MessageDao(DBHelper.TABLE_NAME_TAG_MESSAGE);
         this.stackDao = new MessageDao(DBHelper.TABLE_NAME_STACK_MESSAGE);
@@ -73,6 +77,10 @@ public class TagCache {
     public synchronized void clear() {
         cache.clear();
         scannedCount = uploadCount = 0;
+    }
+
+    public synchronized void storeLogMessage(String content) {
+        logDao.insert(CommonUtils.toJson(new MsgLog(content)));
     }
 
     public synchronized void storeOnlineMessage(MsgOnline online) {
@@ -217,11 +225,24 @@ public class TagCache {
         @Override
         public void run() {
             synchronized (TagCache.this) {
-                switch (LinkType.getType()) {
+                if (MyVars.status.canSendRequest() && logDao.rowCount() != 0) { // 上传暂存本地的Log信息
+                    final Pair<Integer, String> logPair = logDao.findOne();
+                    try {
+                        Response<Reply> response = NetHelper.getInstance()
+                                .sendLogRecord(
+                                        new Gson().fromJson(logPair.second, MsgLog.class))
+                                .execute();
+                        Reply body = response.body();
+                        if (response.isSuccessful() && body != null && body.getCode() == 200) {
+                            logDao.deleteById(logPair.first);
+                        }
+                    } catch (IOException ignored) {}
+                }
+                switch (LinkType.getType()) { // 根据环节的配置不同上传不同的暂存数据
                     case R3:
                     case R4:
                     case R7:
-                        if (MyVars.status.canSendRequest() && tagDao.rowCount() != 0) {
+                        if (MyVars.status.canSendRequest() && tagDao.rowCount() != 0) { // 上传线上三环节数据
                             final Pair<Integer, String> tagPair = tagDao.findOne();
                             try {
                                 Response<Reply> response = NetHelper.getInstance()
@@ -237,7 +258,7 @@ public class TagCache {
                         }
                         break;
                     case R5:
-                        if (MyVars.status.canSendRequest() && stackDao.rowCount() != 0) {
+                        if (MyVars.status.canSendRequest() && stackDao.rowCount() != 0) { // 上传打垛数据
                             final Pair<Integer, String> stackPair = stackDao.findOne();
                             try {
                                 Response<Reply> response = NetHelper.getInstance()
@@ -252,7 +273,7 @@ public class TagCache {
                         }
                         break;
                     case R2:
-                        if (MyVars.status.canSendRequest() && refluxDao.rowCount() != 0) {
+                        if (MyVars.status.canSendRequest() && refluxDao.rowCount() != 0) { // 上传回流数据
                             final Pair<Integer, String> refluxPair = refluxDao.findOne();
                             try {
                                 Response<Reply> response = NetHelper.getInstance()
@@ -267,7 +288,7 @@ public class TagCache {
                         }
                         break;
                     case R6:
-                        if (MyVars.status.canSendRequest() && deliveryDao.rowCount() != 0) {
+                        if (MyVars.status.canSendRequest() && deliveryDao.rowCount() != 0) { // 上传出库数据
                             final Pair<Integer, String> deliveryPair = deliveryDao.findOne();
                             try {
                                 Response<Reply> response = NetHelper.getInstance()
@@ -282,7 +303,7 @@ public class TagCache {
                         }
                         break;
                     case RN:
-                        if (MyVars.status.canSendRequest() && dealerDao.rowCount() != 0) {
+                        if (MyVars.status.canSendRequest() && dealerDao.rowCount() != 0) { // 上传经销商数据
                             final Pair<Integer, String> dealer = dealerDao.findOne();
                             try {
                                 Response<Reply> response = NetHelper.getInstance()

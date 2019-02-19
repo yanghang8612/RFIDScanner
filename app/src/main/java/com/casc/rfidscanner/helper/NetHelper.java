@@ -205,17 +205,10 @@ public class NetHelper {
 
     }
 
-    public Call<Reply> sendStartInfo(String content) {
+    public Call<Reply> sendLogRecord(MsgLog msg) {
         return netInterface.post(
                 ConfigHelper.getString(MyParams.S_STANDBY_PLATFORM_ADDR) + "/log",
                 CommonUtils.generateRequestHeader("02"),
-                CommonUtils.generateRequestBody(new MsgLog(content)));
-    }
-
-    public void sendLogRecord(String content) {
-        netInterface.post(
-                ConfigHelper.getString(MyParams.S_STANDBY_PLATFORM_ADDR) + "/log",
-                CommonUtils.generateRequestHeader("02"),
-                CommonUtils.generateRequestBody(new MsgLog(content))).enqueue(new EmptyAdapter());
+                CommonUtils.generateRequestBody(msg));
     }
 }

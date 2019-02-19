@@ -78,11 +78,11 @@ public class USBReaderImpl extends BaseReaderImpl {
         super.lostConnection();
         try {
             mSerialPort.close();
-            NetHelper.getInstance().sendLogRecord("读写器断开连接（byUSB）");
+            MyVars.cache.storeLogMessage("读写器断开连接（byUSB）");
             SpeechSynthesizer.getInstance().speak("读写器断开连接");
         } catch (IOException e) {
             e.printStackTrace();
-            NetHelper.getInstance().sendLogRecord("读写器断开连接（byUSB）时IO异常：" + e.getMessage());
+            MyVars.cache.storeLogMessage("读写器断开连接（byUSB）时IO异常：" + e.getMessage());
         } catch (Exception ignored) {
         } finally {
             mUsbDevice = null;
@@ -123,7 +123,7 @@ public class USBReaderImpl extends BaseReaderImpl {
                 mSerialPort.open(mUsbManager.openDevice(mUsbDevice));
                 mSerialPort.setParameters(115200, UsbSerialPort.DATABITS_8, UsbSerialPort.STOPBITS_1, UsbSerialPort.PARITY_NONE);
                 mState = STATE_CONNECTED;
-                NetHelper.getInstance().sendLogRecord("读写器已连接（byUSB）");
+                MyVars.cache.storeLogMessage("读写器已连接（byUSB）");
                 SpeechSynthesizer.getInstance().speak("读写器已连接");
                 EventBus.getDefault().post(MyVars.status.setReaderStatus(true));
             } catch (NullPointerException e) {

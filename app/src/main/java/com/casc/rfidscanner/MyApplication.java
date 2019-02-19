@@ -42,10 +42,6 @@ public class MyApplication extends Application {
         return mInstance;
     }
 
-    private static long mAppStartTime;
-
-    private static boolean mIsStartInfoReported;
-
     private WifiManager mWifiManager;
 
     private ConnectivityManager mConnectivityManager;
@@ -59,7 +55,6 @@ public class MyApplication extends Application {
 
         // 初始化相关字段
         mInstance = this;
-        mAppStartTime = System.currentTimeMillis();
         mWifiManager = (WifiManager) getSystemService(Context.WIFI_SERVICE);
         mConnectivityManager = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
 
@@ -90,6 +85,11 @@ public class MyApplication extends Application {
 
         // 开启Http Server
         //startService(new Intent(this, HttpService.class));
+
+        // 上报系统以及软件启动时间
+        String content = "平板启动于（" + CommonUtils.convertDateTime(System.currentTimeMillis() - SystemClock.elapsedRealtime())
+                + "），软件启动于（" + CommonUtils.convertDateTime(System.currentTimeMillis()) + "）";
+        MyVars.cache.storeLogMessage(content);
     }
 
     private class UpdateConfigTask implements Runnable {
@@ -163,18 +163,6 @@ public class MyApplication extends Application {
                         }
                     }
                 });
-
-                if (!mIsStartInfoReported) {
-                    String content = "平板启动于（" + CommonUtils.convertDateTime(System.currentTimeMillis() - SystemClock.elapsedRealtime())
-                            + "），软件启动于（" + CommonUtils.convertDateTime(mAppStartTime) + "）";
-                    NetHelper.getInstance().sendStartInfo(content).enqueue(new NetAdapter() {
-                        @Override
-                        public void onSuccess(Reply reply) {
-                            mIsStartInfoReported = true;
-                        }
-                    });
-
-                }
             }
         }
     }

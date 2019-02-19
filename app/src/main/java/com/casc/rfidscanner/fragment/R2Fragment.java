@@ -109,7 +109,7 @@ public class R2Fragment extends BaseFragment implements QRCodeReaderView.OnQRCod
                     writeHint("检测到\n未注册标签");
                     if (!mErrors.contains(epcStr)) {
                         mErrors.add(epcStr);
-                        NetHelper.getInstance().sendLogRecord("检测到未注册标签：" + epcStr);
+                        MyVars.cache.storeLogMessage("检测到未注册标签：" + epcStr);
                     }
                     break;
                 case BUCKET:
