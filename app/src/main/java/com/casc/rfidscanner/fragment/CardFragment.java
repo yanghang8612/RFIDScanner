@@ -25,8 +25,8 @@ import com.casc.rfidscanner.bean.Card;
 import com.casc.rfidscanner.bean.Hint;
 import com.casc.rfidscanner.helper.InsHelper;
 import com.casc.rfidscanner.helper.NetHelper;
-import com.casc.rfidscanner.helper.param.MsgCardReg;
-import com.casc.rfidscanner.helper.param.Reply;
+import com.casc.rfidscanner.helper.net.param.MsgCardReg;
+import com.casc.rfidscanner.helper.net.param.Reply;
 import com.casc.rfidscanner.message.MultiStatusMessage;
 import com.casc.rfidscanner.message.PollingResultMessage;
 import com.casc.rfidscanner.utils.CommonUtils;
@@ -57,20 +57,6 @@ public class CardFragment extends BaseFragment {
     private static final int MSG_SUCCESS = 1;
     private static final int MSG_FAILED = 2;
 
-    @BindView(R.id.spn_card_type) BetterSpinner mCardTypeSpn;
-    @BindView(R.id.ll_card_special) LinearLayout mCardSpecialLl;
-    @BindView(R.id.sw_card_special) Switch mCardSpecialSw;
-    @BindView(R.id.spn_card_validity) BetterSpinner mCardValiditySpn;
-
-    @BindView(R.id.tv_epc) TextView mEpcTv;
-    @BindView(R.id.tv_rssi) TextView mRssiTv;
-
-    @BindView(R.id.icl_body_code) InputCodeLayout mBodyCodeIcl;
-    @BindView(R.id.btn_card_register) Button mRegisterBtn;
-
-    @BindView(R.id.rv_card_list) RecyclerView mCardRv;
-    @BindView(R.id.rv_card_hint_list) RecyclerView mHintRv;
-
     // 已注册卡列表
     private List<Card> mCards = new ArrayList<>();
 
@@ -100,6 +86,20 @@ public class CardFragment extends BaseFragment {
 
     // Fragment内部handler
     private Handler mHandler = new InnerHandler(this);
+
+    @BindView(R.id.spn_card_type) BetterSpinner mCardTypeSpn;
+    @BindView(R.id.ll_card_special) LinearLayout mCardSpecialLl;
+    @BindView(R.id.sw_card_special) Switch mCardSpecialSw;
+    @BindView(R.id.spn_card_validity) BetterSpinner mCardValiditySpn;
+
+    @BindView(R.id.tv_epc) TextView mEpcTv;
+    @BindView(R.id.tv_rssi) TextView mRssiTv;
+
+    @BindView(R.id.icl_body_code) InputCodeLayout mBodyCodeIcl;
+    @BindView(R.id.btn_card_register) Button mRegisterBtn;
+
+    @BindView(R.id.rv_card_list) RecyclerView mCardRv;
+    @BindView(R.id.rv_card_hint_list) RecyclerView mHintRv;
 
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void onMessageEvent(MultiStatusMessage message) {
@@ -209,7 +209,7 @@ public class CardFragment extends BaseFragment {
         mHintAdapter.notifyDataSetChanged();
 //        // 简单检查是否与刚注册过的重复
 //        for (Card card : mCards) {
-//            if (card.getBodyCode().equals(mBodyCodeIcl.getCode())) {
+//            if (card.getBodyCode().equals(mBodyCodeIcl.getInt())) {
 //                writeHint("请勿重复注册");
 //                return;
 //            }
@@ -254,7 +254,7 @@ public class CardFragment extends BaseFragment {
 
     @OnClick(R.id.btn_card_back)
     void onCardBackClicked() {
-         ConfigActivity.actionStart(mContext);
+         ConfigActivity.actionStart(mContext, "");
     }
 
     private void writeTaskSuccess() {
@@ -338,7 +338,7 @@ public class CardFragment extends BaseFragment {
                     writeTaskFailed();
                     return;
                 } else {
-                    mCardToRegister.setTid(InsHelper.getReadContent(data));
+                    mCardToRegister.setTID(InsHelper.getReadContent(data));
                 }
 
                 // 写入PC
@@ -347,7 +347,7 @@ public class CardFragment extends BaseFragment {
                         CommonUtils.hexToBytes("00000000"),
                         InsHelper.MemBankType.EPC,
                         1,
-                        mCardToRegister.getPc()));
+                        mCardToRegister.getPC()));
                 if (data != null) {
                     writeHint("写入PC成功");
                 } else {
@@ -362,7 +362,7 @@ public class CardFragment extends BaseFragment {
                         CommonUtils.hexToBytes("00000000"),
                         InsHelper.MemBankType.EPC,
                         2,
-                        mCardToRegister.getEpc()));
+                        mCardToRegister.getEPC()));
                 if (data == null) {
                     writeHint("写入EPC失败");
                     writeTaskFailed();
@@ -374,17 +374,16 @@ public class CardFragment extends BaseFragment {
                 // 尝试上报平台
                 writeHint("上报平台");
                 MsgCardReg msg = new MsgCardReg(mCardToRegister);
-                Response<Reply> responseCardReg = NetHelper.getInstance().uploadCardRegMsg(msg).execute();
-                Reply replyCardReg = responseCardReg.body();
-                if (!responseCardReg.isSuccessful()) {
+                Reply replyCardReg = NetHelper.getInstance().uploadCardRegMsg(msg).execute().body();
+                if (replyCardReg == null) {
                     writeHint("平台连接失败");
                     writeTaskFailed();
                     return;
-                } else if (replyCardReg != null && replyCardReg.getCode() == 210) {
+                } else if (replyCardReg.getCode() == 210) {
                     writeHint("TID已注册");
                     writeTaskFailed();
                     return;
-                } else if (replyCardReg != null && replyCardReg.getCode() == 211) {
+                } else if (replyCardReg.getCode() == 211) {
                     writeHint("可视码已注册");
                     writeTaskFailed();
                     return;

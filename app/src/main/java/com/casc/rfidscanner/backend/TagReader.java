@@ -9,8 +9,7 @@ public interface TagReader {
      * Reader状态常量
      */
     int STATE_NONE = 0;
-    int STATE_CONNECTING = 1;
-    int STATE_CONNECTED = 2;
+    int STATE_CONNECTED = 1;
 
     /**
      * 向读写器下发指定次数的指令，非阻塞

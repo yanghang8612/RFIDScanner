@@ -18,11 +18,12 @@ import com.casc.rfidscanner.MyParams;
 import com.casc.rfidscanner.MyVars;
 import com.casc.rfidscanner.R;
 import com.casc.rfidscanner.activity.ConfigActivity;
-import com.casc.rfidscanner.bean.Bucket;
+import com.casc.rfidscanner.bean.EPCType;
 import com.casc.rfidscanner.helper.InsHelper;
 import com.casc.rfidscanner.helper.NetHelper;
-import com.casc.rfidscanner.helper.param.MsgScrap;
-import com.casc.rfidscanner.helper.param.Reply;
+import com.casc.rfidscanner.helper.net.param.MsgLog;
+import com.casc.rfidscanner.helper.net.param.MsgScrap;
+import com.casc.rfidscanner.helper.net.param.Reply;
 import com.casc.rfidscanner.message.ConfigUpdatedMessage;
 import com.casc.rfidscanner.message.MultiStatusMessage;
 import com.casc.rfidscanner.message.PollingResultMessage;
@@ -35,6 +36,8 @@ import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
 
 import java.lang.ref.WeakReference;
+import java.net.ConnectException;
+import java.net.SocketTimeoutException;
 import java.util.Arrays;
 
 import butterknife.BindView;
@@ -55,19 +58,11 @@ public class R1Fragment extends BaseFragment implements QRCodeReaderView.OnQRCod
     private static final int MSG_RESET_READ_STATUS = 2;
     private static final int MSG_UPDATE_HINT = 3;
 
-    @BindView(R.id.icl_r1_body_code) InputCodeLayout mBodyCodeIcl;
-    @BindView(R.id.spn_scrap_reason) BetterSpinner mScrapReasonSpn;
-    @BindView(R.id.btn_r1_scrap) Button mScrapBtn;
-    @BindView(R.id.qrv_r1_body_code_reader) QRCodeReaderView mBodyCodeReaderQrv;
-    @BindView(R.id.iv_r1_tag_status) ImageView mTagStatusIv;
-    @BindView(R.id.tv_r1_tag_status) TextView mTagStatusTv;
-    @BindView(R.id.tv_r1_hint_content) TextView mHintContentTv;
-
     // 报废状态的标志符
     private boolean mIsScraping;
 
     // 当前读取的EPC
-    private byte[] mScannedEPC, mReadTID;
+    private byte[] mScannedEPC;
 
     // 读取到和未读取到EPC的计数器
     private int mReadCount, mReadNoneCount;
@@ -77,6 +72,34 @@ public class R1Fragment extends BaseFragment implements QRCodeReaderView.OnQRCod
 
     // Fragment内部handler
     private Handler mHandler = new InnerHandler(this);
+
+    @BindView(R.id.icl_r1_body_code) InputCodeLayout mBodyCodeIcl;
+    @BindView(R.id.spn_scrap_reason) BetterSpinner mScrapReasonSpn;
+    @BindView(R.id.btn_r1_scrap) Button mScrapBtn;
+    @BindView(R.id.qrv_r1_body_code_reader) QRCodeReaderView mBodyCodeReaderQrv;
+    @BindView(R.id.iv_r1_tag_status) ImageView mTagStatusIv;
+    @BindView(R.id.tv_r1_tag_status) TextView mTagStatusTv;
+    @BindView(R.id.tv_r1_hint_content) TextView mHintContentTv;
+
+    @OnClick(R.id.btn_r1_scrap) void onButtonClicked() {
+        new MaterialDialog.Builder(mContext)
+                .content("桶身码：" + mBodyCodeIcl.getCode() + "\n" + "报废原因：" + mScrapReasonSpn.getText())
+                .positiveText("确认报废")
+                .positiveColorRes(R.color.white)
+                .btnSelector(R.drawable.md_btn_postive, DialogAction.POSITIVE)
+                .negativeText("取消报废")
+                .negativeColorRes(R.color.gray)
+                .onPositive(new MaterialDialog.SingleButtonCallback() {
+                    @Override
+                    public void onClick(@NonNull final MaterialDialog dialog, @NonNull DialogAction which) {
+                        mIsScraping = true;
+                        mScrapBtn.setEnabled(false);
+                        mHintContentTv.setText("");
+                        MyVars.executor.execute(new ScrapTask());
+                    }
+                })
+                .show();
+    }
 
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void onMessageEvent(MultiStatusMessage message) {
@@ -103,6 +126,7 @@ public class R1Fragment extends BaseFragment implements QRCodeReaderView.OnQRCod
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void onMessageEvent(PollingResultMessage message) {
         if (message.isRead) {
+            String epcStr = CommonUtils.bytesToHex(message.epc);
             switch (CommonUtils.validEPC(message.epc)) {
                 case BUCKET:
                     mReadNoneCount = 0;
@@ -116,15 +140,14 @@ public class R1Fragment extends BaseFragment implements QRCodeReaderView.OnQRCod
                     }
                     if (mReadCount >= CAN_SCRAP_READ_COUNT) {
                         mIsBucketEPCRead = true;
-                        mBodyCodeIcl.setCode(Bucket.getBodyCode(mScannedEPC)
-                                .substring(MyVars.config.getHeader().length()));
+                        mBodyCodeIcl.setCode(CommonUtils.getBodyCode(mScannedEPC)
+                                .substring(MyParams.BODY_CODE_HEADER));
                         mTagStatusTv.setText("标签信号正常");
                     }
                     break;
                 case CARD_ADMIN:
                     if (++mAdminCardScannedCount == MyParams.ADMIN_CARD_SCANNED_COUNT) {
-                        sendAdminLoginMessage(CommonUtils.bytesToHex(mScannedEPC));
-                        ConfigActivity.actionStart(mContext);
+                        ConfigActivity.actionStart(mContext, epcStr);
                     }
                     break;
             }
@@ -177,27 +200,6 @@ public class R1Fragment extends BaseFragment implements QRCodeReaderView.OnQRCod
 
     }
 
-    @OnClick(R.id.btn_r1_scrap)
-    public void onButtonClicked() {
-        new MaterialDialog.Builder(mContext)
-                .content("桶身码：" + mBodyCodeIcl.getCode() + "\n" + "报废原因：" + mScrapReasonSpn.getText())
-                .positiveText("确认报废")
-                .positiveColorRes(R.color.white)
-                .btnSelector(R.drawable.md_btn_postive, DialogAction.POSITIVE)
-                .negativeText("取消报废")
-                .negativeColorRes(R.color.gray)
-                .onPositive(new MaterialDialog.SingleButtonCallback() {
-                    @Override
-                    public void onClick(@NonNull final MaterialDialog dialog, @NonNull DialogAction which) {
-                        mIsScraping = true;
-                        mScrapBtn.setEnabled(false);
-                        mHintContentTv.setText("");
-                        MyVars.fragmentExecutor.execute(new ScrapTask());
-                    }
-                })
-                .show();
-    }
-
     private void writeTaskSuccess() {
         Message.obtain(mHandler, MSG_SUCCESS).sendToTarget();
     }
@@ -216,13 +218,13 @@ public class R1Fragment extends BaseFragment implements QRCodeReaderView.OnQRCod
 
     private void updateConfigViews() {
         mScrapReasonSpn.setAdapter(new ArrayAdapter<>(mContext, R.layout.item_common,
-                MyVars.config.getDisableInfo()));
+                MyVars.config.getDisables()));
 
         String curScrapReason = mScrapReasonSpn.getText().toString();
         if (TextUtils.isEmpty(curScrapReason)
-                || MyVars.config.getDisableInfoByWord(curScrapReason) == null) {
-            if (!MyVars.config.getDisableInfo().isEmpty()) {
-                mScrapReasonSpn.setText(MyVars.config.getDisableInfo().get(0).getWord());
+                || MyVars.config.getDisableByWord(curScrapReason) == null) {
+            if (!MyVars.config.getDisables().isEmpty()) {
+                mScrapReasonSpn.setText(MyVars.config.getDisables().get(0).getStr());
             } else {
                 mScrapReasonSpn.setText("");
             }
@@ -247,6 +249,7 @@ public class R1Fragment extends BaseFragment implements QRCodeReaderView.OnQRCod
                     outer.mIsScraping = false;
                     outer.playSound();
                     Message.obtain(outer.mHandler, MSG_RESET_READ_STATUS).sendToTarget();
+                    SpeechSynthesizer.getInstance().speak("报废成功");
                     break;
                 case MSG_FAILED:
                     outer.mBodyCodeIcl.clear();
@@ -258,7 +261,6 @@ public class R1Fragment extends BaseFragment implements QRCodeReaderView.OnQRCod
                 case MSG_RESET_READ_STATUS:
                     outer.mReadCount = 0;
                     outer.mScannedEPC = null;
-                    outer.mReadTID = null;
                     outer.mIsBucketEPCRead = false;
                     outer.mScrapBtn.setEnabled(outer.canScrap());
                     break;
@@ -273,7 +275,7 @@ public class R1Fragment extends BaseFragment implements QRCodeReaderView.OnQRCod
 
         @Override
         public void run() {
-            byte[] data;
+            byte[] data, tid;
             try {
                 MsgScrap msg = new MsgScrap();
                 if (mIsBucketEPCRead) {
@@ -294,15 +296,15 @@ public class R1Fragment extends BaseFragment implements QRCodeReaderView.OnQRCod
                     if (data == null) {
                         writeHint("读取TID\n失败");
                         writeTaskFailed();
-                        reportLog("读取TID失败");
+                        MyVars.cache.storeLogMessage(MsgLog.warn("读取TID失败:" + mBodyCodeIcl.getCode()));
                         return;
                     } else {
                         writeHint("读取TID\n成功");
-                        mReadTID = InsHelper.getReadContent(data);
+                        tid = InsHelper.getReadContent(data);
                     }
 
                     // 写入EPC
-                    byte[] modifiedEPC = new byte[]{MyParams.EPCType.BUCKET_SCRAPED.getCode(),
+                    byte[] modifiedEPC = new byte[]{EPCType.BUCKET_SCRAPED.getCode(),
                             mScannedEPC[MyParams.EPC_TYPE_INDEX + 1]};
                     data = MyVars.getReader().sendCommandSync(InsHelper.getWriteMemBank(
                             CommonUtils.hexToBytes("00000000"),
@@ -313,47 +315,47 @@ public class R1Fragment extends BaseFragment implements QRCodeReaderView.OnQRCod
                     if (data == null) {
                         writeHint("写入EPC\n失败");
                         writeTaskFailed();
-                        reportLog("写入EPC失败");
+                        MyVars.cache.storeLogMessage(MsgLog.warn("写入EPC失败:" + mBodyCodeIcl.getCode()));
                         return;
                     } else {
                         writeHint("写入EPC\n成功");
                     }
 
-                    msg.addBucket(CommonUtils.bytesToHex(mReadTID),
-                            CommonUtils.bytesToHex(mScannedEPC),
-                            MyVars.config.getDisableInfoByWord(mScrapReasonSpn.getText().toString()).getCode());
+                    msg.addBucket(CommonUtils.bytesToHex(mScannedEPC), CommonUtils.bytesToHex(tid),
+                            MyVars.config.getDisableByWord(mScrapReasonSpn.getText().toString()).getInt());
                 } else {
                     msg.addBucket(mBodyCodeIcl.getCode(),
-                            MyVars.config.getDisableInfoByWord(mScrapReasonSpn.getText().toString()).getCode());
+                            MyVars.config.getDisableByWord(mScrapReasonSpn.getText().toString()).getInt());
                 }
 
                 // 尝试上报平台
                 Response<Reply> responseR1 = NetHelper.getInstance().uploadScrapMsg(msg).execute();
                 Reply replyR1 = responseR1.body();
-                if (!responseR1.isSuccessful() || replyR1 == null) {
-                    writeHint("平台内部\n错误");
+                if (replyR1 == null) {
+                    writeHint("平台内部错误" + responseR1.code() + ",请联系运维人员");
                     writeTaskFailed();
-                    reportLog("平台内部错误" + responseR1.code());
                     return;
                 } else if (replyR1.getCode() != 200) {
-                    writeHint("平台连接\n失败");
+                    writeHint("平台返回\n异常:" + replyR1.getCode());
                     writeTaskFailed();
+                    return;
                 } else {
                     writeHint("上报平台\n成功");
                 }
             } catch (Exception e) {
-                e.printStackTrace();
-                writeHint("网络通信\n失败");
+                if (e instanceof ConnectException) {
+                    writeHint("服务器不可用,请检查网络");
+                }
+                else if (e instanceof SocketTimeoutException) {
+                    writeHint("网络连接超时,请稍后重试");
+                } else {
+                    writeHint("网络连接失败(" + e.getMessage() + ")");
+                }
                 writeTaskFailed();
                 return;
             }
-            writeHint((mIsBucketEPCRead ? new Bucket(mScannedEPC).getBodyCode() : mBodyCodeIcl.getCode()) + "报废成功");
+            writeHint((mIsBucketEPCRead ? CommonUtils.getBodyCode(mScannedEPC) : mBodyCodeIcl.getCode()) + "报废成功");
             writeTaskSuccess();
-        }
-
-        private void reportLog(String content) {
-            NetHelper.getInstance().sendLogRecord(
-                    content + "："+ CommonUtils.bytesToHex(mScannedEPC));
         }
     }
 }

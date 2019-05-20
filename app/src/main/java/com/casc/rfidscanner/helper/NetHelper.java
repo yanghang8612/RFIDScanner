@@ -1,26 +1,22 @@
 package com.casc.rfidscanner.helper;
 
 import com.casc.rfidscanner.MyParams;
-import com.casc.rfidscanner.helper.param.MsgAdminLogin;
-import com.casc.rfidscanner.helper.param.MsgCardReg;
-import com.casc.rfidscanner.helper.param.MsgChkBodyCodeAndTID;
-import com.casc.rfidscanner.helper.param.MsgChkStack;
-import com.casc.rfidscanner.helper.param.MsgCommon;
-import com.casc.rfidscanner.helper.param.MsgDealer;
-import com.casc.rfidscanner.helper.param.MsgDelivery;
-import com.casc.rfidscanner.helper.param.MsgLog;
-import com.casc.rfidscanner.helper.param.MsgOnline;
-import com.casc.rfidscanner.helper.param.MsgReaderTID;
-import com.casc.rfidscanner.helper.param.MsgReflux;
-import com.casc.rfidscanner.helper.param.MsgRegister;
-import com.casc.rfidscanner.helper.param.MsgRfTID;
-import com.casc.rfidscanner.helper.param.MsgScrap;
-import com.casc.rfidscanner.helper.param.MsgStack;
-import com.casc.rfidscanner.helper.param.MsgTask;
-import com.casc.rfidscanner.helper.param.MsgUnstack;
-import com.casc.rfidscanner.helper.param.Reply;
+import com.casc.rfidscanner.MyVars;
+import com.casc.rfidscanner.helper.net.NetInterface;
+import com.casc.rfidscanner.helper.net.param.MsgAdminLogin;
+import com.casc.rfidscanner.helper.net.param.MsgCardReg;
+import com.casc.rfidscanner.helper.net.param.MsgLine;
+import com.casc.rfidscanner.helper.net.param.MsgDelivery;
+import com.casc.rfidscanner.helper.net.param.MsgLog;
+import com.casc.rfidscanner.helper.net.param.MsgReflux;
+import com.casc.rfidscanner.helper.net.param.MsgRegister;
+import com.casc.rfidscanner.helper.net.param.MsgScrap;
+import com.casc.rfidscanner.helper.net.param.MsgStack;
+import com.casc.rfidscanner.helper.net.param.Reply;
 import com.casc.rfidscanner.utils.CommonUtils;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 import okhttp3.OkHttpClient;
@@ -41,7 +37,7 @@ public class NetHelper {
     private NetHelper() {
         this.netInterface = new Retrofit.Builder()
                 .addConverterFactory(GsonConverterFactory.create())
-                .baseUrl(ConfigHelper.getString(MyParams.S_MAIN_PLATFORM_ADDR))
+                .baseUrl(SpHelper.getString(MyParams.S_DEVICE_ADDR))
                 .client(new OkHttpClient.Builder()
                         .connectTimeout(MyParams.NET_CONNECT_TIMEOUT, TimeUnit.SECONDS)
                         .writeTimeout(MyParams.NET_RW_TIMEOUT, TimeUnit.SECONDS)
@@ -55,167 +51,103 @@ public class NetHelper {
         return SingletonHolder.instance;
     }
 
+    /**
+     * 以下为运管云的接口
+     */
     public Call<Reply> sendHeartbeat() {
-        return netInterface.sendHeartbeat(
-                ConfigHelper.getString(MyParams.S_MAIN_PLATFORM_ADDR) + "/api/message/heartbeat",
-                CommonUtils.generateRequestHeader("02"));
+        return netInterface.get(SpHelper.getString(MyParams.S_DEVICE_ADDR) + "/api/platform/status",
+                CommonUtils.generateRequestHeader("02"), new HashMap<String, Object>());
     }
 
-    public Call<Reply> getConfig() {
-        return netInterface.post(
-                ConfigHelper.getString(MyParams.S_MAIN_PLATFORM_ADDR) + "/api/device/parameter",
-                CommonUtils.generateRequestHeader("02"),
-                CommonUtils.generateRequestBody(new MsgReaderTID()));
+    public Call<Reply> getApiConfig() {
+        Map<String, Object> map = new HashMap<>();
+        map.put("soft_id", SpHelper.getString(MyParams.S_READER_ID));
+        map.put("soft_type", MyParams.SOFT_CODE);
+        return netInterface.get(SpHelper.getString(MyParams.S_DEVICE_ADDR) + "/api/device/configs",
+                CommonUtils.generateRequestHeader("02"), map);
     }
 
-    public Call<Reply> checkBodyCodeAndTID(MsgChkBodyCodeAndTID params) {
-        return netInterface.post(
-                ConfigHelper.getString(MyParams.S_MAIN_PLATFORM_ADDR) + "/api/message/bucket/query",
-                CommonUtils.generateRequestHeader("02"),
-                CommonUtils.generateRequestBody(params));
+    public Call<Reply> uploadLogMsg(MsgLog msg) {
+        return netInterface.post(SpHelper.getString(MyParams.S_DEVICE_ADDR) + "/api/device/logs",
+                CommonUtils.generateRequestHeader("02"), CommonUtils.generateRequestBody(msg));
     }
 
-    public Call<Reply> checkStackOrSingle(String bucketEPCStr) {
-        return netInterface.post(
-                ConfigHelper.getString(MyParams.S_MAIN_PLATFORM_ADDR) + "/api/message/bucket/issinglequery",
-                CommonUtils.generateRequestHeader("02"),
-                CommonUtils.generateRequestBody(new MsgChkStack(bucketEPCStr)));
-    }
-
-    public Call<Reply> queryDeliveryBill() {
-        return netInterface.post(
-                ConfigHelper.getString(MyParams.S_MAIN_PLATFORM_ADDR) + "/api/device/formquery",
-                CommonUtils.generateRequestHeader("02"),
-                CommonUtils.generateRequestBody(new MsgReaderTID()));
-    }
-
-    public Call<Reply> uploadRegisterMsg(MsgRegister msg) {
-        return netInterface.post(
-                ConfigHelper.getString(MyParams.S_MAIN_PLATFORM_ADDR) + "/api/message/bucket/register",
-                CommonUtils.generateRequestHeader("02"),
-                CommonUtils.generateRequestBody(msg));
-    }
-
-    public Call<Reply> uploadScrapMsg(MsgScrap msg) {
-        return netInterface.post(
-                ConfigHelper.getString(MyParams.S_MAIN_PLATFORM_ADDR) + "/api/message/bucket/scrap",
-                CommonUtils.generateRequestHeader("02"),
-                CommonUtils.generateRequestBody(msg));
-    }
-
-    public Call<Reply> uploadOnlineMsg(MsgOnline msg) {
-        return netInterface.post(
-                ConfigHelper.getString(MyParams.S_MAIN_PLATFORM_ADDR) + "/api/message/bucket/online",
-                CommonUtils.generateRequestHeader("02"),
-                CommonUtils.generateRequestBody(msg));
-    }
-
-    public Call<Reply> uploadCommonMsg(MsgCommon msg) {
-        return netInterface.post(
-                ConfigHelper.getString(MyParams.S_MAIN_PLATFORM_ADDR) + "/api/message/bucket/common",
-                CommonUtils.generateRequestHeader("02"),
-                CommonUtils.generateRequestBody(msg));
-    }
-
-    public Call<Reply> uploadStackMsg(MsgStack msg) {
-        return netInterface.post(
-                ConfigHelper.getString(MyParams.S_MAIN_PLATFORM_ADDR) + "/api/message/bucket/package",
-                CommonUtils.generateRequestHeader("02"),
-                CommonUtils.generateRequestBody(msg));
-    }
-
-    public Call<Reply> uploadDeliveryMsg(MsgDelivery msg) {
-        return netInterface.post(
-                ConfigHelper.getString(MyParams.S_MAIN_PLATFORM_ADDR) + "/api/message/bucket/elecformout",
-                CommonUtils.generateRequestHeader("02"),
-                CommonUtils.generateRequestBody(msg));
-    }
-
-    public Call<Reply> uploadRefluxMsg(MsgReflux msg) {
-        return netInterface.post(
-                ConfigHelper.getString(MyParams.S_MAIN_PLATFORM_ADDR) + "/api/message/bucket/elecformin",
-                CommonUtils.generateRequestHeader("02"),
-                CommonUtils.generateRequestBody(msg));
-    }
-
-    public Call<Reply> uploadDealerMsg(MsgDealer msg) {
-        String path = "";
-        switch (msg.getStage()) {
-            case "10":
-                path = "fullelecformin";
-                break;
-            case "11":
-                path = "fullelecformout";
-                break;
-            case "12":
-                path = "emptyelecformin";
-                break;
-            case "13":
-                path = "emptyelecformout";
-                break;
-        }
-        return netInterface.post(
-                ConfigHelper.getString(MyParams.S_MAIN_PLATFORM_ADDR) + "/api/dealermessage/bucket/" + path,
-                CommonUtils.generateRequestHeader("03"),
-                CommonUtils.generateRequestBody(msg));
+    public Call<Reply> uploadAdminLoginMsg(String epcStr) {
+        return netInterface.post(SpHelper.getString(MyParams.S_DEVICE_ADDR) + "/api/device/login_records/sqpad",
+                CommonUtils.generateRequestHeader("02"), CommonUtils.generateRequestBody(new MsgAdminLogin(epcStr)));
     }
 
     public Call<Reply> uploadCardRegMsg(MsgCardReg msg) {
-        return netInterface.post(
-                ConfigHelper.getString(MyParams.S_MAIN_PLATFORM_ADDR) + "/api/device/card/register",
-                CommonUtils.generateRequestHeader("02"),
-                CommonUtils.generateRequestBody(msg));
+        return netInterface.post(SpHelper.getString(MyParams.S_DEVICE_ADDR) + "/api/device/cards",
+                CommonUtils.generateRequestHeader("02"), CommonUtils.generateRequestBody(msg));
     }
 
-    public Call<Reply> uploadAdminLoginInfo(String cardEPCStr) {
-        return netInterface.post(
-                ConfigHelper.getString(MyParams.S_MAIN_PLATFORM_ADDR) + "/api/message/bucket/login",
-                CommonUtils.generateRequestHeader("02"),
-                CommonUtils.generateRequestBody(new MsgAdminLogin(cardEPCStr)));
+    /**
+     * 以下为数据云的接口
+     */
+    public Call<Reply> getConfig() {
+        return netInterface.get(MyVars.api.getDataCloudAddr() + "/api/sq/configs/pad",
+                CommonUtils.generateRequestHeader("02"), generateReaderIDMap());
     }
 
-    public Call<Reply> uploadUnstackInfo(String bodyCode) {
-         return netInterface.post(
-                ConfigHelper.getString(MyParams.S_MAIN_PLATFORM_ADDR) + "/api/message/bucket/unstacker",
-                CommonUtils.generateRequestHeader("02"),
-                CommonUtils.generateRequestBody(new MsgUnstack(bodyCode)));
+    public Call<Reply> uploadRegisterMsg(MsgRegister msg) {
+        return netInterface.post(MyVars.api.getDataCloudAddr() + "/api/sq/assets/buckets",
+                CommonUtils.generateRequestHeader("02"), CommonUtils.generateRequestBody(msg));
     }
 
-    public Call<Reply> queryProductionTask() {
-        return netInterface.post(
-                ConfigHelper.getString(MyParams.S_MAIN_PLATFORM_ADDR) + "/api/message/app/productiontaskpadrequest",
-                CommonUtils.generateRequestHeader("02"),
-                CommonUtils.generateRequestBody(new MsgRfTID()));
-
+    public Call<Reply> getRegisterInfo(String tid, String qrcode) {
+        Map<String, Object> map = new HashMap<>();
+        map.put("tid", tid);
+        map.put("qrcode", qrcode);
+        return netInterface.get(MyVars.api.getDataCloudAddr() + "/api/sq/assets/buckets",
+                CommonUtils.generateRequestHeader("02"), map);
     }
 
-    public Call<Reply> startProductionTask(String taskID) {
-        return netInterface.post(
-                ConfigHelper.getString(MyParams.S_MAIN_PLATFORM_ADDR) + "/api/message/app/onlinestart",
-                CommonUtils.generateRequestHeader("02"),
-                CommonUtils.generateRequestBody(new MsgTask(taskID)));
-
+    public Call<Reply> uploadScrapMsg(MsgScrap msg) {
+        return netInterface.post(MyVars.api.getDataCloudAddr() + "/api/sq/assets/scrap",
+                CommonUtils.generateRequestHeader("02"), CommonUtils.generateRequestBody(msg));
     }
 
-    public Call<Reply> stopProductionTask(String taskID) {
-        return netInterface.post(
-                ConfigHelper.getString(MyParams.S_MAIN_PLATFORM_ADDR) + "/api/message/app/onlineend",
-                CommonUtils.generateRequestHeader("02"),
-                CommonUtils.generateRequestBody(new MsgTask(taskID)));
-
+    public Call<Reply> uploadProductMsg(MsgLine msg) {
+        return netInterface.post(MyVars.api.getDataCloudAddr() + "/api/sq/assets/products",
+                CommonUtils.generateRequestHeader("02"), CommonUtils.generateRequestBody(msg));
     }
 
-    public Call<Reply> sendStartInfo(String content) {
-        return netInterface.post(
-                ConfigHelper.getString(MyParams.S_STANDBY_PLATFORM_ADDR) + "/log",
-                CommonUtils.generateRequestHeader("02"),
-                CommonUtils.generateRequestBody(new MsgLog(content)));
+    public Call<Reply> uploadDeliveryMsg(MsgDelivery msg) {
+        return netInterface.post(MyVars.api.getDataCloudAddr() + "/api/sq/assets/delivery_receipts",
+                CommonUtils.generateRequestHeader("02"), CommonUtils.generateRequestBody(msg));
     }
 
-    public void sendLogRecord(String content) {
-        netInterface.post(
-                ConfigHelper.getString(MyParams.S_STANDBY_PLATFORM_ADDR) + "/log",
-                CommonUtils.generateRequestHeader("02"),
-                CommonUtils.generateRequestBody(new MsgLog(content))).enqueue(new EmptyAdapter());
+    public Call<Reply> uploadRefluxMsg(MsgReflux msg) {
+        return netInterface.post(MyVars.api.getDataCloudAddr() + "/api/sq/assets/reflux_receipts",
+                CommonUtils.generateRequestHeader("02"), CommonUtils.generateRequestBody(msg));
+    }
+
+    public Call<Reply> queryDeliveryBills() {
+        return netInterface.get(MyVars.api.getDataCloudAddr() + "/api/sq/assets/delivery_forms",
+                CommonUtils.generateRequestHeader("02"), generateReaderIDMap());
+    }
+
+    public Call<Reply> uploadLineMsg(MsgLine msg) {
+        return netInterface.post(MyVars.api.getDataCloudAddr() + "/api/sq/produce/line_messages",
+                CommonUtils.generateRequestHeader("02"), CommonUtils.generateRequestBody(msg));
+    }
+
+    public Call<Reply> uploadStackMsg(MsgStack msg) {
+        return netInterface.post(MyVars.api.getDataCloudAddr() + "/api/sq/produce/packages",
+                CommonUtils.generateRequestHeader("02"), CommonUtils.generateRequestBody(msg));
+    }
+
+    public Call<Reply> checkStackOrSingle(String epcStr) {
+        Map<String, Object> map = new HashMap<>();
+        map.put("bucket_epc", epcStr);
+        return netInterface.get(MyVars.api.getDataCloudAddr() + "/api/sq/produce/packages",
+                CommonUtils.generateRequestHeader("02"), map);
+    }
+
+    private Map<String, Object> generateReaderIDMap() {
+        Map<String, Object> map = new HashMap<>();
+        map.put("reader_id", SpHelper.getString(MyParams.S_READER_ID));
+        return map;
     }
 }

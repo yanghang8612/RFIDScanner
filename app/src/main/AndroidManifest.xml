@@ -43,11 +43,6 @@
         android:sharedUserId="android.uid.system"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
-        <receiver android:name=".receiver.BluetoothReceiver">
-            <intent-filter android:priority="1000">
-                <action android:name="android.bluetooth.device.action.PAIRING_REQUEST" />
-            </intent-filter>
-        </receiver>
         <receiver
             android:name=".receiver.BootBroadcastReceiver"
             android:enabled="true"
@@ -93,9 +88,6 @@
             android:name=".activity.ErrorRemindActivity"
             android:screenOrientation="landscape"
             android:theme="@style/AppTheme.LightTransparent" />
-        <activity
-            android:name=".activity.QRCodeReaderActivity"
-            android:screenOrientation="landscape"/>
         <activity
             android:name=".activity.StackDetailActivity"
             android:screenOrientation="landscape"

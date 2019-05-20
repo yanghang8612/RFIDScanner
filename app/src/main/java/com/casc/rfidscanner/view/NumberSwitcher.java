@@ -54,7 +54,7 @@ public class NumberSwitcher extends TextSwitcher {
     public void setNumber(int newNumber) {
         String oldText = ((TextView) getCurrentView()).getText().toString();
         int oldNumber = TextUtils.isEmpty(oldText) ? -1 : Integer.valueOf(oldText);
-        if (oldNumber >= 0 && Math.abs(newNumber - oldNumber) == 1) {
+        if (oldNumber >= 0 && Math.abs(newNumber - oldNumber) > 0) {
             if (newNumber > oldNumber) {
                 setOutAnimation(mContext, R.anim.number_top_out);
                 setInAnimation(mContext, R.anim.number_bottom_in);

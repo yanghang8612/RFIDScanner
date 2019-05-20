@@ -13,25 +13,14 @@ import java.util.List;
 
 public class GoodsAdapter extends BaseQuickAdapter<Goods, BaseViewHolder> {
 
-    private boolean isShowLeftCount;
-
     public GoodsAdapter(@Nullable List<Goods> data) {
         super(R.layout.item_goods, data);
-    }
-
-    public GoodsAdapter(@Nullable List<Goods> data, boolean isShowLeftCount) {
-        this(data);
-        this.isShowLeftCount = isShowLeftCount;
     }
 
     @Override
     protected void convert(BaseViewHolder helper, Goods item) {
         ((NumberSwitcher) helper.getView(R.id.ns_goods_cur_count))
                 .setNumber(item.getCurCount());
-//        ((NumberSwitcher) helper.getView(R.id.ns_goods_cur_count))
-//                .setTextColor(item.getCurCount() > item.getTotalCount() && item.getTotalCount() != -1 ?
-//                        MyApplication.getInstance().getColor(R.color.indian_red) :
-//                        MyApplication.getInstance().getColor(R.color.black));
         helper.setText(R.id.tv_goods_name, item.getName())
                 .setText(R.id.tv_goods_total_count, String.valueOf(item.getTotalCount()));
         helper.getView(R.id.tv_goods_total_count)

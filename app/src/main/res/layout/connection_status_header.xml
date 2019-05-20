@@ -95,7 +95,7 @@
         android:layout_width="0dp"
         android:layout_height="match_parent"
         android:layout_weight="1"
-        android:paddingEnd="10dp"
+        android:layout_marginEnd="4dp"
         android:clickable="true"
         android:focusable="true">
 
@@ -106,59 +106,35 @@
             android:background="@color/transparent" />
 
         <LinearLayout
-            android:orientation="vertical"
+            android:orientation="horizontal"
             android:layout_width="match_parent"
-            android:layout_height="match_parent">
+            android:layout_height="match_parent"
+            android:gravity="end">
 
-            <LinearLayout
-                android:orientation="horizontal"
-                android:layout_width="match_parent"
-                android:layout_height="0dp"
-                android:layout_weight="2"
-                android:gravity="center">
+            <TextView
+                android:id="@+id/tv_time_hour"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:theme="@style/AppTheme.CommonText"
+                android:textStyle="bold"
+                android:text="12" />
 
-                <ImageView
-                    android:id="@+id/iv_battery_status"
-                    android:layout_width="@dimen/header_icon_width"
-                    android:layout_height="match_parent"
-                    android:layout_marginTop="@dimen/header_icon_margin"
-                    android:layout_marginBottom="@dimen/header_icon_margin"
-                    android:src="@drawable/ic_battery_20"
-                    android:scaleType="fitXY"/>
+            <TextView
+                android:id="@+id/tv_time_colon"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="2dp"
+                android:theme="@style/AppTheme.CommonText"
+                android:textStyle="bold"
+                android:text=":" />
 
-                <TextView
-                    android:id="@+id/tv_time_hour"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:theme="@style/AppTheme.CommonText"
-                    android:textStyle="bold"
-                    android:text="12" />
-
-                <TextView
-                    android:id="@+id/tv_time_colon"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginBottom="2dp"
-                    android:layout_gravity="center"
-                    android:theme="@style/AppTheme.CommonText"
-                    android:textStyle="bold"
-                    android:text=":" />
-
-                <TextView
-                    android:id="@+id/tv_time_minute"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:theme="@style/AppTheme.CommonText"
-                    android:textStyle="bold"
-                    android:text="12" />
-
-            </LinearLayout>
-
-            <LinearLayout
-                android:orientation="vertical"
-                android:layout_width="match_parent"
-                android:layout_height="0dp"
-                android:layout_weight="3" />
+            <TextView
+                android:id="@+id/tv_time_minute"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:theme="@style/AppTheme.CommonText"
+                android:textStyle="bold"
+                android:text="12" />
 
         </LinearLayout>
 

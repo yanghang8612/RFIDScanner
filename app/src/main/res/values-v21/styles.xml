@@ -16,6 +16,7 @@
         <item name="android:statusBarColor">@color/transparent</item>
         <item name="android:windowBackground">@color/transparent</item>
         <item name="android:windowIsTranslucent">true</item>
+        <item name="android:windowDisablePreview">true</item>
         <item name="android:windowAnimationStyle">@style/ActivityInOutAnimation</item>
     </style>
 
@@ -25,6 +26,7 @@
         <item name="android:statusBarColor">@color/transparent</item>
         <item name="android:windowBackground">@color/light_transparent</item>
         <item name="android:windowIsTranslucent">true</item>
+        <item name="android:windowDisablePreview">true</item>
         <item name="android:windowAnimationStyle">@style/ActivityInOutAnimation</item>
     </style>
     
@@ -94,6 +96,11 @@
 
     <style name="AppTheme.CardKeyboardText">
         <item name="android:textSize">24sp</item>
+        <item name="android:textColor">@color/black</item>
+    </style>
+
+    <style name="AppTheme.SmallText">
+        <item name="android:textSize">10sp</item>
         <item name="android:textColor">@color/black</item>
     </style>
 

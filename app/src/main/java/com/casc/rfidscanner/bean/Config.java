@@ -1,87 +1,106 @@
 package com.casc.rfidscanner.bean;
 
+import android.util.Log;
+
+import com.google.gson.annotations.SerializedName;
+
 import java.util.ArrayList;
 import java.util.List;
 
 public class Config {
 
-    private int versionnumber;
+    @SerializedName("epc_version")
+    private int version;
 
-    private String industrysymbol;
+    @SerializedName("industry_symbol")
+    private String industrySymbol;
 
-    private String companysymbol;
+    @SerializedName("company_symbol")
+    private String companySymbol;
 
-    private List<String> dealerinfo = new ArrayList<>();
+    @SerializedName("dealer_list")
+    private List<String> dealers = new ArrayList<>();
 
-    private List<String> driverinfo = new ArrayList<>();
+    @SerializedName("driver_list")
+    private List<String> drivers = new ArrayList<>();
 
-    private List<ProductInfo> productinfo = new ArrayList<>();
+    @SerializedName("abnormal_reasons")
+    private List<String> reasons = new ArrayList<>();
 
-    private List<DisableInfo> disableinfo = new ArrayList<>();
+    @SerializedName("product_list")
+    private List<IntStrPair> products = new ArrayList<>();
 
-    public int getVersionNumber() {
-        return versionnumber;
+    @SerializedName("disable_list")
+    private List<IntStrPair> disables = new ArrayList<>();
+
+    public int getVersion() {
+        return version;
     }
 
     public String getHeader() {
-        return industrysymbol + companysymbol;
+        return industrySymbol == null || companySymbol == null ? null : industrySymbol + companySymbol;
     }
 
     public String getIndustrySymbol() {
-        return industrysymbol;
+        return industrySymbol;
     }
 
     public String getCompanySymbol() {
-        return companysymbol;
+        return companySymbol;
     }
 
-    public List<String> getDealerInfo() {
-        return dealerinfo == null ? dealerinfo = new ArrayList<>() : dealerinfo;
+    public List<String> getDealers() {
+        return dealers == null ? dealers = new ArrayList<>() : dealers;
     }
 
-    public List<String> getDriverInfo() {
-        return driverinfo == null ? driverinfo = new ArrayList<>() : driverinfo;
+    public List<String> getDrivers() {
+        return drivers == null ? drivers = new ArrayList<>() : drivers;
     }
 
-    public List<ProductInfo> getProductInfo() {
-        return productinfo == null ? productinfo = new ArrayList<>() : productinfo;
+    public List<String> getReasons() {
+        return reasons == null ? reasons = new ArrayList<>() : reasons;
     }
 
-    public ProductInfo getProductInfoByCode(int code) {
-        for (ProductInfo info : productinfo) {
-            if (info.getCode() == code) {
-                return info;
+    public List<IntStrPair> getProducts() {
+        return products == null ? products = new ArrayList<>() : products;
+    }
+
+    public List<IntStrPair> getDisables() {
+        return disables == null ? disables = new ArrayList<>() : disables;
+    }
+
+    public IntStrPair getProductByCode(int code) {
+        for (IntStrPair pair : products) {
+            if (pair.getInt() == code) {
+                return pair;
+            }
+        }
+        Log.i("Error:", code + " is not exist.");
+        return null;
+    }
+
+    public IntStrPair getProductByName(String name) {
+        for (IntStrPair pair : products) {
+            if (pair.getStr().equals(name)) {
+                return pair;
             }
         }
         return null;
     }
 
-    public ProductInfo getProductInfoByName(String name) {
-        for (ProductInfo info : productinfo) {
-            if (info.getName().equals(name)) {
-                return info;
+    public IntStrPair getDisableByCode(int code) {
+        for (IntStrPair pair : disables) {
+            if (pair.getInt() == code) {
+                return pair;
             }
         }
         return null;
     }
 
-    public List<DisableInfo> getDisableInfo() {
-        return disableinfo == null ? disableinfo = new ArrayList<>() : disableinfo;
-    }
-
-    public DisableInfo getDisableInfoByCode(int code) {
-        for (DisableInfo info : disableinfo) {
-            if (info.getCode() == code) {
-                return info;
-            }
-        }
-        return null;
-    }
-
-    public DisableInfo getDisableInfoByWord(String word) {
-        for (DisableInfo info : disableinfo) {
-            if (info.getWord().equals(word)) {
-                return info;
+    public IntStrPair getDisableByWord(String word) {
+        for (IntStrPair pair : disables) {
+            if (pair.getStr().equals(word)) {
+                return pair;
             }
         }
         return null;

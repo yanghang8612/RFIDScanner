@@ -2,9 +2,11 @@ package com.casc.rfidscanner.adapter;
 
 import android.content.Context;
 import android.support.v7.widget.CardView;
+import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.view.View;
+import android.view.ViewParent;
 
 import com.casc.rfidscanner.R;
 import com.casc.rfidscanner.bean.DeliveryBill;
@@ -38,7 +40,18 @@ public class DeliveryBillAdapter extends BaseQuickAdapter<DeliveryBill, BaseView
 
         helper.setText(R.id.tv_bill_id, item.getBillID())
                 .setText(R.id.tv_bill_dealer, item.getDealer())
-                .setText(R.id.tv_bill_driver, item.getDriver());
+                .setText(R.id.tv_bill_driver, item.getDriver())
+                .addOnClickListener(R.id.btn_delivery_bill_cancel);
+
+        RecyclerView stackListView = helper.getView(R.id.rv_delivery_bill_stacks);
+        if (stackListView.getLayoutManager() == null) {
+            stackListView.setLayoutManager(new GridLayoutManager(mContext, 2));
+        }
+        if (stackListView.getAdapter() != item.getStackAdapter()) {
+            item.getStackAdapter().setOnItemClickListener(this);
+            stackListView.setAdapter(item.getStackAdapter());
+        }
+        stackListView.getAdapter().notifyDataSetChanged();
     }
 
     public void moveToFirst(DeliveryBill bill) {
@@ -51,6 +64,10 @@ public class DeliveryBillAdapter extends BaseQuickAdapter<DeliveryBill, BaseView
 
     @Override
     public void onItemClick(BaseQuickAdapter adapter, View view, int position) {
-        ((CardView) view.getParent().getParent().getParent()).callOnClick();
+        ViewParent parent = view.getParent();
+        while (!(parent instanceof CardView)) {
+            parent = parent.getParent();
+        }
+        ((CardView) parent).callOnClick();
     }
 }

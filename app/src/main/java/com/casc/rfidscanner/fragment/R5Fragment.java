@@ -9,11 +9,9 @@ import com.casc.rfidscanner.MyParams;
 import com.casc.rfidscanner.MyVars;
 import com.casc.rfidscanner.R;
 import com.casc.rfidscanner.activity.ConfigActivity;
-import com.casc.rfidscanner.bean.Bucket;
-import com.casc.rfidscanner.dao.MessageDao;
+import com.casc.rfidscanner.dao.BaseDao;
 import com.casc.rfidscanner.helper.DBHelper;
-import com.casc.rfidscanner.helper.param.MsgStack;
-import com.casc.rfidscanner.message.AbnormalBucketMessage;
+import com.casc.rfidscanner.helper.net.param.MsgStack;
 import com.casc.rfidscanner.message.PollingResultMessage;
 import com.casc.rfidscanner.utils.CommonUtils;
 import com.casc.rfidscanner.view.NumberSwitcher;
@@ -37,13 +35,6 @@ public class R5Fragment extends BaseFragment {
     // Constant for InnerHandler message.what
     private static final int MSG_COMPLETE = 0;
 
-    @BindView(R.id.ns_r5_scanned_count) NumberSwitcher mScannedCountNs;
-    @BindView(R.id.ns_r5_stack_count) NumberSwitcher mStackCountNs;
-    @BindView(R.id.ll_stack_buckets) LinearLayout mStackBucketsLl;
-    @BindView(R.id.tv_stack_buckets) TextView mStackBucketsTv;
-    @BindView(R.id.ll_bulk_buckets) LinearLayout mBulkBucketsLl;
-    @BindView(R.id.tv_bulk_buckets) TextView mBulkBucketsTv;
-
     private enum WorkStatus {
         IS_IDLE, IS_STACK, IS_BULK
     }
@@ -56,19 +47,46 @@ public class R5Fragment extends BaseFragment {
 
     private Map<String, Integer> mTestEPCs = new LinkedHashMap<>();
 
-    private MessageDao mDao = new MessageDao(DBHelper.TABLE_NAME_STACK_DETAIL);
+    private BaseDao mDao = new BaseDao(DBHelper.TABLE_NAME_STACK_DETAIL);
 
     private final Object mLock = new Object();
 
     // Fragment内部handler
     private Handler mHandler = new InnerHandler(this);
 
-    @Subscribe(threadMode = ThreadMode.MAIN)
-    public void onMessageEvent(AbnormalBucketMessage message) {
-//        String content = message.isReadNone ?
-//                "未发现桶标签" : "发现弱标签：" + new Bucket(message.epc).getBodyCode();
-//        mHints.add(0, new Hint(content));
-//        mHintAdapter.notifyDataSetChanged();
+    @BindView(R.id.ns_r5_scanned_count) NumberSwitcher mScannedCountNs;
+    @BindView(R.id.ns_r5_stack_count) NumberSwitcher mStackCountNs;
+    @BindView(R.id.ll_stack_buckets) LinearLayout mStackBucketsLl;
+    @BindView(R.id.tv_stack_buckets) TextView mStackBucketsTv;
+    @BindView(R.id.ll_bulk_buckets) LinearLayout mBulkBucketsLl;
+    @BindView(R.id.tv_bulk_buckets) TextView mBulkBucketsTv;
+
+    @OnClick(R.id.ll_stack_buckets) void onStackBucketsLinearLayoutClicked() {
+        synchronized (mLock) {
+            mStatus = WorkStatus.IS_STACK;
+            mStackBucketsLl.setEnabled(false);
+            mStackBucketsLl.getBackground().setTint(mContext.getColor(R.color.red));
+            mStackBucketsTv.setText("打垛中...");
+            mBulkBucketsLl.setEnabled(false);
+            mScannedCountNs.setNumber(0);
+            mHandler.sendMessageDelayed(mHandler.obtainMessage(MSG_COMPLETE),
+                    MyParams.STACK_WAIT_TIME);
+        }
+    }
+
+    @OnClick(R.id.ll_bulk_buckets) void onBulkBucketsLinearLayoutClicked() {
+        synchronized (mLock) {
+            mStatus = WorkStatus.IS_BULK;
+            mStackBucketsLl.setEnabled(false);
+            mBulkBucketsLl.setEnabled(false);
+            mBulkBucketsLl.getBackground().setTint(mContext.getColor(R.color.red));
+            mBulkBucketsTv.setText("打垛中...");
+            mScannedCountNs.setNumber(0);
+            mHandler.sendMessageDelayed(mHandler.obtainMessage(MSG_COMPLETE),
+                    MyParams.STACK_WAIT_TIME);
+        }
+//        mTestEPCs.clear();
+//        mScannedCountNs.setNumber(0);
     }
 
     @Subscribe(threadMode = ThreadMode.MAIN)
@@ -76,7 +94,7 @@ public class R5Fragment extends BaseFragment {
         if (message.isRead) {
             String epcStr = CommonUtils.bytesToHex(message.epc);
             switch (CommonUtils.validEPC(message.epc)) {
-                case NONE: // 检测到未注册标签，是否提示
+                case NONE:
 //                    if (!mTestEPCs.containsKey(epcStr)) {
 //                        playSound();
 //                        mScannedCountNs.increaseNumber();
@@ -108,8 +126,7 @@ public class R5Fragment extends BaseFragment {
                     break;
                 case CARD_ADMIN:
                     if (++mAdminCardScannedCount == MyParams.ADMIN_CARD_SCANNED_COUNT) {
-                        sendAdminLoginMessage(CommonUtils.bytesToHex(message.epc));
-                        ConfigActivity.actionStart(mContext);
+                        ConfigActivity.actionStart(mContext, epcStr);
                     }
                     break;
             }
@@ -128,34 +145,6 @@ public class R5Fragment extends BaseFragment {
     @Override
     protected int getLayout() {
         return R.layout.fragment_r5;
-    }
-
-    @OnClick(R.id.ll_stack_buckets)
-    void onStackBucketsLinearLayoutClicked() {
-        synchronized (mLock) {
-            mStatus = WorkStatus.IS_STACK;
-            mStackBucketsLl.setEnabled(false);
-            mStackBucketsLl.getBackground().setTint(mContext.getColor(R.color.red));
-            mStackBucketsTv.setText("打垛中...");
-            mBulkBucketsLl.setEnabled(false);
-            mScannedCountNs.setNumber(0);
-            mHandler.sendMessageDelayed(mHandler.obtainMessage(MSG_COMPLETE), 30000);
-        }
-    }
-
-    @OnClick(R.id.ll_bulk_buckets)
-    void onBulkBucketsLinearLayoutClicked() {
-        synchronized (mLock) {
-            mStatus = WorkStatus.IS_BULK;
-            mStackBucketsLl.setEnabled(false);
-            mBulkBucketsLl.setEnabled(false);
-            mBulkBucketsLl.getBackground().setTint(mContext.getColor(R.color.red));
-            mBulkBucketsTv.setText("打垛中...");
-            mScannedCountNs.setNumber(0);
-            mHandler.sendMessageDelayed(mHandler.obtainMessage(MSG_COMPLETE), 30000);
-        }
-//        mTestEPCs.clear();
-//        mScannedCountNs.setNumber(0);
     }
 
     private static class InnerHandler extends Handler {
@@ -202,7 +191,7 @@ public class R5Fragment extends BaseFragment {
         StringBuilder result = new StringBuilder("{\"size\":" + buckets.size() + ",");
         for (String epcStr : buckets.keySet()) {
             result.append("\"")
-                    .append(Bucket.getBodyCode(epcStr))
+                    .append(CommonUtils.getBodyCode(epcStr))
                     .append("\":")
                     .append(buckets.get(epcStr)).append(",");
         }
@@ -213,7 +202,7 @@ public class R5Fragment extends BaseFragment {
     private void uploadStackMessage(Map<String, Long> buckets, boolean isBulk) {
         MsgStack stack = new MsgStack(isBulk ? "0" : "1");
         for (Map.Entry<String, Long> entry : buckets.entrySet()) {
-            stack.addBucket(entry.getValue(), entry.getKey());
+            stack.addBucket(entry.getKey(), entry.getValue());
         }
         MyVars.cache.storeStackMessage(stack);
     }
