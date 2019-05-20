@@ -13,10 +13,14 @@ import android.widget.EditText;
 import android.widget.FrameLayout;
 import android.widget.Toast;
 
-import com.casc.rfidscanner.utils.ActivityCollector;
+import com.afollestad.materialdialogs.DialogAction;
+import com.afollestad.materialdialogs.MaterialDialog;
+import com.casc.rfidscanner.R;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+
+import butterknife.ButterKnife;
 
 public abstract class BaseActivity extends AppCompatActivity implements View.OnSystemUiVisibilityChangeListener {
 
@@ -30,16 +34,34 @@ public abstract class BaseActivity extends AppCompatActivity implements View.OnS
                     | View.SYSTEM_UI_FLAG_FULLSCREEN
                     | View.SYSTEM_UI_FLAG_IMMERSIVE;
 
+    // 派生类必须重写该abstract方法，以实现自己的Activity初始化逻辑
+    protected abstract void initActivity();
+
+    // 派生类所加载的LayoutID
+    protected abstract int getLayout();
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        ActivityCollector.addActivity(this);
+        setContentView(getLayout());
         setTitle("");
+
+        ActivityCollector.addActivity(this);
+        ButterKnife.bind(this);
+        initActivity();
 
         mToast = Toast.makeText(this, "", Toast.LENGTH_SHORT);
         mDecorView = getWindow().getDecorView();
         mDecorView.setSystemUiVisibility(mVisibility);
         mDecorView.setOnSystemUiVisibilityChangeListener(this);
+    }
+
+    @Override
+    public void finish() {
+        super.finish();
+        if (!(ActivityCollector.getTopActivity() instanceof ConfigActivity)) {
+            overridePendingTransition(0, 0);
+        }
     }
 
     @Override
@@ -161,4 +183,17 @@ public abstract class BaseActivity extends AppCompatActivity implements View.OnS
         mToast.setText(resId);
         mToast.show();
     }
+
+    protected void showDialog(String content, MaterialDialog.SingleButtonCallback callback) {
+        new MaterialDialog.Builder(this)
+                .content(content)
+                .positiveText("确认")
+                .positiveColorRes(R.color.white)
+                .btnSelector(R.drawable.md_btn_postive, DialogAction.POSITIVE)
+                .negativeText("取消")
+                .negativeColorRes(R.color.gray)
+                .onPositive(callback)
+                .show();
+    }
+
 }

@@ -21,11 +21,11 @@ public class GPSHelper {
      */
     public static void setGPSInfo(double longitude, double latitude, double height) {
         if (!Double.isNaN(longitude) && !Double.isInfinite(longitude) && LONGITUDE_THRESHOLD.compareTo(Math.abs(longitude)) != -1)
-            ConfigHelper.setParam(MyParams.S_LONGITUDE, String.valueOf(longitude));
+            SpHelper.setParam(MyParams.S_LONGITUDE, String.valueOf(longitude));
         if (!Double.isNaN(latitude) && !Double.isInfinite(latitude) && LATITUDE_THRESHOLD.compareTo(Math.abs(latitude)) != -1)
-            ConfigHelper.setParam(MyParams.S_LATITUDE, String.valueOf(latitude));
+            SpHelper.setParam(MyParams.S_LATITUDE, String.valueOf(latitude));
         if (!Double.isNaN(height) && !Double.isInfinite(height))
-            ConfigHelper.setParam(MyParams.S_HEIGHT, String.valueOf(height));
+            SpHelper.setParam(MyParams.S_HEIGHT, String.valueOf(height));
     }
 
     /**
@@ -34,7 +34,7 @@ public class GPSHelper {
      * @return 经度
      */
     public static double getLongitude(Context context) {
-        return Float.valueOf(ConfigHelper.getString(MyParams.S_LONGITUDE));
+        return Float.valueOf(SpHelper.getString(MyParams.S_LONGITUDE));
     }
 
     /**
@@ -43,7 +43,7 @@ public class GPSHelper {
      * @return 纬度
      */
     public static Double getLatitude(Context context) {
-        return Double.valueOf(ConfigHelper.getString(MyParams.S_LATITUDE));
+        return Double.valueOf(SpHelper.getString(MyParams.S_LATITUDE));
     }
 
     /**
@@ -52,6 +52,6 @@ public class GPSHelper {
      * @return 高度
      */
     public static double getHeight(Context context) {
-        return Double.valueOf(ConfigHelper.getString(MyParams.S_HEIGHT));
+        return Double.valueOf(SpHelper.getString(MyParams.S_HEIGHT));
     }
 }

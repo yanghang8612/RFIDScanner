@@ -9,13 +9,8 @@ import android.hardware.usb.UsbDevice;
 import android.hardware.usb.UsbManager;
 import android.util.Log;
 
-import com.baidu.tts.client.SpeechSynthesizer;
-import com.casc.rfidscanner.MyVars;
-import com.casc.rfidscanner.helper.NetHelper;
 import com.hoho.android.usbserial.driver.Cp21xxSerialDriver;
 import com.hoho.android.usbserial.driver.UsbSerialPort;
-
-import org.greenrobot.eventbus.EventBus;
 
 import java.io.IOException;
 import java.util.Map;
@@ -78,11 +73,8 @@ public class USBReaderImpl extends BaseReaderImpl {
         super.lostConnection();
         try {
             mSerialPort.close();
-            MyVars.cache.storeLogMessage("读写器断开连接（byUSB）");
-            SpeechSynthesizer.getInstance().speak("读写器断开连接");
         } catch (IOException e) {
             e.printStackTrace();
-            MyVars.cache.storeLogMessage("读写器断开连接（byUSB）时IO异常：" + e.getMessage());
         } catch (Exception ignored) {
         } finally {
             mUsbDevice = null;
@@ -123,9 +115,6 @@ public class USBReaderImpl extends BaseReaderImpl {
                 mSerialPort.open(mUsbManager.openDevice(mUsbDevice));
                 mSerialPort.setParameters(115200, UsbSerialPort.DATABITS_8, UsbSerialPort.STOPBITS_1, UsbSerialPort.PARITY_NONE);
                 mState = STATE_CONNECTED;
-                MyVars.cache.storeLogMessage("读写器已连接（byUSB）");
-                SpeechSynthesizer.getInstance().speak("读写器已连接");
-                EventBus.getDefault().post(MyVars.status.setReaderStatus(true));
             } catch (NullPointerException e) {
                 Log.i(TAG, "Need permission when build connection with reader by usb");
                 mUsbManager.requestPermission(mUsbDevice, PendingIntent.getBroadcast(mContext, 0, new Intent(ACTION_USB_PERMISSION), 0));

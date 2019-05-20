@@ -1,10 +1,12 @@
 package com.casc.rfidscanner.utils;
 
+import android.text.TextUtils;
 import android.util.Log;
 
 import com.casc.rfidscanner.MyParams;
-import com.casc.rfidscanner.MyParams.EPCType;
 import com.casc.rfidscanner.MyVars;
+import com.casc.rfidscanner.bean.EPCType;
+import com.casc.rfidscanner.bean.IntStrPair;
 import com.google.gson.GsonBuilder;
 
 import java.text.SimpleDateFormat;
@@ -23,6 +25,26 @@ public class CommonUtils {
     private static final String TAG = CommonUtils.class.getSimpleName();
 
     private CommonUtils(){}
+
+    public static IntStrPair getProduct(String epcStr) {
+        return getProduct(CommonUtils.hexToBytes(epcStr));
+    }
+
+    public static IntStrPair getProduct(byte[] epc) {
+        return MyVars.config.getProductByCode(epc[5]);
+    }
+
+    public static String getBodyCode(String epcStr) {
+        return getBodyCode(hexToBytes(epcStr));
+    }
+
+    public static String getBodyCode(byte[] epc) {
+        String res = "";
+        for (int i = 0; i < 5; i++) {
+            res = String.format("%s%s", res, (char) epc[7 + i]);
+        }
+        return CommonUtils.convertEPCHeader(epc) + res;
+    }
 
     private static String[] hanArr = { "零", "一", "二", "三", "四", "五", "六", "七", "八", "九" };
     private static String[] unitArr = { "十", "百", "千", "万", "十", "白", "千", "亿", "十", "百", "千" };
@@ -47,22 +69,6 @@ public class CommonUtils {
         return result;
     }
 
-    private static EPCType getEPCType(byte[] epc) {
-        if (epc.length == MyParams.EPC_BUCKET_LENGTH && epc[MyParams.EPC_TYPE_INDEX] == EPCType.BUCKET.getCode()) {
-            return EPCType.BUCKET;
-        } else if (epc.length == MyParams.EPC_BUCKET_LENGTH && epc[MyParams.EPC_TYPE_INDEX] == EPCType.BUCKET_SCRAPED.getCode()) {
-            return EPCType.BUCKET_SCRAPED;
-        } else if (epc.length == MyParams.EPC_DELIVERY_CARD_LENGTH && epc[MyParams.EPC_TYPE_INDEX] == EPCType.CARD_DELIVERY.getCode()) {
-            return EPCType.CARD_DELIVERY;
-        } else if (epc.length == MyParams.EPC_ADMIN_CARD_LENGTH && epc[MyParams.EPC_TYPE_INDEX] == EPCType.CARD_ADMIN.getCode()) {
-            return EPCType.CARD_ADMIN;
-        } else if (epc.length == MyParams.EPC_REFLUX_CARD_LENGTH && epc[MyParams.EPC_TYPE_INDEX] == EPCType.CARD_REFLUX.getCode()) {
-            return EPCType.CARD_REFLUX;
-        } else {
-            return EPCType.NONE;
-        }
-    }
-
     public static EPCType validEPC(byte[] epc) {
         byte[] validHeader = generateEPCHeader();
         if (epc == null || epc.length < validHeader.length)
@@ -71,12 +77,11 @@ public class CommonUtils {
             if (epc[i] != validHeader[i])
                 return EPCType.NONE;
         }
-        return getEPCType(epc);
+        return EPCType.getType(epc);
     }
 
-    private static final char[] headerArray = "0123456789ABCDEFGHJKLMNPQRTUWXY".toCharArray();
     public static byte[] generateEPCHeader() {
-        String headerStr = MyVars.config.getVersionNumber() + MyVars.config.getHeader();
+        String headerStr = MyVars.config.getVersion() + MyVars.config.getHeader();
         byte[] header = new byte[MyParams.EPC_HEADER_LENGTH];
         for (int i = 0; i < header.length; i++) {
             header[i] = (byte) headerStr.toCharArray()[i];
@@ -92,9 +97,9 @@ public class CommonUtils {
 
     public static String convertEPCHeader(byte[] epc) {
         String header = "";
-        header += epc[1];
-        header += epc[2];
-        header += epc[3];
+        header += (char) epc[1];
+        header += (char) epc[2];
+        header += (char) epc[3];
         return header;
     }
 
@@ -111,12 +116,10 @@ public class CommonUtils {
         header.put("user_key", "abc");
         header.put("request_time", new SimpleDateFormat("yyyy-MM-dd-HH:mm:ss", Locale.CHINA).format(new Date()));
         header.put("random_number", String.valueOf(new Random().nextInt()));
-        header.put("version_number", MyParams.API_VERSION);
+        header.put("version_number", "2.0");
+        if (!TextUtils.isEmpty(MyVars.api.getCompanySymbol()))
+            header.put("company", MyVars.api.getCompanySymbol());
         return header;
-    }
-
-    public static RequestBody generateRequestBody(String body) {
-        return RequestBody.create(MediaType.parse("application/json"), body);
     }
 
     public static RequestBody generateRequestBody(Object body) {

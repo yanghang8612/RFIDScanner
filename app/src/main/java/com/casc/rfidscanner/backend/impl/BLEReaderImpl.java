@@ -11,10 +11,8 @@ import android.os.CountDownTimer;
 import android.util.Log;
 
 import com.baidu.tts.client.SpeechSynthesizer;
-import com.casc.rfidscanner.MyParams;
 import com.casc.rfidscanner.MyVars;
-import com.casc.rfidscanner.helper.ConfigHelper;
-import com.casc.rfidscanner.helper.NetHelper;
+import com.casc.rfidscanner.helper.net.param.MsgLog;
 
 import org.greenrobot.eventbus.EventBus;
 
@@ -64,8 +62,7 @@ public class BLEReaderImpl extends BaseReaderImpl {
                 BluetoothDevice scanDevice = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
                 if (BluetoothDevice.ACTION_FOUND.equals(intent.getAction())) {
                     //Log.i(TAG, "Found " + scanDevice.getAddress());
-                    String btReaderMAC = ConfigHelper.getString(MyParams.S_READER_MAC);
-                    if (mIsRunning && mState == STATE_NONE && scanDevice.getAddress().equals(btReaderMAC)) {
+                    if (mIsRunning && mState == STATE_NONE && "UL05".equals(scanDevice.getName())) {
                         mBLEDevice = scanDevice;
                         MyVars.executor.execute(new BLEConnectTask());
                     }
@@ -90,11 +87,8 @@ public class BLEReaderImpl extends BaseReaderImpl {
         super.lostConnection();
         try {
             mBLESocket.close();
-            MyVars.cache.storeLogMessage("读写器断开连接（by蓝牙）");
-            SpeechSynthesizer.getInstance().speak("读写器断开连接");
         } catch (IOException e) {
             e.printStackTrace();
-            MyVars.cache.storeLogMessage("读写器断开连接（by蓝牙）时IO异常：" + e.getMessage());
         } catch (Exception ignored) {
         } finally {
             mBLESocket = null;
@@ -105,8 +99,7 @@ public class BLEReaderImpl extends BaseReaderImpl {
     @Override
     public void start() {
         super.start();
-        if (mBLESocket != null && !mBLESocket.isConnected() || mBLEDevice == null ||
-                !ConfigHelper.getString(MyParams.S_READER_MAC).equals(mBLEDevice.getAddress())) {
+        if (mBLESocket != null && !mBLESocket.isConnected() || mBLEDevice == null) {
             if (mState == STATE_CONNECTED) {
                 lostConnection();
             } else {
@@ -132,22 +125,21 @@ public class BLEReaderImpl extends BaseReaderImpl {
             long startTime = System.currentTimeMillis();
             Log.i(TAG, "Begin BLEConnectTask start at " + System.currentTimeMillis());
             mBLEAdapter.cancelDiscovery();
-            mState = STATE_CONNECTING;
             try {
                 mBLESocket = mBLEDevice.createInsecureRfcommSocketToServiceRecord(MY_UUID);
                 mBLESocket.connect();
                 mInStream = mBLESocket.getInputStream();
                 mOutStream = mBLESocket.getOutputStream();
                 mState = STATE_CONNECTED;
-                MyVars.cache.storeLogMessage(
-                        "读写器已连接（by蓝牙），用时" + (System.currentTimeMillis() - startTime) + "ms");
+                MyVars.cache.storeLogMessage(MsgLog.info(
+                        "读写器已连接（by蓝牙），用时" + (System.currentTimeMillis() - startTime) + "ms"));
                 SpeechSynthesizer.getInstance().speak("读写器已连接");
                 EventBus.getDefault().post(MyVars.status.setReaderStatus(true));
                 Log.i(TAG, "BLEConnectTask cost " + (System.currentTimeMillis() - startTime));
             } catch (IOException e) {
                 if (!e.getMessage().equals(mPreErrorMessage)) {
                     mPreErrorMessage = e.getMessage();
-                    MyVars.cache.storeLogMessage("蓝牙连接异常：" + e.getMessage());
+                    MyVars.cache.storeLogMessage(MsgLog.error("蓝牙连接异常：" + e.getMessage()));
                 }
                 e.printStackTrace();
                 mState = STATE_NONE;

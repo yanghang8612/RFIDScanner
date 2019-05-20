@@ -2,8 +2,11 @@ package com.casc.rfidscanner.bean;
 
 import com.casc.rfidscanner.MyVars;
 import com.casc.rfidscanner.adapter.GoodsAdapter;
+import com.casc.rfidscanner.adapter.StackAdapter;
+import com.casc.rfidscanner.utils.CommonUtils;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
@@ -20,38 +23,33 @@ public class DeliveryBill {
         return MyVars.config.getCompanySymbol() + "C" + String.format("%03d", cardNo);
     }
 
-    private boolean isHighlight;
-
     private String billID;
 
     private String dealer;
 
     private String driver;
 
-    private long updatedTime = System.currentTimeMillis();
-
     private List<Goods> goods = new ArrayList<>();
 
-    private Map<String, Bucket> buckets = new LinkedHashMap<>();
+    private List<Stack> stacks = new ArrayList<>();
 
-    private Set<String> removes = new HashSet<>();
+    private Map<String, Long> buckets = new HashMap<>();
 
-    private GoodsAdapter goodsAdapter = new GoodsAdapter(goods, true);
+    private Map<String, Long> removes = new HashMap<>();
+
+    private GoodsAdapter goodsAdapter = new GoodsAdapter(goods);
+
+    private StackAdapter stackAdapter = new StackAdapter(stacks);
 
     public DeliveryBill(String billID, String dealer, String driver) {
         this.billID = billID;
         this.dealer = dealer;
         this.driver = driver;
+        this.stacks.add(new Stack());
     }
 
     public DeliveryBill(byte[] card) {
-        // 解析出库专用卡EPC
-        int cardNo = 0;
-        cardNo += (card[5] & 0xFF) << 8;
-        cardNo += (card[6] & 0xFF);
-        this.billID = MyVars.config.getCompanySymbol() + "C" + String.format("%03d", cardNo);
-        this.dealer = "无";
-        this.driver = "无";
+        this(getCardIDFromEPC(card), "无", "无");
     }
 
     public String getBillID() {
@@ -70,47 +68,28 @@ public class DeliveryBill {
         return driver;
     }
 
-    public long getUpdatedTime() {
-        return updatedTime;
+    public List<Goods> getGoods() {
+        return goods;
     }
 
-    public void setUpdatedTime(long updatedTime) {
-        this.updatedTime = updatedTime;
+    public List<Stack> getStacks() {
+        return stacks;
     }
 
-    public List<Bucket> getBuckets() {
-        return new ArrayList<>(buckets.values());
+    public Map<String, Long> getBuckets() {
+        return buckets;
     }
 
-    public List<String> getRemoves() {
-        return new ArrayList<>(removes);
+    public Map<String, Long> getRemoves() {
+        return removes;
     }
 
     public GoodsAdapter getGoodsAdapter() {
         return goodsAdapter;
     }
 
-    public int getDeliveryCount() {
-        return buckets.size();
-    }
-
-    public boolean addBucket(String epcStr) {
-        if (!buckets.containsKey(epcStr)) {
-            Bucket bucket = new Bucket(epcStr);
-            buckets.put(epcStr, bucket);
-            addMatchedGoods(bucket);
-            return true;
-        }
-        return false;
-    }
-
-    public boolean removeBucket(String epcStr) {
-        removes.add(epcStr);
-        if (buckets.containsKey(epcStr)) {
-            removeMatchedGoods(buckets.remove(epcStr));
-            return true;
-        }
-        return false;
+    public StackAdapter getStackAdapter() {
+        return stackAdapter;
     }
 
     public void addGoods(int code, int quantity) {
@@ -120,7 +99,43 @@ public class DeliveryBill {
                 return;
             }
         }
-        goods.add(new Goods(MyVars.config.getProductInfoByCode(code), quantity));
+        goods.add(new Goods(MyVars.config.getProductByCode(code), quantity));
+    }
+
+    public void addBulk(String epcStr) {
+        Stack stack = stacks.get(stacks.size() - 1);
+        stack.addBucket(epcStr);
+        addBucket(epcStr);
+    }
+
+    public void addStack(Stack stack) {
+        if (!stacks.contains(stack)) {
+            stacks.add(stacks.size() - 1, stack);
+        } else {
+            for (Stack s : stacks) {
+                if (s.getId() == stack.getId()) {
+                    s.addBuckets(stack.getBuckets());
+                }
+            }
+        }
+        for (String bucket : stack.getBuckets()) {
+            addBucket(bucket);
+        }
+    }
+
+    public Stack removeLastStack() {
+        if (stacks.size() > 1) {
+            Stack stack = stacks.get(stacks.size() - 2);
+            for (String bucket : stack.getBuckets()) {
+                if (buckets.containsKey(bucket)) {
+                    buckets.remove(bucket);
+                    removeMatchedGoods(bucket);
+                }
+            }
+            stacks.remove(stack);
+            return stack;
+        }
+        return null;
     }
 
     public boolean checkBill() {
@@ -131,20 +146,42 @@ public class DeliveryBill {
         return true;
     }
 
-    private void addMatchedGoods(Bucket bucket) {
+    public void addBucket(String epcStr) {
+        if (!buckets.containsKey(epcStr)) {
+            buckets.put(epcStr, System.currentTimeMillis());
+            removes.remove(epcStr);
+            addMatchedGoods(epcStr);
+        }
+    }
+
+    public boolean removeBucket(String epcStr) {
+        if (buckets.containsKey(epcStr)) {
+            buckets.remove(epcStr);
+            removes.put(epcStr, System.currentTimeMillis());
+            removeMatchedGoods(epcStr);
+            for (Stack stack : stacks) {
+                stack.removeBucket(epcStr);
+            }
+            return true;
+        }
+        return false;
+    }
+
+    private void addMatchedGoods(String epcStr) {
+        IntStrPair product = CommonUtils.getProduct(epcStr);
         for (Goods goods : goods) {
-            if (goods.getCode() == bucket.getCode()) {
+            if (goods.getCode() == product.getInt()) {
                 goods.addCurCount();
                 return;
             }
         }
-        goods.add(new Goods(bucket.getProductInfo(), 0));
-        addMatchedGoods(bucket);
+        goods.add(new Goods(product, 0));
     }
 
-    private void removeMatchedGoods(Bucket bucket) {
+    private void removeMatchedGoods(String epcStr) {
+        IntStrPair product = CommonUtils.getProduct(epcStr);
         for (Goods goods : goods) {
-            if (goods.getCode() == bucket.getCode()) {
+            if (goods.getCode() == product.getInt()) {
                 goods.minusCurCount();
                 break;
             }

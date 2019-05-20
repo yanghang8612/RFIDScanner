@@ -55,34 +55,6 @@
             android:padding="10dp">
 
             <LinearLayout
-                android:visibility="gone"
-                android:id="@+id/ll_config_line_name"
-                android:orientation="horizontal"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content">
-
-                <TextView
-                    android:theme="@style/AppTheme.CommonText"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:gravity="end"
-                    android:text="@string/config_line_name_label" />
-
-                <com.rengwuxian.materialedittext.MaterialEditText
-                    android:id="@+id/met_config_line_name"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="3"
-                    android:layout_marginStart="@dimen/config_item_margin"
-                    android:textSize="12sp"
-                    android:inputType="textCapCharacters"
-                    android:imeOptions="flagNoFullscreen"
-                    app:met_underlineColor="@color/black" />
-
-            </LinearLayout>
-
-            <LinearLayout
                 android:orientation="horizontal"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content">
@@ -109,35 +81,6 @@
             </LinearLayout>
 
             <LinearLayout
-                android:visibility="gone"
-                android:layout_width="match_parent"
-                android:layout_height="@dimen/config_item_height"
-                android:gravity="center_vertical">
-
-                <TextView
-                    android:theme="@style/AppTheme.CommonText"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:gravity="end"
-                    android:text="@string/config_use_switch_label" />
-
-                <LinearLayout
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="3"
-                    android:layout_marginStart="@dimen/config_item_margin">
-
-                    <Switch
-                        android:id="@+id/sw_config_usb_switch"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content" />
-
-                </LinearLayout>
-
-            </LinearLayout>
-
-            <LinearLayout
                 android:orientation="horizontal"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content">
@@ -151,40 +94,14 @@
                     android:text="@string/config_main_platform_addr_label" />
 
                 <com.rengwuxian.materialedittext.MaterialEditText
-                    android:id="@+id/met_config_main_platform_addr"
+                    android:id="@+id/met_config_device_addr"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
-                    android:layout_weight="3"
                     android:layout_marginStart="@dimen/config_item_margin"
-                    android:textSize="12sp"
-                    android:inputType="textUri"
-                    android:imeOptions="flagNoFullscreen"
-                    app:met_underlineColor="@color/black" />
-
-            </LinearLayout>
-
-            <LinearLayout
-                android:orientation="horizontal"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content">
-
-                <TextView
-                    android:theme="@style/AppTheme.CommonText"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:gravity="end"
-                    android:text="@string/config_monitor_app_addr_label" />
-
-                <com.rengwuxian.materialedittext.MaterialEditText
-                    android:id="@+id/met_config_monitor_app_addr"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
                     android:layout_weight="3"
-                    android:layout_marginStart="@dimen/config_item_margin"
-                    android:textSize="12sp"
-                    android:inputType="textUri"
                     android:imeOptions="flagNoFullscreen"
+                    android:inputType="textUri"
+                    android:textSize="12sp"
                     app:met_underlineColor="@color/black" />
 
             </LinearLayout>
@@ -288,54 +205,6 @@
                         app:met_underlineColor="@color/black" />
 
                 </LinearLayout>
-
-            </LinearLayout>
-
-            <LinearLayout
-                android:orientation="horizontal"
-                android:layout_width="match_parent"
-                android:layout_height="36dp"
-                android:gravity="center">
-
-                <TextView
-                    android:theme="@style/AppTheme.CommonText"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:gravity="end"
-                    android:text="@string/config_reader_mac_label" />
-
-                <TextView
-                    android:id="@+id/met_config_reader_mac"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="3"
-                    android:layout_marginStart="@dimen/config_item_margin"
-                    android:theme="@style/AppTheme.CommonText"
-                    android:text="00:00:00:00:00:00" />
-
-            </LinearLayout>
-
-            <LinearLayout
-                android:orientation="horizontal"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:layout_marginTop="@dimen/config_item_margin">
-
-                <TextView
-                    android:theme="@style/AppTheme.CommonText"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:gravity="end"
-                    android:text="@string/config_reader_list_label" />
-
-                <android.support.v7.widget.RecyclerView
-                    android:id="@+id/rv_reader_list"
-                    android:layout_width="0dp"
-                    android:layout_height="match_parent"
-                    android:layout_weight="3"
-                    android:layout_marginStart="@dimen/config_item_margin" />
 
             </LinearLayout>
 
@@ -512,54 +381,6 @@
 
                 <com.weiwangcn.betterspinner.library.BetterSpinner
                     android:id="@+id/spn_config_tag_lifecycle"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="2"
-                    android:layout_marginStart="@dimen/config_item_margin"
-                    android:textSize="12sp" />
-
-            </LinearLayout>
-
-            <LinearLayout
-                android:visibility="gone"
-                android:layout_width="match_parent"
-                android:layout_height="@dimen/config_item_height"
-                android:gravity="center_vertical">
-
-                <TextView
-                    android:theme="@style/AppTheme.CommonText"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:gravity="end"
-                    android:text="@string/config_blank_interval_label" />
-
-                <com.weiwangcn.betterspinner.library.BetterSpinner
-                    android:id="@+id/spn_config_blank_interval"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="2"
-                    android:layout_marginStart="@dimen/config_item_margin"
-                    android:textSize="12sp" />
-
-            </LinearLayout>
-
-            <LinearLayout
-                android:visibility="gone"
-                android:layout_width="match_parent"
-                android:layout_height="@dimen/config_item_height"
-                android:gravity="center_vertical">
-
-                <TextView
-                    android:theme="@style/AppTheme.CommonText"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:gravity="end"
-                    android:text="@string/config_discovery_interval_label" />
-
-                <com.weiwangcn.betterspinner.library.BetterSpinner
-                    android:id="@+id/spn_config_discovery_interval"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="2"

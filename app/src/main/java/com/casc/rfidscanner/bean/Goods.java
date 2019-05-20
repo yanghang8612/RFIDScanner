@@ -3,7 +3,7 @@ package com.casc.rfidscanner.bean;
 public class Goods {
 
     // 产品名称
-    private ProductInfo info;
+    private IntStrPair product;
 
     // 总数量
     private int totalCount;
@@ -11,17 +11,18 @@ public class Goods {
     // 出库数量
     private int curCount;
 
-    public Goods(ProductInfo info, int totalCount) {
-        this.info = info;
+    public Goods(IntStrPair product, int totalCount) {
+        this.product = product;
         this.totalCount = totalCount;
+        this.curCount += totalCount == 0 ? 1 : 0;
     }
 
     public int getCode() {
-        return info.getCode();
+        return product.getInt();
     }
 
     public String getName() {
-        return info.getName();
+        return product.getStr();
     }
 
     public int getTotalCount() {
@@ -48,16 +49,12 @@ public class Goods {
         this.curCount--;
     }
 
-    public boolean isBucketMatched(Bucket bucket) {
-        return bucket.getProductInfo().getCode() == info.getCode();
-    }
-
     @Override
     public boolean equals(Object obj) {
         if (this == obj) return true;
         if (obj instanceof Goods) {
             Goods other = (Goods) obj;
-            return this.info.getCode() == other.info.getCode();
+            return this.product.getInt() == other.product.getInt();
         }
         return false;
     }

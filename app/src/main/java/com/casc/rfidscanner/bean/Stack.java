@@ -3,37 +3,70 @@ package com.casc.rfidscanner.bean;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 
 public class Stack {
 
-    private Set<String> mBucketsInStack = new HashSet<>();
+    private int id;
 
-    private Set<String> mBucketFound = new HashSet<>();
+    private Set<String> mBuckets = new HashSet<>();
 
-    private long mCreatedTime;
+    public Stack() {
+        this.id = -1;
+    }
 
     public Stack(List<String> buckets) {
-        mBucketsInStack.addAll(buckets);
-        mCreatedTime = System.currentTimeMillis();
+        this(-1, buckets);
+    }
+
+    public Stack(int id, List<String> buckets) {
+        this.id = id;
+        mBuckets.addAll(buckets);
+    }
+
+    public int getId() {
+        return id;
+    }
+
+    public boolean isBulk() {
+        return id == -1;
+    }
+
+    public int size() {
+        return mBuckets.size();
     }
 
     public List<String> getBuckets() {
-        return new LinkedList<>(mBucketsInStack);
+        return new LinkedList<>(mBuckets);
     }
 
-    public long getCreatedTime() {
-        return mCreatedTime;
+    public void addBuckets(List<String> buckets) {
+        mBuckets.addAll(buckets);
     }
 
-    public boolean containBucket(String epcStr) {
-        if (mBucketsInStack.contains(epcStr)) {
-            mBucketFound.add(epcStr);
-        }
-        return mBucketsInStack.contains(epcStr);
+    public void addBucket(String epcStr) {
+        mBuckets.add(epcStr);
     }
 
-    public boolean isFound() {
-        return mBucketFound.size() >= 3;
+    public boolean contains(String epcStr) {
+        return mBuckets.contains(epcStr);
+    }
+
+    public void removeBucket(String epcStr) {
+        mBuckets.remove(epcStr);
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Stack stack = (Stack) o;
+        return id == stack.id;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id);
     }
 }

@@ -17,7 +17,7 @@ public class ReaderAdapter extends BaseQuickAdapter<BluetoothDevice, BaseViewHol
 
     @Override
     protected void convert(BaseViewHolder helper, BluetoothDevice item) {
-//        if (item.getAddress().equals(ConfigHelper.getParam(MyParams.S_READER_MAC)))
+//        if (item.getAddress().equals(SpHelper.getParam(MyParams.S_READER_MAC)))
 //            helper.setBackgroundRes(R.id.ll_reader_content, R.drawable.bg_reader_selected);
         helper.setText(R.id.tv_reader_name, item.getName())
                 .setText(R.id.tv_reader_mac, item.getAddress())

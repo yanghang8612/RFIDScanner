@@ -20,13 +20,14 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.afollestad.materialdialogs.DialogAction;
+import com.afollestad.materialdialogs.MaterialDialog;
 import com.casc.rfidscanner.MyParams;
 import com.casc.rfidscanner.MyVars;
 import com.casc.rfidscanner.R;
 import com.casc.rfidscanner.activity.SafeCodeActivity;
 import com.casc.rfidscanner.helper.NetHelper;
-import com.casc.rfidscanner.helper.param.Reply;
-import com.casc.rfidscanner.message.BatteryStatusMessage;
+import com.casc.rfidscanner.helper.net.param.Reply;
 import com.casc.rfidscanner.message.MultiStatusMessage;
 
 import org.greenrobot.eventbus.EventBus;
@@ -36,11 +37,12 @@ import org.greenrobot.eventbus.ThreadMode;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Locale;
-import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
+import butterknife.OnClick;
+import butterknife.OnLongClick;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
@@ -52,78 +54,41 @@ public abstract class BaseFragment extends Fragment {
 
     private static final String TAG = BaseFragment.class.getSimpleName();
 
-    @BindView(R.id.ll_connection_status) LinearLayout mConnectionStatusLl;
-    @BindView(R.id.iv_reader_status) ImageView mReaderStatusIv;
-    @BindView(R.id.iv_network_status ) ImageView mNetworkStatusIv;
-    @BindView(R.id.iv_platform_status) ImageView mPlatformStatusIv;
-    @BindView(R.id.iv_battery_status) ImageView mBatteryStatusIv;
-    @BindView(R.id.tv_time_hour) TextView mTimeHourIv;
-    @BindView(R.id.tv_time_colon) TextView mTimeColonIv;
-    @BindView(R.id.tv_time_minute) TextView mTimeMinuteIv;
-    @BindView(R.id.btn_backdoor) Button mBackdoorBtn;
-
     // Fragment所属Activity上下文
     protected Context mContext;
 
-    // 运维专用卡扫描计数器
-    protected int mAdminCardScannedCount;
+    // 运维专用卡扫描计数器以及声音资源ID
+    protected int mAdminCardScannedCount, mSoundID;
 
     // 播放实例
     private SoundPool mSoundPool =
             new SoundPool.Builder()
                     .setMaxStreams(10)
                     .setAudioAttributes(new AudioAttributes.Builder()
-                                    .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
-                                    .build())
+                            .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
+                            .build())
                     .build();
 
-    // 资源ID
-    private int mSoundID, mAlertID;
-
-    private int mBackdoorCount;
-
+    // 提示框实例
     private Toast mToast;
 
     // 系统震动辅助类
     protected Vibrator mVibrator;
 
-    @Subscribe(threadMode = ThreadMode.MAIN)
-    public void onMessageEvent(BatteryStatusMessage message) {
-        if (mBatteryStatusIv == null)
-            return;
-        if (message.batteryPct < 0.2) {
-            mBatteryStatusIv.setImageResource(message.isCharging ?
-                    R.drawable.ic_battery_charging_20 :
-                    R.drawable.ic_battery_alert);
-        } else if (message.batteryPct < 0.3) {
-            mBatteryStatusIv.setImageResource(message.isCharging ?
-                    R.drawable.ic_battery_charging_20 :
-                    R.drawable.ic_battery_20);
-        } else if (message.batteryPct < 0.5) {
-            mBatteryStatusIv.setImageResource(message.isCharging ?
-                    R.drawable.ic_battery_charging_30 :
-                    R.drawable.ic_battery_30);
-        } else if (message.batteryPct < 0.6) {
-            mBatteryStatusIv.setImageResource(message.isCharging ?
-                    R.drawable.ic_battery_charging_50 :
-                    R.drawable.ic_battery_50);
-        } else if (message.batteryPct < 0.8) {
-            mBatteryStatusIv.setImageResource(message.isCharging ?
-                    R.drawable.ic_battery_charging_60 :
-                    R.drawable.ic_battery_60);
-        } else if (message.batteryPct < 0.9) {
-            mBatteryStatusIv.setImageResource(message.isCharging ?
-                    R.drawable.ic_battery_charging_80 :
-                    R.drawable.ic_battery_80);
-        } else if (message.batteryPct < 0.95) {
-            mBatteryStatusIv.setImageResource(message.isCharging ?
-                    R.drawable.ic_battery_charging_90 :
-                    R.drawable.ic_battery_90);
-        } else {
-            mBatteryStatusIv.setImageResource(message.isCharging ?
-                    R.drawable.ic_battery_charging_full :
-                    R.drawable.ic_battery_full);
+    @BindView(R.id.ll_connection_status) LinearLayout mConnectionStatusLl;
+    @BindView(R.id.iv_reader_status) ImageView mReaderStatusIv;
+    @BindView(R.id.iv_network_status ) ImageView mNetworkStatusIv;
+    @BindView(R.id.iv_platform_status) ImageView mPlatformStatusIv;
+    @BindView(R.id.tv_time_hour) TextView mTimeHourIv;
+    @BindView(R.id.tv_time_colon) TextView mTimeColonIv;
+    @BindView(R.id.tv_time_minute) TextView mTimeMinuteIv;
+
+    @OnLongClick(R.id.btn_backdoor) boolean onBackDoorButtonClicked() {
+        if (MyParams.ENABLE_BACKDOOR) {
+            SafeCodeActivity.actionStart(mContext);
+            return true;
         }
+        return false;
     }
 
     @CallSuper
@@ -146,16 +111,17 @@ public abstract class BaseFragment extends Fragment {
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        EventBus.getDefault().register(this);
+
         mContext = getActivity();
         mSoundID = mSoundPool.load(mContext, R.raw.timer, 1);
-        mAlertID = mSoundPool.load(mContext, R.raw.alert, 1);
+        mVibrator = (Vibrator) mContext.getSystemService(Context.VIBRATOR_SERVICE);
+
         mToast = Toast.makeText(mContext, "", Toast.LENGTH_SHORT);
         LinearLayout layout = (LinearLayout) mToast.getView();
         TextView tv = (TextView) layout.getChildAt(0);
         tv.setTextSize(24);
         mToast.setGravity(Gravity.CENTER, 0, 0);
-        mVibrator = (Vibrator) mContext.getSystemService(Context.VIBRATOR_SERVICE);
-        EventBus.getDefault().register(this);
     }
 
     @Override
@@ -168,9 +134,6 @@ public abstract class BaseFragment extends Fragment {
     @Override
     public void onActivityCreated(Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
-        if (MyVars.batteryStatus != null) onMessageEvent(MyVars.batteryStatus);
-        MyVars.fragmentExecutor = Executors.newScheduledThreadPool(5);
-        MyVars.fragmentExecutor.scheduleWithFixedDelay(new BackdoorTask(), 0, 10, TimeUnit.MILLISECONDS);
         initFragment();
     }
 
@@ -185,7 +148,6 @@ public abstract class BaseFragment extends Fragment {
         super.onDestroy();
         mToast.cancel();
         EventBus.getDefault().unregister(this);
-        MyVars.fragmentExecutor.shutdown();
         MyVars.cache.clear();
     }
 
@@ -199,10 +161,6 @@ public abstract class BaseFragment extends Fragment {
         mSoundPool.play(mSoundID, 1, 1, 10, 0, 1.0F);
     }
 
-    protected void playAlert() {
-        mSoundPool.play(mAlertID, 1, 1, 10, 0, 1.0F);
-    }
-
     protected void increaseCount(TextView view) {
         int count = Integer.valueOf(view.getText().toString());
         view.setText(String.valueOf(++count));
@@ -211,23 +169,6 @@ public abstract class BaseFragment extends Fragment {
     protected void decreaseCount(TextView view) {
         int count = Integer.valueOf(view.getText().toString());
         view.setText(String.valueOf(--count));
-    }
-
-    protected void sendAdminLoginMessage(String cardEPCStr) {
-        NetHelper.getInstance()
-                .uploadAdminLoginInfo(cardEPCStr)
-                .enqueue(new Callback<Reply>() {
-                    @Override
-                    public void onResponse(@NonNull Call<Reply> call, @NonNull Response<Reply> response) {
-                        Reply body = response.body();
-                        if (!response.isSuccessful() || body == null || body.getCode() != 200) {
-                        }
-                    }
-
-                    @Override
-                    public void onFailure(@NonNull Call<Reply> call, @NonNull Throwable t) {
-                    }
-                });
     }
 
     protected void showToast(String content) {
@@ -240,19 +181,15 @@ public abstract class BaseFragment extends Fragment {
         mToast.show();
     }
 
-    private class BackdoorTask implements Runnable {
-
-        @Override
-        public void run() {
-            if (mBackdoorBtn.isPressed()) {
-                mBackdoorCount += 1;
-            } else {
-                mBackdoorCount = 0;
-            }
-            if (MyParams.ENABLE_BACKDOOR && mBackdoorCount == 10) {
-                SafeCodeActivity.actionStart(mContext);
-//                ConfigActivity.actionStart(mContext);
-            }
-        }
+    protected void showDialog(String content, MaterialDialog.SingleButtonCallback callback) {
+        new MaterialDialog.Builder(mContext)
+                .content(content)
+                .positiveText("确认")
+                .positiveColorRes(R.color.white)
+                .btnSelector(R.drawable.md_btn_postive, DialogAction.POSITIVE)
+                .negativeText("取消")
+                .negativeColorRes(R.color.gray)
+                .onPositive(callback)
+                .show();
     }
 }

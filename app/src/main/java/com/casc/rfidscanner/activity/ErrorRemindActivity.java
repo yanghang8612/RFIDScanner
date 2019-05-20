@@ -19,21 +19,18 @@ public class ErrorRemindActivity extends BaseActivity {
         context.startActivity(intent);
     }
 
-    @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_error_remind);
-        ButterKnife.bind(this);
-    }
-
-    @Override
-    public void finish() {
-        super.finish();
-        overridePendingTransition(0, 0);
-    }
-
-    @OnClick(R.id.btn_reset)
-    void onResetButtonClicked() {
+    @OnClick(R.id.btn_reset) void onResetButtonClicked() {
         finish();
     }
+
+    @Override
+    protected void initActivity() {
+
+    }
+
+    @Override
+    protected int getLayout() {
+        return R.layout.activity_error_remind;
+    }
+
 }

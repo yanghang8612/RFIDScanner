@@ -8,9 +8,11 @@ import android.os.Environment;
 import android.os.Looper;
 import android.os.Process;
 import android.text.TextUtils;
+import android.util.Log;
 import android.widget.Toast;
 
 import com.casc.rfidscanner.helper.NetHelper;
+import com.casc.rfidscanner.helper.net.param.MsgLog;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -101,6 +103,7 @@ public class CrashHandler implements Thread.UncaughtExceptionHandler {
         if (e == null) { // 异常是否为空
             return false;
         }
+        e.printStackTrace();
         new Thread() {// 在主线程中弹出提示
             @Override
             public void run() {
@@ -109,9 +112,9 @@ public class CrashHandler implements Thread.UncaughtExceptionHandler {
                 Looper.loop();
             }
         }.start();
-        MyVars.cache.storeLogMessage("主线线程出现异常：" + e.getLocalizedMessage());
+        MyVars.cache.storeLogMessage(MsgLog.error("主线线程出现异常：" + e.getMessage()));
         collectErrorMessages();
-        saveErrorMessages(e);
+        //saveErrorMessages(e);
         return false;
     }
 

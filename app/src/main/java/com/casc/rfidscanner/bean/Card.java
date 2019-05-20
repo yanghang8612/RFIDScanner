@@ -57,18 +57,18 @@ public class Card {
             case "出库专用卡":
                 this.pc = CommonUtils.generatePC(MyParams.EPC_DELIVERY_CARD_LENGTH);
                 this.epc = new byte[MyParams.EPC_DELIVERY_CARD_LENGTH];
-                this.type = String.valueOf(MyParams.EPCType.CARD_DELIVERY.getCode());
+                this.type = String.valueOf(EPCType.CARD_DELIVERY.getCode());
                 System.arraycopy(CommonUtils.generateEPCHeader(), 0, this.epc, 0, MyParams.EPC_HEADER_LENGTH);
-                epc[MyParams.EPC_TYPE_INDEX] = MyParams.EPCType.CARD_DELIVERY.getCode();
+                epc[MyParams.EPC_TYPE_INDEX] = EPCType.CARD_DELIVERY.getCode();
                 epc[MyParams.EPC_TYPE_INDEX + 1] = (byte) (Integer.valueOf(bodyCode.substring(4)) >> 8);
                 epc[MyParams.EPC_TYPE_INDEX + 2] = (byte) (Integer.valueOf(bodyCode.substring(4)) & 0xFF);
                 break;
             case "运维专用卡":
                 this.pc = CommonUtils.generatePC(MyParams.EPC_ADMIN_CARD_LENGTH);
                 this.epc = new byte[MyParams.EPC_ADMIN_CARD_LENGTH];
-                this.type = String.valueOf(MyParams.EPCType.CARD_ADMIN.getCode());
+                this.type = String.valueOf(EPCType.CARD_ADMIN.getCode());
                 System.arraycopy(CommonUtils.generateEPCHeader(), 0, this.epc, 0, MyParams.EPC_HEADER_LENGTH);
-                epc[MyParams.EPC_TYPE_INDEX] = MyParams.EPCType.CARD_ADMIN.getCode();
+                epc[MyParams.EPC_TYPE_INDEX] = EPCType.CARD_ADMIN.getCode();
                 epc[MyParams.EPC_TYPE_INDEX + 1] = (byte) (Integer.valueOf(bodyCode.substring(4)) >> 8);
                 epc[MyParams.EPC_TYPE_INDEX + 2] = (byte) (Integer.valueOf(bodyCode.substring(4)) & 0xFF);
                 System.arraycopy(BigInteger.valueOf(this.life).toByteArray(), 0, epc, MyParams.EPC_TYPE_INDEX + 3, 4);
@@ -76,24 +76,24 @@ public class Card {
             case "回流专用卡":
                 this.pc = CommonUtils.generatePC(MyParams.EPC_REFLUX_CARD_LENGTH);
                 this.epc = new byte[MyParams.EPC_REFLUX_CARD_LENGTH];
-                this.type = String.valueOf(MyParams.EPCType.CARD_REFLUX.getCode());
+                this.type = String.valueOf(EPCType.CARD_REFLUX.getCode());
                 System.arraycopy(CommonUtils.generateEPCHeader(), 0, this.epc, 0, MyParams.EPC_HEADER_LENGTH);
-                epc[MyParams.EPC_TYPE_INDEX] = MyParams.EPCType.CARD_REFLUX.getCode();
+                epc[MyParams.EPC_TYPE_INDEX] = EPCType.CARD_REFLUX.getCode();
                 epc[MyParams.EPC_TYPE_INDEX + 1] = (byte) (Integer.valueOf(bodyCode.substring(4)) >> 8);
                 epc[MyParams.EPC_TYPE_INDEX + 2] = (byte) (Integer.valueOf(bodyCode.substring(4)) & 0xFF);
                 break;
         }
     }
 
-    public byte[] getPc() {
+    public byte[] getPC() {
         return pc;
     }
 
-    public byte[] getEpc() {
+    public byte[] getEPC() {
         return epc;
     }
 
-    public byte[] getTid() {
+    public byte[] getTID() {
         return tid;
     }
 
@@ -101,7 +101,7 @@ public class Card {
         return type;
     }
 
-    public void setTid(byte[] tid) {
+    public void setTID(byte[] tid) {
         this.tid = tid;
     }
 
