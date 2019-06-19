@@ -36,7 +36,7 @@ abstract class BaseReaderImpl implements TagReader {
     int mState = TagReader.STATE_NONE;
 
     // 读写器的工作状态
-    boolean mIsRunning;
+    boolean mIsRunning = true;
 
     // 读写器的运行标志
     private boolean mIsShutdown;
@@ -172,6 +172,7 @@ abstract class BaseReaderImpl implements TagReader {
                 mLock.unlock();
             }
             mState = STATE_NONE;
+            EventBus.getDefault().post(MyVars.status.setReaderStatus(false));
             mPower = mQValue = "";
         }
     }

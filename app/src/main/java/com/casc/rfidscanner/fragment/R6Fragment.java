@@ -110,25 +110,25 @@ public class R6Fragment extends BaseFragment {
         if (!mIsBacking) {
             mIsBacking = true;
             mTitleTv.setText("成品退库");
-            mTitleTv.getBackground().setTint(mContext.getColor(R.color.red));
+            mTitleTv.getBackground().setTint(CommonUtils.getColor(R.color.red));
         } else {
             mIsBacking = false;
             mTitleTv.setText("成品出库");
-            mTitleTv.getBackground().setTint(mContext.getColor(R.color.white));
+            mTitleTv.getBackground().setTint(CommonUtils.getColor(R.color.white));
         }
     }
 
     @OnClick({R.id.cv_r6_stack_1, R.id.cv_r6_stack_2, R.id.cv_r6_bulk, R.id.cv_r6_scanned})
     void onStackClicked(CardView view) {
         if (mSelectedStackView == view) {
-            mSelectedStackView.setCardBackgroundColor(mContext.getColor(R.color.snow));
+            mSelectedStackView.setCardBackgroundColor(CommonUtils.getColor(R.color.snow));
             mSelectedStackView = null;
         } else {
             if (mSelectedStackView != null) {
-                mSelectedStackView.setCardBackgroundColor(mContext.getColor(R.color.snow));
+                mSelectedStackView.setCardBackgroundColor(CommonUtils.getColor(R.color.snow));
             }
             mSelectedStackView = view;
-            mSelectedStackView.setCardBackgroundColor(mContext.getColor(R.color.wheat));
+            mSelectedStackView.setCardBackgroundColor(CommonUtils.getColor(R.color.wheat));
         }
         merge();
     }
@@ -163,7 +163,7 @@ public class R6Fragment extends BaseFragment {
                 mUnidentifiedBuckets.clear();
             }
             if (mSelectedStackView != null) {
-                mSelectedStackView.setCardBackgroundColor(mContext.getColor(R.color.snow));
+                mSelectedStackView.setCardBackgroundColor(CommonUtils.getColor(R.color.snow));
             }
             mSelectedStackView = mStackViewToDelete = null;
             Message.obtain(mHandler, MSG_UPDATE_STACKS).sendToTarget();
@@ -186,7 +186,7 @@ public class R6Fragment extends BaseFragment {
         MyVars.cache.storeDeliveryBill(delivery);
         showToast("提交成功");
         if (mCurBill == mSelectedBill) {
-            mSelectedBillView.setCardBackgroundColor(mContext.getColor(R.color.snow));
+            mSelectedBillView.setCardBackgroundColor(CommonUtils.getColor(R.color.snow));
             mSelectedBillView = null;
             mSelectedBill = null;
         }
@@ -253,16 +253,16 @@ public class R6Fragment extends BaseFragment {
             @Override
             public void onItemClick(BaseQuickAdapter adapter, View view, int position) {
                 if (mSelectedBillView == view) {
-                    mSelectedBillView.setCardBackgroundColor(mContext.getColor(R.color.snow));
+                    mSelectedBillView.setCardBackgroundColor(CommonUtils.getColor(R.color.snow));
                     mSelectedBillView = null;
                     mSelectedBill = null;
                 } else {
                     if (mSelectedBillView != null) {
-                        mSelectedBillView.setCardBackgroundColor(mContext.getColor(R.color.snow));
+                        mSelectedBillView.setCardBackgroundColor(CommonUtils.getColor(R.color.snow));
                     }
                     mSelectedBill = mBills.get(position);
                     mSelectedBillView = (CardView) view;
-                    mSelectedBillView.setCardBackgroundColor(mContext.getColor(R.color.wheat));
+                    mSelectedBillView.setCardBackgroundColor(CommonUtils.getColor(R.color.wheat));
                 }
                 merge();
             }
@@ -331,9 +331,9 @@ public class R6Fragment extends BaseFragment {
                     }
                 }
                 mCache.addAll(buckets);
-                mSelectedStackView.setCardBackgroundColor(mContext.getColor(R.color.snow));
+                mSelectedStackView.setCardBackgroundColor(CommonUtils.getColor(R.color.snow));
                 mSelectedStackView = null;
-                mSelectedBillView.setCardBackgroundColor(mContext.getColor(R.color.snow));
+                mSelectedBillView.setCardBackgroundColor(CommonUtils.getColor(R.color.snow));
                 mSelectedBillView = null;
                 mSelectedBill = null;
                 buckets.clear();

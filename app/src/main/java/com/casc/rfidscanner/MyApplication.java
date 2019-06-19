@@ -27,6 +27,7 @@ import com.google.gson.Gson;
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
 
+import java.sql.NClob;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
@@ -122,11 +123,12 @@ public class MyApplication extends Application {
         public void run() {
             if (mWifiManager.getWifiState() == WifiManager.WIFI_STATE_DISABLED)
                 mWifiManager.setWifiEnabled(true);
-            NetworkCapabilities nc = mConnectivityManager.getNetworkCapabilities(
-                    mConnectivityManager.getActiveNetwork());
-            MyVars.status.setReaderStatus(MyVars.getReader().isConnected());
-            MyVars.status.setNetworkStatus(nc != null &&
-                    nc.hasCapability(NetworkCapabilities.NET_CAPABILITY_VALIDATED));
+//            NetworkCapabilities nc = mConnectivityManager.getNetworkCapabilities(
+//                    mConnectivityManager.getActiveNetwork());
+//            MyVars.status.setReaderStatus(MyVars.getReader().isConnected());
+//            MyVars.status.setNetworkStatus(nc != null &&
+//                    nc.hasCapability(NetworkCapabilities.NET_CAPABILITY_VALIDATED));
+            MyVars.status.setNetworkStatus(true);
             if (!MyVars.status.networkStatus) {
                 MyVars.status.setPlatformStatus(false);
             }

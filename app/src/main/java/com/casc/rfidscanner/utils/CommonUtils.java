@@ -1,8 +1,12 @@
 package com.casc.rfidscanner.utils;
 
+import android.support.annotation.ColorInt;
+import android.support.annotation.ColorRes;
+import android.support.v4.content.ContextCompat;
 import android.text.TextUtils;
 import android.util.Log;
 
+import com.casc.rfidscanner.MyApplication;
 import com.casc.rfidscanner.MyParams;
 import com.casc.rfidscanner.MyVars;
 import com.casc.rfidscanner.bean.EPCType;
@@ -25,6 +29,11 @@ public class CommonUtils {
     private static final String TAG = CommonUtils.class.getSimpleName();
 
     private CommonUtils(){}
+
+    @ColorInt
+    public static int getColor(@ColorRes int id) {
+        return ContextCompat.getColor(MyApplication.getInstance(), id);
+    }
 
     public static IntStrPair getProduct(String epcStr) {
         return getProduct(CommonUtils.hexToBytes(epcStr));

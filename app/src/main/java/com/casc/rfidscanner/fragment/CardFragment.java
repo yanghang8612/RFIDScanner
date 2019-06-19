@@ -129,7 +129,7 @@ public class CardFragment extends BaseFragment {
                 mRegisterBtn.setEnabled(canRegister());
             }
             mReadNoneCount = 0;
-            mEpcTv.setBackgroundColor(mContext.getColor(R.color.white));
+            mEpcTv.setBackgroundColor(CommonUtils.getColor(R.color.white));
             //outer.mEpcTv.setText(CommonUtils.bytesToHex(epc));
             mEpcTv.setText(CommonUtils.bytesToHex(mScannedEPC)
                     + CommonUtils.validEPC(mScannedEPC).getComment());

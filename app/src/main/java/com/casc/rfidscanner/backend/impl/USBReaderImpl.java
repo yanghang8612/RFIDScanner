@@ -9,8 +9,11 @@ import android.hardware.usb.UsbDevice;
 import android.hardware.usb.UsbManager;
 import android.util.Log;
 
+import com.casc.rfidscanner.MyVars;
 import com.hoho.android.usbserial.driver.Cp21xxSerialDriver;
 import com.hoho.android.usbserial.driver.UsbSerialPort;
+
+import org.greenrobot.eventbus.EventBus;
 
 import java.io.IOException;
 import java.util.Map;
@@ -115,6 +118,7 @@ public class USBReaderImpl extends BaseReaderImpl {
                 mSerialPort.open(mUsbManager.openDevice(mUsbDevice));
                 mSerialPort.setParameters(115200, UsbSerialPort.DATABITS_8, UsbSerialPort.STOPBITS_1, UsbSerialPort.PARITY_NONE);
                 mState = STATE_CONNECTED;
+                EventBus.getDefault().post(MyVars.status.setReaderStatus(true));
             } catch (NullPointerException e) {
                 Log.i(TAG, "Need permission when build connection with reader by usb");
                 mUsbManager.requestPermission(mUsbDevice, PendingIntent.getBroadcast(mContext, 0, new Intent(ACTION_USB_PERMISSION), 0));

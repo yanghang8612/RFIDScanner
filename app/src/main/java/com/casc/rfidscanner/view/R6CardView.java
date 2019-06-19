@@ -12,6 +12,7 @@ import android.view.ViewGroup;
 
 import com.casc.rfidscanner.R;
 import com.casc.rfidscanner.fragment.R6Fragment;
+import com.casc.rfidscanner.utils.CommonUtils;
 
 import java.lang.ref.WeakReference;
 import java.util.LinkedList;
@@ -103,7 +104,7 @@ public class R6CardView extends CardView {
                     outer.mCountNs.setNumber(outer.mBuckets.size());
                     break;
                 case MSG_CLEAR_BUCKETS:
-                    outer.setCardBackgroundColor(outer.getContext().getColor(R.color.snow));
+                    outer.setCardBackgroundColor(CommonUtils.getColor(R.color.snow));
                     outer.mCountNs.setNumber(0);
                     break;
                 case MSG_ADD_BUCKET:

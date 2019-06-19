@@ -65,7 +65,7 @@ public class R5Fragment extends BaseFragment {
         synchronized (mLock) {
             mStatus = WorkStatus.IS_STACK;
             mStackBucketsLl.setEnabled(false);
-            mStackBucketsLl.getBackground().setTint(mContext.getColor(R.color.red));
+            mStackBucketsLl.getBackground().setTint(CommonUtils.getColor(R.color.red));
             mStackBucketsTv.setText("打垛中...");
             mBulkBucketsLl.setEnabled(false);
             mScannedCountNs.setNumber(0);
@@ -79,7 +79,7 @@ public class R5Fragment extends BaseFragment {
             mStatus = WorkStatus.IS_BULK;
             mStackBucketsLl.setEnabled(false);
             mBulkBucketsLl.setEnabled(false);
-            mBulkBucketsLl.getBackground().setTint(mContext.getColor(R.color.red));
+            mBulkBucketsLl.getBackground().setTint(CommonUtils.getColor(R.color.red));
             mBulkBucketsTv.setText("打垛中...");
             mScannedCountNs.setNumber(0);
             mHandler.sendMessageDelayed(mHandler.obtainMessage(MSG_COMPLETE),
@@ -176,10 +176,10 @@ public class R5Fragment extends BaseFragment {
                         outer.mBucketsToRemove = new LinkedHashMap<>();
                         outer.mStatus = WorkStatus.IS_IDLE;
                         outer.mStackBucketsLl.setEnabled(true);
-                        outer.mStackBucketsLl.getBackground().setTint(outer.mContext.getColor(R.color.light_gray));
+                        outer.mStackBucketsLl.getBackground().setTint(CommonUtils.getColor(R.color.light_gray));
                         outer.mStackBucketsTv.setText("入整垛区");
                         outer.mBulkBucketsLl.setEnabled(true);
-                        outer.mBulkBucketsLl.getBackground().setTint(outer.mContext.getColor(R.color.light_gray));
+                        outer.mBulkBucketsLl.getBackground().setTint(CommonUtils.getColor(R.color.light_gray));
                         outer.mBulkBucketsTv.setText("入散货区");
                     }
                     break;
